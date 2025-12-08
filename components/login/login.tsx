@@ -37,18 +37,18 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
 
-          <CardContent>
+          <CardContent >
           <Tabs 
           value={role}
           //handle the change of tab value, on evey change it updates the state and renders the right content
           onValueChange={(value) => setRole(value as "company" | "trade")} 
           className="w-full"
           >
-            <TabsList>
-              <TabsTrigger value='company'>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value='company' className="flex items-center gap-2">
                   Rectuter
               </TabsTrigger>
-              <TabsTrigger value='trade'>
+              <TabsTrigger value='trade' className="flex items-center gap-2">
                   Trade
               </TabsTrigger>
             </TabsList>
@@ -58,14 +58,79 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
            the content showes based on the selected tabs and it is all within a form that later can be submitted
             */}
         
-          <form>
-            <TabsContent value='company'>
-                company
+          <form >
+             {/* Company tab */}
+            <TabsContent value='company' className="space-y-4 mt-0 ">
+            <div className="space-y-2">
+                <Label htmlFor="company-email">Email</Label>
+                <Input
+                  id="company-email"
+                  type="email"
+                  placeholder="company@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-white"
+                />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company-password">Password</Label>
+              <Input
+                id="company-password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-white"
+              />
+            </div>
+
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+              Sign In as Company
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
             </TabsContent>
 
-            <TabsContent value='trade'>
-                trade
+
+
+             {/* Trade tab */}
+            <TabsContent value='trade' className="space-y-4 mt-0">
+
+              <div className="space-y-2">
+                <Label htmlFor="trade-email">Email</Label>
+                <Input
+                  id="trade-email"
+                  type="email"
+                  placeholder="tradesperson@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="trade-password">Password</Label>
+                <Input
+                  id="trade-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-white"
+                />
+              </div>
+
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                Sign In as Trade
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
             </TabsContent>
+
+
           </form>
 
           </Tabs>
