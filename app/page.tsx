@@ -1,12 +1,18 @@
-import AdminLogin from "./components/admin/admin_login";
+"use client";
+
+
+import LoginScreen from "@/app/login/page";
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main>
-        <h1>Welcome to TradeFair. This is a test.</h1>
 
-        <AdminLogin/>
+  const handleLogin = (_role: 'company' | 'trade') => {
+    // Later on Authentication would be handled here in production
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black w-full">
+      <main className="w-full">
+        <LoginScreen onLogin={handleLogin}/>
       </main>
     </div>
   );
