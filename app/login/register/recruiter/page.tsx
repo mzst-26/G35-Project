@@ -38,7 +38,6 @@ export default function RegisterRecruiter() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/verification-success');
   };
 
   const handleChange = (field: keyof CompanyRegistrationFormData, value: string) => {
@@ -47,8 +46,6 @@ export default function RegisterRecruiter() {
 
 
   return (
-    // Note: The structure and styling (Card, Input fields, etc.) remain the same
-    // as they are standard React/ShadCn/Tailwind patterns.
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <div className="max-w-2xl mx-auto py-8">
         <Button

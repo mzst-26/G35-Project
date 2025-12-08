@@ -1,8 +1,7 @@
 "use client";
 
 
-import LoginScreen from "@/app/login/login";
-import RegisterRecruiter from "@/app/login/register/recruiter/page";
+import LoginScreen from "@/app/login/page";
 
 export default function Home() {
 

@@ -55,7 +55,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <Tabs 
           value={role}
           //handle the change of tab value, on evey change it updates the state and renders the right content
-          onValueChange={(value) => setRole(value as "company" | "trade")} 
+          onValueChange={(value: string) => setRole(value as "company" | "trade")} 
           className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-300/60 backdrop-blur-xl rounded-full">
@@ -173,7 +173,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => router.push('/login/register/trade')}
                       className="w-full"
                     >
                       <Wrench className="h-4 w-4 mr-2" />
