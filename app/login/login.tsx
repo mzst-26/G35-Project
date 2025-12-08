@@ -1,12 +1,14 @@
+"use client";
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from "next/navigation";
 
 // UI primitives
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Building2, Wrench, ArrowRight, Shield } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -15,7 +17,7 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // local form state
   const [email, setEmail] = useState('');
@@ -162,7 +164,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/register/company')}
+                      onClick={() => router.push('/login/register/recruiter')}
                       className="w-full"
                     >
                       <Building2 className="h-4 w-4 mr-2" />
@@ -171,7 +173,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/register/trade')}
+                      onClick={() => router.push('/login/register/trade')}
                       className="w-full"
                     >
                       <Wrench className="h-4 w-4 mr-2" />

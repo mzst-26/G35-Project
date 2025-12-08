@@ -1,8 +1,8 @@
 "use client";
 
 
-import LoginScreen from "@/components/login/login";
-import { Route, Routes } from "react-router-dom";
+import LoginScreen from "@/app/login/login";
+import RegisterRecruiter from "@/app/login/register/recruiter/page";
 
 export default function Home() {
 
@@ -13,12 +13,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black w-full">
       <main className="w-full">
-        <Routes>
-          <Route path="/" element={<LoginScreen onLogin={handleLogin} />} />
-          {/* <Route path="/admin/adminLogin" element={<AdminLogin />} />
-          <Route path="/admin/companyReg" element={<CompanyReg />} />
-          <Route path="/admin/WorkerReg" element={<WorkerReg />} /> */}
-        </Routes>
+        <LoginScreen onLogin={handleLogin}/>
       </main>
     </div>
   );
