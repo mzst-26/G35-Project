@@ -36,9 +36,26 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <CardTitle>Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p>Login form goes here...</p>
-        </CardContent>
+
+          <CardContent>
+          <Tabs 
+          value={role}
+          //handle the change of tab value, on evey change it updates the state and renders the right content
+          onValueChange={(value) => setRole(value as "company" | "trade")} 
+          className="w-full"
+          >
+            <TabsList>
+              <TabsTrigger value='company'>
+                  Rectuter
+              </TabsTrigger>
+              <TabsTrigger value='trade'>
+                  Trade
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          </CardContent>
+
+          
       </Card>
     </div>
   );
