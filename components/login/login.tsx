@@ -52,6 +52,22 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                   Trade
               </TabsTrigger>
             </TabsList>
+
+
+          {/* 
+           the content showes based on the selected tabs and it is all within a form that later can be submitted
+            */}
+        
+          <form>
+            <TabsContent value='company'>
+                company
+            </TabsContent>
+
+            <TabsContent value='trade'>
+                trade
+            </TabsContent>
+          </form>
+
           </Tabs>
           </CardContent>
 
