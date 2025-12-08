@@ -31,7 +31,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 ">
-      <Card className="w-full max-w-lg">
+      <Card className="bg-white/95 backdrop-blur-xl border-white/20 shadow-2xl w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
@@ -130,9 +130,41 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
               </Button>
             </TabsContent>
 
-
           </form>
 
+          <div className="mt-6 space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-500">
+                  New to TradesFair?
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate('/register/company')}
+                      className="w-full"
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Register Company
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate('/register/trade')}
+                      className="w-full"
+                    >
+                      <Wrench className="h-4 w-4 mr-2" />
+                      Register Trade
+                    </Button>
+              </div>
+            </div>
           </Tabs>
           </CardContent>
 
