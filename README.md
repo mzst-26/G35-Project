@@ -29,11 +29,5 @@ We solve these problems with one solution, automatic matching of companies (and 
 
 TradeFair saves money for companies and makes money for those who've worked for it.
 
+hosted on google cloud platform :https://group35-p-repo-101930512528.europe-west1.run.app
 
- - Dev branch would be hosted on netlify for testing
-    if dev has no errors and is ready to be merged with Main branch then:
- - Main branch would be deployed on the production server.
-
-Testing deployment:https://group35-test.netlify.app/
- 
-Production deployment hosted on google cloud platform :https://group35-p-repo-101930512528.europe-west1.run.app
