@@ -128,7 +128,7 @@ export default function CompanyDashboard() {
             
           {activeSection === 'dashboard' && (
             <RecruiterHome onCreateJob={() =>
-              navItems.find(i => i.section === "dashboard")?.section ?? navItems[0].section
+              setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section)
             }/>
             )}
 
