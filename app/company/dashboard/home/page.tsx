@@ -119,7 +119,38 @@ export default function CompanyDashboard() {
       {/* MAIN CONTENT */}
       <div className="md:ml-64">
         <div className="p-4 md:p-8 pt-20 md:pt-8">
-          {/* this is the section where the dashboard content is goint to be */}
+            
+          {activeSection === 'dashboard' && (
+            <>
+            dashboard
+            </>
+            )}
+
+
+           {activeSection === 'create-job' && (
+              <>
+                this is Create a job 
+              </>
+          )}
+
+            {activeSection === 'payments' && (
+              <>
+                this is Payments
+              </>
+          )}
+
+            {activeSection === 'support' && (
+              <>
+                this is Support
+              </>
+          )}
+             {activeSection === 'settings' && (
+              <>
+                this is Settings
+              </>
+          )}
+          
+
         </div>
       </div>
     </div>
