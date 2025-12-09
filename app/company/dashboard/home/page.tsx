@@ -5,9 +5,11 @@ import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } f
 import { useState } from "react";
 
 export default function CompanyDashboard() {
+  //define the states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
 
+  //this items are the buttons on the sidebar, this will be converted into rendered html
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
     { label: 'Create Job', icon: Plus, section: 'create-job' },
@@ -18,7 +20,6 @@ export default function CompanyDashboard() {
 
 
   return (
-    
     <div className="min-h-screen bg-slate-50">
 
       {/* Mobile Header */}
@@ -58,6 +59,7 @@ export default function CompanyDashboard() {
 
           <nav className="space-y-1">
               {navItems.map((sideBarActionItem) => (
+                //for every item in the navItem object, we generate a button and change their styling based on if the button is the current slelected page or not
                 <Button
                   key={sideBarActionItem.label}
                   variant={activeSection === sideBarActionItem.section ? "default" : "ghost"}
@@ -95,6 +97,7 @@ export default function CompanyDashboard() {
 
         <nav className="flex-1 p-4 space-y-1">
             {navItems.map((sideBarActionItem) => (
+              //for every item in the navItem object, we generate a button and change their styling based on if the button is the current slelected page or not
               <Button
                 key={sideBarActionItem.label}
                 variant={activeSection === sideBarActionItem.section ? "default" : "ghost"}
