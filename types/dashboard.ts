@@ -15,3 +15,9 @@ export interface NavItem {
 export interface DashboardHomeProps {
   onCreateJob: () => void;
 }
+
+export interface CreateJobHomeProps {
+  onBack?: () => void;
+  onAIChat?: () => void;
+  onManualForm?: () => void;
+}

@@ -6,7 +6,7 @@ import { Card, CardContent } from "../ui/card";
 import { DashboardHomeProps } from "@/types/dashboard"
 export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
   return (
-    <div>
+      <div>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl text-slate-900 mb-2">Dashboard</h1>

@@ -5,6 +5,9 @@ import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } f
 import { useState } from "react";
 import { NavItem, SectionKey } from "@/types/dashboard";
 import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
+import CreateJobHome from "@/components/recruiter_dashboard/create-job";
+import { useRouter } from "next/navigation";
+
 
 export default function CompanyDashboard() {
     //this items are the buttons on the sidebar, this will be converted into rendered html
@@ -19,6 +22,7 @@ export default function CompanyDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
 
+  const router = useRouter();
 
 
   return (
@@ -129,10 +133,11 @@ export default function CompanyDashboard() {
             )}
 
 
-           {activeSection === 'create-job' && (
-              <>
-                this is Create a job 
-              </>
+          {activeSection === "create-job" && (
+            <CreateJobHome
+              onAIChat={() => router.push("/company/dashboard/home")}
+              onManualForm={() => router.push("/company/dashboard/home")}
+            />
           )}
 
             {activeSection === 'payments' && (
