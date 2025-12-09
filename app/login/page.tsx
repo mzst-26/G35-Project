@@ -17,6 +17,7 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
+
   const router = useRouter();
 
   // local form state
@@ -29,6 +30,9 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
     e.preventDefault();
     // I will add real backend logic later
     onLogin(role);
+    if(role === 'company'){
+      router.push('/company/dashboard/home')
+    }
   };
 
   return (
@@ -74,7 +78,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
            the content showes based on the selected tabs and it is all within a form that later can be submitted
             */}
         
-          <form >
+          <form onSubmit={handleLogin}>
              {/* Company tab */}
             <TabsContent value='company' className="space-y-4 mt-0 ">
             <div className="space-y-2">
@@ -108,8 +112,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
             </TabsContent>
-
-
 
              {/* Trade tab */}
             <TabsContent value='trade' className="space-y-4 mt-0">
