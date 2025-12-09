@@ -3,20 +3,22 @@
 import { Button } from "@/components/ui/button";
 import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } from "lucide-react";
 import { useState } from "react";
+import { NavItem, SectionKey } from "@/types/dashboard";
+import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
 
 export default function CompanyDashboard() {
+    //this items are the buttons on the sidebar, this will be converted into rendered html
+    const navItems:NavItem[] = [
+      { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
+      { label: 'Create Job', icon: Plus, section: 'create-job' },
+      { label: 'Payments', icon: CreditCard, section: 'payments' },
+      { label: 'Support', icon: MessageSquare, section: 'support' },
+      { label: 'Settings', icon: Settings, section: 'settings' },
+    ];
   //define the states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
 
-  //this items are the buttons on the sidebar, this will be converted into rendered html
-  const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
-    { label: 'Create Job', icon: Plus, section: 'create-job' },
-    { label: 'Payments', icon: CreditCard, section: 'payments' },
-    { label: 'Support', icon: MessageSquare, section: 'support' },
-    { label: 'Settings', icon: Settings, section: 'settings' },
-  ];
 
 
   return (
@@ -121,9 +123,9 @@ export default function CompanyDashboard() {
         <div className="p-4 md:p-8 pt-20 md:pt-8">
             
           {activeSection === 'dashboard' && (
-            <>
-            dashboard
-            </>
+            <RecruiterHome onCreateJob={() =>
+              navItems.find(i => i.section === "dashboard")?.section ?? navItems[0].section
+            }/>
             )}
 
 
