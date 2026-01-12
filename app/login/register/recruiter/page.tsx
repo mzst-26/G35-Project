@@ -207,7 +207,8 @@ export default function RegisterRecruiter() {
             </form>
           </CardContent>
         </Card>
-      </div>
+        </div>
     </div>
+
   );
 }
