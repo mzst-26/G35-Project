@@ -187,15 +187,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
           
       </Card>
-      <div className="mt-4 text-center">
-          <Button 
-            variant="ghost"
-            onClick={() => router.push('/login/adminLogin')}
-            className="text-blue-200 hover:text-white hover:bg-white/10"
-          >
-            Admin Access
-          </Button>
-        </div>
     </div>
   );
 }
