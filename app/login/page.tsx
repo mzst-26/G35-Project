@@ -175,6 +175,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                     <Button
                       type="button"
                       variant="outline"
+                      onClick={() => router.push('/login/register/trade')}
                       className="w-full"
                     >
                       <Wrench className="h-4 w-4 mr-2" />
