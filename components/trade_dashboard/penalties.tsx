@@ -11,7 +11,7 @@ export default function Penalties() {
   ];
 
   return (
-    <div className="mt-6 rounded-md border p-6 bg-white"> //styling
+    <div className="mt-6 rounded-md border p-6 bg-white"> 
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-medium">Penalties</h4>
         <p className="text-sm text-slate-500">Recent penalties and their statuses</p>

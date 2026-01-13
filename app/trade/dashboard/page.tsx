@@ -7,6 +7,7 @@ import { TradeNavItem, TradeSectionKey } from "@/types/trade-dashboard";
 import TradeCalendar from "@/components/trade_dashboard/calendar";
 import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
+import Support from "@/components/trade_dashboard/support";
 
 
 
@@ -125,7 +126,7 @@ export default function TradeDashboard() {
           {activeSection === 'calendar' && <TradeCalendar />}
           {activeSection === 'jobs' && <TradeJobs />}
           {activeSection === 'penalties' && <Penalties />}
-          {activeSection === 'support' && <div>Support section coming soon.</div>}
+          {activeSection === 'support' && <Support />}
           {activeSection === 'settings' && <div>Settings section coming soon.</div>}
           
 
