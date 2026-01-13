@@ -1,32 +1,32 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } from "lucide-react";
+import { Button } from "@/components/ui/button"; //importing components for dashboard, for UI components and components for different dashboard sections
+import { Calendar, Briefcase, AlertTriangle, MessageSquare, Settings, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { NavItem, SectionKey } from "@/types/dashboard";
-import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
-import CreateJobHome from "@/components/recruiter_dashboard/create-job";
-import { useRouter } from "next/navigation";
+import { TradeNavItem, TradeSectionKey } from "@/types/trade-dashboard";
+import TradeCalendar from "@/components/trade_dashboard/calendar";
+import TradeJobs from "@/components/trade_dashboard/jobs";
+import Penalties from "@/components/trade_dashboard/penalties";
+
 
 
 export default function TradeDashboard() {
-    const navItems:NavItem[] = [
-      { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
-      { label: 'Create Job', icon: Plus, section: 'create-job' },
-      { label: 'Payments', icon: CreditCard, section: 'payments' },
+    const navItems:TradeNavItem[] = [
+      { label: 'Calendar', icon: Calendar, section: 'calendar' },
+      { label: 'Jobs', icon: Briefcase, section: 'jobs' },
+      { label: 'Penalties', icon: AlertTriangle, section: 'penalties' },
       { label: 'Support', icon: MessageSquare, section: 'support' },
       { label: 'Settings', icon: Settings, section: 'settings' },
     ];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
+  const [activeSection, setActiveSection] = useState<TradeSectionKey>(navItems[0].section);
 
-  const router = useRouter();
 
 
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* Mobile Header */}
+      {/* Mobile head */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export default function TradeDashboard() {
         </div>
       </div>
 
-      {/* Mobile Sidebar) */}
+      {/* mobile sidebar */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
           <div className="flex items-center gap-3 mb-6">
@@ -84,7 +84,7 @@ export default function TradeDashboard() {
         </div>
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop siebar */}
       <div className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 z-40 bg-white border-r border-slate-200 flex-col">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -118,40 +118,15 @@ export default function TradeDashboard() {
 
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* Main dashboard content */}
       <div className="md:ml-64">
         <div className="p-4 md:p-8 pt-20 md:pt-8">
             
-          {activeSection === 'dashboard' && (
-            <RecruiterHome onCreateJob={() =>
-              setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section)
-            }/>
-            )}
-
-
-          {activeSection === "create-job" && (
-            <CreateJobHome
-              onAIChat={() => router.push("/trade/dashboard")}
-              onManualForm={() => router.push("/trade/dashboard")}
-            />
-          )}
-
-            {activeSection === 'payments' && (
-              <>
-                this is Payments
-              </>
-          )}
-
-            {activeSection === 'support' && (
-              <>
-                this is Support
-              </>
-          )}
-             {activeSection === 'settings' && (
-              <>
-                this is Settings
-              </>
-          )}
+          {activeSection === 'calendar' && <TradeCalendar />}
+          {activeSection === 'jobs' && <TradeJobs />}
+          {activeSection === 'penalties' && <Penalties />}
+          {activeSection === 'support' && <div>Support section coming soon.</div>}
+          {activeSection === 'settings' && <div>Settings section coming soon.</div>}
           
 
         </div>
