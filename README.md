@@ -21,6 +21,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ##About TradeFair
 There are two fundamental flaws in the construction industry: A lack of consistent and high quality workers for construction companies to hire and a lack of consistent, fairly paid work for those workers.
 
+TradeFair fixes that.
+
 From personal experience in the construction industry, we realised how hard it is to find the quality of worker needed to take the stress away of management. There is nowhere that you can go to and find the right worker the right time. TradeFair fixes this problem and adopts the saying "Buy once cry once". Choosing the premium worker up front is actually the cheaper option, as poor quality labour can cost untold 1000's in repairs.
 
 We also fix the problem of highly paid workers being unfairly paid for their quality of work and qualifications they provide. These workers who provide a high quality of work first-time round due to their training deserve to be compensated accordingly.
