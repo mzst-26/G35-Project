@@ -18,6 +18,8 @@ export default function TradeRegisterPage() { //background wrapper, handles when
 
   const handleSubmitPage = (payload: TradeRegistrationPayload) => { //handles when form is submitted
     console.log("page received payload", payload);
+    // TODO: call registration API here, then redirect on success
+    router.push('/trade/dashboard');
   };
 
   function TradeRegistration({ onSubmit }: { onSubmit?: TradeRegistrationSubmit }) { //the actual trade registration form
