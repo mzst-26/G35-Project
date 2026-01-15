@@ -73,3 +73,13 @@ Attendees: Mobin, Jamie
 Mobin showed and explained his work, and Jamie provided some feeback.
 Ollie messaged us saying that he had successfully updated his work.
 Mobin and Jamie discussed the next steps and allocated everyone new tasks.
+
+
+Missing Minutes
+
+
+28/12/25
+We did some usability testing on our project.
+We asked a person outisde of our group to try and complete basic tasks using the app.
+We learnt that there were a few uability issues that should be updated, and discussed the best way to do this.
+We allocated the small tasks amongst the group.
