@@ -3,8 +3,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { TradeSettingsProps } from "@/types/trade-dashboard";
 
-export default function Settings() {
+export default function Settings(_props: TradeSettingsProps) {
   const [emailNotifications, setEmailNotifications] = React.useState(true);
   const router = useRouter();
 

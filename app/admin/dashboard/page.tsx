@@ -1,11 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } from "lucide-react";
+import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X, Shield } from "lucide-react";
 import { useState } from "react";
 import { NavItem, SectionKey } from "@/types/admin-dashboard";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Shield } from 'lucide-react';
 
 
 export default function AdminDashboard() {
@@ -22,7 +20,6 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
 
-  const router = useRouter();
 
 
   return (

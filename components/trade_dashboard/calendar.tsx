@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { TradeCalendarProps } from "@/types/trade-dashboard";
 
-export default function TradeCalendar() {
+export default function TradeCalendar(_props: TradeCalendarProps) {
   return (
     <div>
       <h3 className="text-2xl font-semibold mb-4">Calendar</h3>

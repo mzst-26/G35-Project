@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 
 // UI primitives
 import { Button } from '../../components/ui/button';
@@ -42,7 +43,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <div className="flex items-center justify-center gap-3 mb-6" >
             <div className="h-15 w-15 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-2xl">
-              <img src="/logoCrisp.png" alt="TradesFair logo" className="h-14 w-14 text-white rounded-xl" />
+              <Image src="/logoCrisp.png" alt="TradesFair logo" width={56} height={56} className="rounded-xl" />
             </div>
 
             <div>

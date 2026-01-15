@@ -14,7 +14,7 @@ export default function CreateJobHome({
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl text-slate-900 mb-2">Create a Job Request</h1>
-        <p className="text-slate-600">Choose how you'd like to get started</p>
+        <p className="text-slate-600">Choose how you&apos;d like to get started</p>
       </div>
 
       {/* OPTIONS */}

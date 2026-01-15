@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { TradeSupportProps } from "@/types/trade-dashboard";
 
-export default function Support() {
+export default function Support(_props: TradeSupportProps) {
   const faqs = [
     {
       q: "How do I cancel a job?",

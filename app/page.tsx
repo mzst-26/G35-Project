@@ -5,7 +5,7 @@ import LoginScreen from "@/app/login/page";
 
 export default function Home() {
 
-  const handleLogin = (_role: 'company' | 'trade') => {
+  const handleLogin = () => {
     // Later on Authentication would be handled here in production
   };
 

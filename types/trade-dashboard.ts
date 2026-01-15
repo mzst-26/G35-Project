@@ -13,8 +13,13 @@ export interface TradeNavItem {
   section: TradeSectionKey;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeCalendarProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeJobsProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradePenaltiesProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeSupportProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeSettingsProps {}

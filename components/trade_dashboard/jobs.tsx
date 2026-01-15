@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import { TradeJobsProps } from "@/types/trade-dashboard";
 // Penalties moved to its own dashboard page
 
-export default function TradeJobs() {
+export default function TradeJobs(_props: TradeJobsProps) {
   return (
     <div>
       <h3 className="text-2xl font-semibold mb-4">Jobs</h3>

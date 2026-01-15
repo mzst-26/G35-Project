@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { TradePenaltiesProps } from "@/types/trade-dashboard";
 
-export default function Penalties() {
+export default function Penalties(_props: TradePenaltiesProps) {
 
   const penalties = [
     { id: 1, reason: "Cancelled Job", amount: 45, date: "2025-11-03", status: "Unpaid" }, //example penalties
