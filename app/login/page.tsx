@@ -14,10 +14,10 @@ import { Building2, Wrench, ArrowRight, Shield } from 'lucide-react';
 
 interface LoginScreenProps {
   // the parent can react to login for example store user or set auth state
-  onLogin: (role: 'company' | 'trade') => void;
+  onLogin?: (role: 'company' | 'trade') => void;
 }
 
-export default function LoginScreen({ onLogin }: LoginScreenProps) {
+export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
 
   const router = useRouter();
 
@@ -30,7 +30,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // I will add real backend logic later
-    onLogin(role);
+    if (onLogin) onLogin(role);
     if (role === 'company') {
       router.push('/company/dashboard/home');
     } else if (role === 'trade') {
