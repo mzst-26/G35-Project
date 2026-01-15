@@ -16,6 +16,7 @@ export default function AdminLoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: call admin auth endpoint; for now just log and stay
+    router.push('/admin/dashboard');
     console.log('admin login', { email });
   };
 

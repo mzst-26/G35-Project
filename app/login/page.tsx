@@ -187,6 +187,17 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
           
       </Card>
+
+
+      <Button
+            variant="ghost"
+            onClick={() => router.push('/login/adminLogin')}
+            className="text-blue-200 hover:text-white hover:bg-white/10 mt-10"
+          >
+            <Shield className="h-4 w-4 mr-2" />
+            Admin Access
+      </Button>
+
     </div>
   );
 }
