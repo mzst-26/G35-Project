@@ -1,5 +1,5 @@
-27/11:
-Attendees: Mobin, Jamie
+27/11/25:
+Attendees: Mobin, Jamie, Ollie, Jake
 
 Check out front end code
 
@@ -11,10 +11,37 @@ Adjust Trello board and compile our work into one doc.
 
 Come up with name (check they are available with domain providers before contributing)
 
-04/12:
+
+04/12/25:
 
 Attendees: Mobin, Jamie, Ollie
 
 Mobin ran us through his CI/CD setup, Jamie and ollie need to become familiar with this, Jamie already is. Both Jamie and Ollie need to run through google cloud stuff. 
 We agreed to think about the microservice setup for the project and develop microservice by microservice. 
 We are planning a map of all required microsetups and will compare tomorrow and decide which are essential and where to start.
+
+
+05/12/26:
+
+Attendees: Mobin, Jamie, Ollie
+
+We discussed our individual maps of all required mircoservices. We all aligned fairly well, so we knew we were all familiar with the project and it's aims.
+During the discussion, Ollie and Jamie thought of some additional ones that we hadn't considered.
+Ollie was tasked to design the database. Jamie was tasked to finalise the map of microservices.
+
+
+08/12/2026
+
+Attendess: Mobin, Jamie, Ollie 
+Ollie showed us his initial Database Design, he explained each part. We gave him some feeback on it.
+Jamie showed us his microservice map and explained the reasoning for each one. 
+Mobin possitively critiqued some of the microservices as some were not needed for the scope of our project.
+
+
+09/12/2026
+
+Attendess: Mobin, Ollie
+This was a short meeting as only two of us were available. 
+Ollie displayed his updated Database Design and we were both happy with it.
+Mobin discussed the project file layout we should use so that all code aligned.
+We agreed to share more detailed information about the layout with the rest of the group in the following meeting.
