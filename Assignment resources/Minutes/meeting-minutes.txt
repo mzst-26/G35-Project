@@ -1,0 +1,20 @@
+27/11:
+Attendees: Mobin, Jamie
+
+Check out front end code
+
+Install node.js message to others and do a tutorial on it
+
+Start on readme.txt
+
+Adjust Trello board and compile our work into one doc.
+
+Come up with name (check they are available with domain providers before contributing)
+
+04/12:
+
+Attendees: Mobin, Jamie, Ollie
+
+Mobin ran us through his CI/CD setup, Jamie and ollie need to become familiar with this, Jamie already is. Both Jamie and Ollie need to run through google cloud stuff. 
+We agreed to think about the microservice setup for the project and develop microservice by microservice. 
+We are planning a map of all required microsetups and will compare tomorrow and decide which are essential and where to start.
