@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button"; //importing components for dashboard, for UI components and components for different dashboard sections
-import { Calendar, Briefcase, AlertTriangle, MessageSquare, Settings, Menu, X } from "lucide-react";
+import { Calendar, Briefcase, AlertTriangle, MessageSquare, Settings as SettingsIcon, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { TradeNavItem, TradeSectionKey } from "@/types/trade-dashboard";
 import TradeCalendar from "@/components/trade_dashboard/calendar";
 import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
 import Support from "@/components/trade_dashboard/support";
+import Settings from "@/components/trade_dashboard/settings";
 
 
 
@@ -17,7 +18,7 @@ export default function TradeDashboard() {
       { label: 'Jobs', icon: Briefcase, section: 'jobs' },
       { label: 'Penalties', icon: AlertTriangle, section: 'penalties' },
       { label: 'Support', icon: MessageSquare, section: 'support' },
-      { label: 'Settings', icon: Settings, section: 'settings' },
+      { label: 'Settings', icon: SettingsIcon, section: 'settings' },
     ];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<TradeSectionKey>(navItems[0].section);
@@ -127,7 +128,7 @@ export default function TradeDashboard() {
           {activeSection === 'jobs' && <TradeJobs />}
           {activeSection === 'penalties' && <Penalties />}
           {activeSection === 'support' && <Support />}
-          {activeSection === 'settings' && <div>Settings section coming soon.</div>}
+          {activeSection === 'settings' && <Settings />}
           
 
         </div>

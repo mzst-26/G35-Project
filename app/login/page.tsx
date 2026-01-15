@@ -30,8 +30,10 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
     e.preventDefault();
     // I will add real backend logic later
     onLogin(role);
-    if(role === 'company'){
-      router.push('/company/dashboard/home')
+    if (role === 'company') {
+      router.push('/company/dashboard/home');
+    } else if (role === 'trade') {
+      router.push('/trade/dashboard/');
     }
   };
 
