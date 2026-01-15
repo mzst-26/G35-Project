@@ -83,3 +83,9 @@ We did some usability testing on our project.
 We asked a person outisde of our group to try and complete basic tasks using the app.
 We learnt that there were a few uability issues that should be updated, and discussed the best way to do this.
 We allocated the small tasks amongst the group.
+
+
+02/01/26
+We collated our updates and ran the same tests as before.
+The previous issues no longer existed.
+We decided to focus on our other personal projects over the next few days, and agreed to return on 6th January.
