@@ -29,7 +29,7 @@ We also fix the problem of highly paid workers being unfairly paid for their qua
 
 We solve these problems with one solution, automatic matching of companies (and their respective job they need doing) to a supply of highly qualified workers. These workers are matched based on multiple variables such as distance to job, relevant experience and more. This matching algorithm also ensures an equal distribution of work amongst the supply of tradespeople.
 
-TradeFair saves money for companies and makes money for those who've worked for it.
+TradeFair saves money for companies and makes money for those who've worked for it in a way that removes trust from the equation.
 
 
  - Dev branch would be hosted on netlify for testing
