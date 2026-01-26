@@ -5,9 +5,10 @@ import { PaymentSummary, JobHistory, JobStatus } from "@/types/payment";
 interface PaymentsProps {
   paymentSummary?: PaymentSummary;
   jobHistory?: JobHistory[];
+  onViewJob?: (jobId: number) => void;
 }
 
-export default function Payments({ paymentSummary, jobHistory }: PaymentsProps) {
+export default function Payments({ paymentSummary, jobHistory, onViewJob }: PaymentsProps) {
   // Default mock data if not provided
   const defaultPaymentSummary: PaymentSummary = {
     totalPaid: 45750.00,
@@ -182,7 +183,11 @@ export default function Payments({ paymentSummary, jobHistory }: PaymentsProps) 
             </thead>
             <tbody>
               {history.map((job) => (
-                <tr key={job.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <tr 
+                  key={job.id} 
+                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => onViewJob?.(job.id)}
+                >
                   <td className="py-4 px-4">
                     <p className="text-sm font-medium text-slate-900">{job.jobTitle}</p>
                   </td>
