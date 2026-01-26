@@ -1,18 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import { JobParametersPanel } from '@/components/chat/JobParametersPanel';
 import { useJobChat } from '@/hooks/useJobChat';
 
 interface JobRequestPageProps {
-  onBack: () => void;
   onSubmit?: (jobParams: any) => void;
 }
 
-export function JobRequestPage({ onBack, onSubmit }: JobRequestPageProps) {
+export function JobRequestPage({ onSubmit }: JobRequestPageProps) {
   const {
     messages,
     jobParams,
