@@ -7,6 +7,7 @@ import { NavItem, SectionKey } from "@/types/dashboard";
 import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
 import CreateJobHome from "@/components/recruiter_dashboard/create-job";
 import Payments from "@/components/recruiter_dashboard/payments";
+import JobDetails from "@/components/recruiter_dashboard/job-details";
 import { useRouter } from "next/navigation";
 
 
@@ -22,6 +23,7 @@ export default function CompanyDashboard() {
   //define the states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
   const router = useRouter();
 
@@ -141,7 +143,16 @@ export default function CompanyDashboard() {
             />
           )}
 
-            {activeSection === 'payments' && <Payments />}
+            {activeSection === 'payments' && (
+              selectedJobId ? (
+                <JobDetails 
+                  jobId={selectedJobId} 
+                  onBack={() => setSelectedJobId(null)} 
+                />
+              ) : (
+                <Payments onViewJob={(jobId) => setSelectedJobId(jobId)} />
+              )
+            )}
 
             {activeSection === 'support' && (
               <>
