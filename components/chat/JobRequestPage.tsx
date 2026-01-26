@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import { JobParametersPanel } from '@/components/chat/JobParametersPanel';
 import { useJobChat } from '@/hooks/useJobChat';
+import { JobParameters } from '@/types/job';
 
 interface JobRequestPageProps {
-  onSubmit?: (jobParams: any) => void;
+  onSubmit?: (jobParams: JobParameters) => void;
 }
 
 export function JobRequestPage({ onSubmit }: JobRequestPageProps) {
