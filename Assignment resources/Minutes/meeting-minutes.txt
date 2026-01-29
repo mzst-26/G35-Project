@@ -102,3 +102,10 @@ We recorded our video presentation.
 
 15/01/2026
 We made sure that each part of the submission was ready for submission, so that we do not miss out anything.
+
+
+26/01/26: Jamie, Mobin, Jake
+Created list of necessary and unneccessary UI to complete before starting implementation of logic and backend.
+
+29/01/26: Jamie, Mobin
+Worked on company UI side, completing dashboard. 
