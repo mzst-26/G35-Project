@@ -179,7 +179,7 @@ export function ProfileTab({
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1 bg-blue-600 text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Saving...' : 'Save Changes'}

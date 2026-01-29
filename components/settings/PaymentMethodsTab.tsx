@@ -55,7 +55,7 @@ export function PaymentMethodsTab({
         {/* Add New Card Button */}
         <Button
           variant="outline"
-          className="w-full text-slate-700 border-slate-300 hover:bg-slate-50"
+          className="w-full text-slate-700 border-slate-300"
           onClick={onAddNew}
           disabled={isLoading}
         >

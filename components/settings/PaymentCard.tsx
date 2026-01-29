@@ -23,11 +23,11 @@ export function PaymentCard({
   onDelete,
 }: PaymentCardProps) {
   return (
-    <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-slate-50">
+    <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
       {/* Card Details */}
       <div className="flex items-center gap-4">
         {/* Card Icon */}
-        <div className="h-12 w-12 rounded bg-slate-100 flex items-center justify-center">
+        <div className="h-12 w-12 rounded border border-slate-200 flex items-center justify-center">
           <CreditCard className="h-6 w-6 text-slate-600" />
         </div>
 
@@ -65,7 +65,7 @@ export function PaymentCard({
           size="sm"
           onClick={onDelete}
           disabled={isLoading}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="text-red-600"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
