@@ -2,12 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavItem, SectionKey } from "@/types/dashboard";
 import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
 import CreateJobHome from "@/components/recruiter_dashboard/create-job";
-import Payments from "@/components/recruiter_dashboard/payments";
-import JobDetails from "@/components/recruiter_dashboard/job-details";
+import { JobRequestPage } from "@/components/chat/JobRequestPage";
 import { useRouter } from "next/navigation";
 
 
@@ -26,6 +25,41 @@ export default function CompanyDashboard() {
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
   const router = useRouter();
+
+  // Initialize active section from URL on mount (deep-link support)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sectionParam = params.get("section") as SectionKey | null;
+      if (sectionParam && navItems.some((i) => i.section === sectionParam)) {
+        setActiveSection(sectionParam);
+      }
+    } catch (e) {
+      // ignore URL parsing issues
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  //create a trigger that lisstens to the active section changes
+  useEffect(() => {
+    const event = new CustomEvent("company-dashboard:active-section-change", {
+      detail: { section: activeSection },
+    });
+    window.dispatchEvent(event);
+  }, [activeSection]);
+
+  // Reflect active section in the URL (query param `section`)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set("section", activeSection);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // Use replace to avoid cluttering history; switch to push for back-button behavior
+      router.replace(newUrl);
+    } catch (e) {
+      // ignore URL update issues
+    }
+  }, [activeSection, router]);
 
 
   return (
@@ -129,41 +163,42 @@ export default function CompanyDashboard() {
       <div className="md:ml-64">
         <div className="p-4 md:p-8 pt-20 md:pt-8">
             
-          {activeSection === 'dashboard' && (
-            <RecruiterHome onCreateJob={() =>
-              setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section)
-            }/>
-            )}
+          {/* Show AI Chat Interface */}
+          
+            <>
+              {activeSection === 'dashboard' && (
+                <RecruiterHome onCreateJob={() =>
+                  setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section) 
+                }/>
+              )}
 
-
-          {activeSection === "create-job" && (
-            <CreateJobHome
-              onAIChat={() => router.push("/company/dashboard/home")}
-              onManualForm={() => router.push("/company/dashboard/home")}
+              {activeSection === "create-job" && (
+                <JobRequestPage 
+                  onSubmit={(jobParams) => {
+                    console.log('Job submitted:', jobParams);
+                    setActiveSection('dashboard');
+              }}
             />
-          )}
+              )}
 
-            {activeSection === 'payments' && (
-              selectedJobId ? (
-                <JobDetails 
-                  jobId={selectedJobId} 
-                  onBack={() => setSelectedJobId(null)} 
-                />
-              ) : (
-                <Payments onViewJob={(jobId) => setSelectedJobId(jobId)} />
-              )
-            )}
+              {activeSection === 'payments' && (
+                <>
+                  this is Payments
+                </>
+              )}
 
-            {activeSection === 'support' && (
-              <>
-                this is Support
-              </>
-          )}
-             {activeSection === 'settings' && (
-              <>
-                this is Settings
-              </>
-          )}
+              {activeSection === 'support' && (
+                <>
+                  this is Support
+                </>
+              )}
+              {activeSection === 'settings' && (
+                <>
+                  this is Settings
+                </>
+              )}
+            </>
+          
           
 
         </div>
