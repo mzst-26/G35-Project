@@ -9,6 +9,7 @@ import CreateJobHome from "@/components/recruiter_dashboard/create-job";
 import Payments from "@/components/recruiter_dashboard/payments";
 import JobDetails from "@/components/recruiter_dashboard/job-details";
 import { JobRequestPage } from "@/components/chat/JobRequestPage";
+import Support from "@/components/recruiter_dashboard/support";
 import { SettingsSection } from "@/components/trade_dashboard/SettingsSection";
 import { useRouter } from "next/navigation";
 
@@ -196,9 +197,7 @@ export default function CompanyDashboard() {
             )}
 
               {activeSection === 'support' && (
-                <>
-                  this is Support
-                </>
+                <Support />
               )}
               {activeSection === 'settings' && (
                 <SettingsSection companyId="company_123" />
