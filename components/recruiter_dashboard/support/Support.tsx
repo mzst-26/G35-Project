@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Ticket } from "@/types/support";
-import { useSupport } from "@/hooks/useSupport";
 import { MessageSquare } from "lucide-react";
 import React from "react";
 
@@ -16,8 +14,7 @@ import React from "react";
 export default function Support() {
   const router = useRouter();
 
-  const { tickets } = useSupport();
-  const ongoing = tickets.filter((t) => t.status === 'open');
+  // Navigation-only skeleton: no storage or hook logic yet
 
   return (
     <div className="space-y-6">
@@ -38,15 +35,7 @@ export default function Support() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Ongoing:</h2>
-            {ongoing.length === 0 ? (
-              <p className="text-sm text-slate-600 mt-2">No ongoing tickets. Create one to get started.</p>
-            ) : (
-              <ul className="mt-2 space-y-2">
-                {ongoing.map((t) => (
-                  <li key={t.id} className="text-sm text-slate-800">{t.title}</li>
-                ))}
-              </ul>
-            )}
+            <p className="text-sm text-slate-600 mt-2">No ongoing tickets to show (navigation skeleton).</p>
           </div>
         </div>
       </Card>
