@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSupport } from "@/hooks/useSupport";
+// Navigation-only skeleton: remove support hook for now
 
 // Simple ticket creation form that uses `useSupport` hook (localStorage backed)
 export default function TicketForm() {
   const router = useRouter();
-  const { createTicket } = useSupport();
+  // no-op: backend integration will be added later
 
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
@@ -18,9 +18,8 @@ export default function TicketForm() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !details || !date) return;
-    createTicket({ title, details, date });
-    router.push('/company/support');
+    // Navigation-only: return to the dashboard support section
+    router.push('/company/dashboard/home?section=support');
   };
 
   return (
@@ -47,7 +46,7 @@ export default function TicketForm() {
 
           <div className="mt-6 flex gap-2">
             <Button type="submit">Submit</Button>
-            <Link href="/company/dashboard"><Button variant="ghost">Back</Button></Link>
+            <Link href="/company/dashboard/home?section=support"><Button variant="ghost">Back</Button></Link>
           </div>
         </form>
       </Card>
