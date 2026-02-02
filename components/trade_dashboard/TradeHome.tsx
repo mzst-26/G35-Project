@@ -14,31 +14,27 @@ import {
 } from 'lucide-react';
 import { TradeDashboardProps } from '@/types/trade-dashboard';
 import TradeJobCard from '@/components/trade_dashboard/trade_job_cards';
-
-// TODO: Replace with API call via useTradeJobs hook when backend is ready
-const upcomingJobs = [
-  { id: 1, title: 'Office Electrical Rewiring', company: 'Tech Corp Ltd', location: 'London, EC1', date: '2026-02-25', pay: 280, days: 2, status: 'confirmed' as const },
-  { id: 2, title: 'Residential Installation', company: 'Property Group', location: 'Manchester, M1', date: '2026-02-28', pay: 320, days: 3, status: 'confirmed' as const },
-  { id: 3, title: 'Emergency Repair', company: 'Retail Solutions', location: 'Birmingham, B1', date: '2026-03-02', pay: 450, days: 5, status: 'pending' as const, actionByHours: 12 },
-];
+import { useTradeJobs } from '@/hooks/useTradeJobs';
 
 export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) {
   const [jobTab, setJobTab] = useState<'pending' | 'upcoming'>('pending');
   const [pendingCountdown, setPendingCountdown] = useState<number>(() => 60 * 60); // 1 hour in seconds
+  
+  // Fetch jobs from hook
+  const { jobs, stats } = useTradeJobs();
   
   // TODO: Replace with API call to fetch availability data
   const availabilityDeadline = 7;
   const availableDays = 18;
   const totalDays = 30;
 
-  const totalEarnings = upcomingJobs.reduce((sum, job) => sum + job.pay, 0);
-  const confirmedJobsCount = upcomingJobs.filter(j => j.status === 'confirmed').length;
-  const pendingJobsCount = upcomingJobs.filter(j => j.status === 'pending').length;
+  // Filter jobs for dashboard: pending + upcoming only
+  const dashboardJobs = jobs.filter(j => j.status === 'pending' || j.status === 'upcoming');
   
   // Filter jobs based on selected tab
   const displayedJobs = jobTab === 'pending' 
-    ? upcomingJobs.filter(j => j.status === 'pending')
-    : upcomingJobs.filter(j => j.status === 'confirmed');
+    ? jobs.filter(j => j.status === 'pending')
+    : jobs.filter(j => j.status === 'upcoming');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -139,9 +135,9 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                 <Briefcase className="h-4 sm:h-6 w-4 sm:w-6 text-slate-600" />
               </div>
             </div>
-            <p className="text-lg sm:text-3xl text-slate-900 mb-0.5 sm:mb-1 font-semibold">{upcomingJobs.length}</p>
-            <p className="text-xs sm:text-sm text-slate-600 mb-1 line-clamp-2">Upcoming Jobs</p>
-            <p className="text-xs text-slate-500">{confirmedJobsCount} confirmed</p>
+            <p className="text-lg sm:text-3xl text-slate-900 mb-0.5 sm:mb-1 font-semibold">{dashboardJobs.length}</p>
+            <p className="text-xs sm:text-sm text-slate-600 mb-1 line-clamp-2">Total Jobs</p>
+            <p className="text-xs text-slate-500">{stats.pending} pending</p>
           </CardContent>
         </Card>
 
@@ -152,8 +148,8 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                 <PoundSterling className="h-4 sm:h-6 w-4 sm:w-6 text-slate-600" />
               </div>
             </div>
-            <p className="text-lg sm:text-3xl text-slate-900 mb-0.5 sm:mb-1 font-semibold">£{totalEarnings}</p>
-            <p className="text-xs sm:text-sm text-slate-600 mb-1 line-clamp-2">Expected Earnings</p>
+            <p className="text-lg sm:text-3xl text-slate-900 mb-0.5 sm:mb-1 font-semibold">£{stats.completedEarnings}</p>
+            <p className="text-xs sm:text-sm text-slate-600 mb-1 line-clamp-2">Completed Earnings</p>
             <p className="text-xs text-slate-500">This month</p>
           </CardContent>
         </Card>
@@ -200,7 +196,7 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            Pending ({pendingJobsCount})
+            Pending ({stats.pending})
           </button>
           <button
             onClick={() => setJobTab('upcoming')}
@@ -210,7 +206,7 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            Upcoming ({confirmedJobsCount})
+            Upcoming ({stats.upcoming})
           </button>
         </div>
 
