@@ -25,8 +25,8 @@ import { JobParameters } from '@/types/job';
  * @returns AI response and updated parameters
  */
 export async function sendChatMessage(
-  message: string,
-  jobParams: JobParameters
+  _message: string,
+  _jobParams: JobParameters
 ): Promise<{ response: string; updatedParams: JobParameters }> {
   // PLACEHOLDER: Replace with actual backend call
   // return response.json();
@@ -41,7 +41,7 @@ export async function sendChatMessage(
  * @param jobParams - Complete job parameters
  * @returns Job ID from backend
  */
-export async function submitJobRequest(jobParams: JobParameters): Promise<{ jobId: string }> {
+export async function submitJobRequest(_jobParams: JobParameters): Promise<{ jobId: string }> {
   // PLACEHOLDER: Replace with actual backend call
   throw new Error('Backend integration pending: submitJobRequest not implemented');
 }
@@ -53,7 +53,7 @@ export async function submitJobRequest(jobParams: JobParameters): Promise<{ jobI
  * @param sessionId - Chat session identifier
  * @returns Array of previous messages
  */
-export async function getChatHistory(sessionId: string): Promise<Message[]> {
+export async function getChatHistory(_sessionId: string): Promise<Message[]> {
   // PLACEHOLDER: Replace with actual backend call
   throw new Error('Backend integration pending: getChatHistory not implemented');
 }

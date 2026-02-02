@@ -31,7 +31,6 @@ export function SettingsSection({ companyId }: SettingsSectionProps) {
     toggleEmailNotification,
     toggleSmsNotification,
     saveNotifications,
-    addPaymentMethod,
     deletePaymentMethod,
     setDefaultPaymentMethod,
     loadSettings,

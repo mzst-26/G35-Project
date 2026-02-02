@@ -5,7 +5,6 @@ import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X } f
 import { useEffect, useState } from "react";
 import { NavItem, SectionKey } from "@/types/dashboard";
 import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
-import CreateJobHome from "@/components/recruiter_dashboard/create-job";
 import Payments from "@/components/recruiter_dashboard/payments";
 import JobDetails from "@/components/recruiter_dashboard/job-details";
 import PaymentDetails from "@/components/recruiter_dashboard/payment-details";
@@ -46,7 +45,7 @@ export default function CompanyDashboard() {
       if (sectionParam && navItems.some((i) => i.section === sectionParam)) {
         setActiveSection(sectionParam);
       }
-    } catch (e) {
+    } catch {
       // ignore URL parsing issues
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,7 +67,7 @@ export default function CompanyDashboard() {
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       // Use replace to avoid cluttering history; switch to push for back-button behavior
       router.replace(newUrl);
-    } catch (e) {
+    } catch {
       // ignore URL update issues
     }
   }, [activeSection, router]);

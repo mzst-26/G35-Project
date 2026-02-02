@@ -14,13 +14,13 @@ export async function createTicket(payload: { title: string; details: string; da
   throw new Error('Not implemented');
 }
 
-export async function getTicket(id: string) {
+export async function getTicket(_id: string) {
   // TODO: GET `${BASE}/tickets/${id}`
   // ID is used when real API is implemented
   throw new Error('Not implemented');
 }
 
-export async function closeTicket(id: string) {
+export async function closeTicket(_id: string) {
   // TODO: PATCH/PUT `${BASE}/tickets/${id}`
   // ID is used when real API is implemented
   throw new Error('Not implemented');

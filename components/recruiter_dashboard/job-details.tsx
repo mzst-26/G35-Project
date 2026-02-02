@@ -91,7 +91,7 @@ export default function JobDetails({
         <CardContent className="text-center">
           <AlertTriangle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
           <h2 className="text-xl text-slate-900 mb-2">Job Not Found</h2>
-          <p className="text-slate-600 mb-4">The job you're looking for doesn't exist.</p>
+          <p className="text-slate-600 mb-4">The job you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={onBack}>Back to Dashboard</Button>
         </CardContent>
       </Card>

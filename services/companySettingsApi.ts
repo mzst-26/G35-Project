@@ -67,15 +67,13 @@ export async function getCompanyProfile(): Promise<CompanyProfile> {
  * Update company profile on backend
  * PUT /api/company/{companyId}/profile
  *
- * @param companyId - Unique identifier for the company
  * @param profileData - Updated profile information
  * @returns Promise<CompanyProfile> - Updated profile from backend
  *
  * TODO: Replace with actual fetch call to backend
  */
 export async function updateCompanyProfile(
-  companyId: string,
-  profileData: ProfileUpdatePayload
+  profileData: CompanyProfile
 ): Promise<CompanyProfile> {
   try {
     // TODO: Uncomment and use real API endpoint
@@ -299,18 +297,17 @@ export async function setDefaultPaymentMethod(
  * Load all company settings at once
  * Convenience function that fetches profile, notifications, and payment methods in parallel
  *
- * @param companyId - Unique identifier for the company
  * @returns Promise with all settings data
  *
  * TODO: Replace with actual fetch calls to backend
  */
-export async function loadAllSettings(companyId: string) {
+export async function loadAllSettings(_companyId: string) {
   try {
     // TODO: Uncomment and use real API endpoints
     // const [profile, notifications, paymentMethods] = await Promise.all([
-    //   getCompanyProfile(companyId),
-    //   getNotificationPreferences(companyId),
-    //   getPaymentMethods(companyId),
+    //   getCompanyProfile(),
+    //   getNotificationPreferences(),
+    //   getPaymentMethods(),
     // ]);
     //
     // return { profile, notifications, paymentMethods };

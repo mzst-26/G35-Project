@@ -4,21 +4,21 @@ import React, { useRef, useState, useEffect } from "react";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-// @ts-ignore - interaction plugin types may not be present in the workspace
+// @ts-expect-error - interaction plugin types may not be present in the workspace
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
 import { TradeCalendarProps } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
-  const { jobs = [] } = props as any;
-  const sampleJobs = [
+  const { jobs = [] } = props as Record<string, unknown>;
+  const sampleJobs: Array<{ id: string; title: string; startDate: string; endDate: string }> = [
     { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
     { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
     { id: 'job-3', title: 'Paint Rooms', startDate: '2026-02-25', endDate: '2026-02-27' },
     { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
-  const effectiveJobs = (jobs && jobs.length) ? jobs : sampleJobs;
-  const calendarRef = useRef<any>(null);
+  const effectiveJobs = (jobs && Array.isArray(jobs) && jobs.length) ? jobs as Array<Record<string, unknown>> : sampleJobs;
+  const calendarRef = useRef<HTMLDivElement>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -33,9 +33,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   }, []);
 
   // Helper to format Date -> YYYY-MM-DD
-  const isoDate = (d: Date) => d.toISOString().split('T')[0];
+  const isoDate = (d: Date): string => d.toISOString().split('T')[0];
 
-  const updateMonthCounts = (start: Date, end: Date) => {
+  const updateMonthCounts = (start: Date, end: Date): void => {
     // iterate days from start (inclusive) to end (exclusive)
     let taken = 0;
     let total = 0;
@@ -44,9 +44,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
       // Only count days that belong to the calendar month (exclude padding if needed)
       // We'll count all days in the view range (FullCalendar month view usually includes padding days);
       total += 1;
-      const hasJob = effectiveJobs.some((j: any) => {
-        const s = j.startDate || j.start || '';
-        const e = j.endDate || j.end || s;
+      const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+        const s = String(j.startDate || j.start || '');
+        const e = String(j.endDate || j.end || s);
         return s <= ds && ds <= e;
       });
       if (hasJob) taken += 1;
@@ -55,20 +55,20 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     setMonthFreeCount(Math.max(0, total - taken));
   };
 
-  const events: EventInput[] = effectiveJobs.map((job: any) => ({
-    id: job.id,
-    title: job.title,
-    start: job.startDate || job.start,
+  const events: EventInput[] = effectiveJobs.map((job: Record<string, unknown>) => ({
+    id: String(job.id),
+    title: String(job.title),
+    start: String(job.startDate || job.start),
     // FullCalendar treats event `end` as exclusive for all-day events,
     // so set end to the day after the job's endDate to make it inclusive.
     end: (() => {
-      const rawEnd = job.endDate || job.end || job.startDate || job.start;
+      const rawEnd = String(job.endDate || job.end || job.startDate || job.start);
       if (!rawEnd) return undefined;
       try {
         const d = new Date(rawEnd);
         d.setDate(d.getDate() + 1);
         return d.toISOString().split('T')[0];
-      } catch (e) {
+      } catch {
         return rawEnd;
       }
     })(),
@@ -92,18 +92,18 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
       <div className="rounded-md border p-4 bg-white">
         {(() => {
-          const calendarOptions: any = {
+          const calendarOptions: Record<string, unknown> = {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
             initialView: 'dayGridMonth',
             headerToolbar: isNarrow
               ? { left: 'prev,next', center: 'title', right: 'today' }
               : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
             events,
-            dateClick: (info: any) => {
-              const dateStr = info.dateStr;
-              const hasJob = effectiveJobs.some((j: any) => {
-                const start = j.startDate || j.start || '';
-                const end = j.endDate || j.end || start;
+            dateClick: (info: Record<string, unknown>) => {
+              const dateStr = String(info.dateStr);
+              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+                const start = String(j.startDate || j.start || '');
+                const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
               });
               if (hasJob) {
@@ -119,13 +119,14 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 return next;
               });
             },
-            dayCellClassNames: (arg: any) => {
-              const dateStr = arg.date.toISOString().split('T')[0];
+            dayCellClassNames: (arg: Record<string, unknown>) => {
+              const dateObj = arg.date as Date;
+              const dateStr = dateObj.toISOString().split('T')[0];
               const classes: string[] = [];
               // Treat a day as taken if it falls between any job's startDate and endDate (inclusive).
-              const hasJob = effectiveJobs.some((j: any) => {
-                const start = j.startDate || j.start || '';
-                const end = j.endDate || j.end || start;
+              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+                const start = String(j.startDate || j.start || '');
+                const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
               });
               if (hasJob) classes.push('has-job');
@@ -133,11 +134,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
               return classes;
             },
-            datesSet: (arg: any) => {
+            datesSet: (arg: Record<string, unknown>) => {
               // arg.start (inclusive) arg.end (exclusive)
               try {
-                updateMonthCounts(arg.start, arg.end);
-              } catch (e) {
+                updateMonthCounts(arg.start as Date, arg.end as Date);
+              } catch {
                 // ignore
               }
             },

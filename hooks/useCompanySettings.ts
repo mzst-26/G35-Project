@@ -140,7 +140,7 @@ export function useCompanySettings() {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save profile';
       setState((prev) => ({ ...prev, isLoading: false, error: errorMessage }));
     }
-  }, [state.profile]);
+  }, []);
 
   /**
    * Save notification preferences to backend
@@ -165,7 +165,7 @@ export function useCompanySettings() {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save notifications';
       setState((prev) => ({ ...prev, isLoading: false, error: errorMessage }));
     }
-  }, [state.notifications]);
+  }, []);
 
   /**
    * Add a new payment method
@@ -262,7 +262,7 @@ export function useCompanySettings() {
    * Called on component mount
    * TODO: Replace with actual API calls to backend
    */
-  const loadSettings = useCallback(async (companyId: string) => {
+  const loadSettings = useCallback(async (_companyId: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
