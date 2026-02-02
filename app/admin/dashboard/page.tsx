@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, LayoutDashboard, Menu, MessageSquare, Plus, Settings, X, Shield } from "lucide-react";
 import { useState } from "react";
 import { NavItem, SectionKey } from "@/types/admin-dashboard";
+import { useRouter } from "next/navigation";
 
 
 export default function AdminDashboard() {
@@ -152,9 +153,48 @@ export default function AdminDashboard() {
               </>
           )}
              {activeSection === 'settings' && (
-              <>
-                this is Settings
-              </>
+              <div className="space-y-4">
+              <h2 className="text-xl text-slate-900 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-purple-600" />
+                Settings
+              </h2>
+              <p className="text-slate-600">
+                Choose a settings area to configure.
+              </p>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("general")}>
+                  General
+                </Button>
+
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("notifications")}>
+                  Notifications
+                </Button>
+
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("security")}>
+                  Security
+                </Button>
+
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("payments")}>
+                  Payments
+                </Button>
+
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("jobs")}>
+                  Jobs
+                </Button>
+
+                <Button variant="outline" className="justify-start" onClick={() => goToSettings("users")}>
+                  Users
+                </Button>
+              </div>
+
+              <div className="pt-2">
+                <Button className="bg-green-600 hover:bg-green-700" onClick={() => goToSettings()}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Open Full Settings Page
+                </Button>
+              </div>
+            </div>
           )}
           
 
