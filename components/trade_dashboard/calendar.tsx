@@ -152,6 +152,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               const dateObj = arg.date as Date;
               const dateStr = dateObj.toISOString().split('T')[0];
               const classes: string[] = [];
+              // Get today's date
+              const today = new Date();
+              const todayStr = today.toISOString().split('T')[0];
               // Treat a day as taken if it falls between any job's startDate and endDate (inclusive).
               const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
                 const start = String(j.startDate || j.start || '');
@@ -161,6 +164,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               if (hasJob) classes.push('has-job');
               else classes.push('open-day');
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
+              if (dateStr === todayStr) classes.push('today-day');
               return classes;
             },
             // Only display the current month's dates (hide neighboring month days)
@@ -315,6 +319,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 .fc .fc-daygrid-day.open-day .fc-daygrid-day-top,
                 .fc .open-day { background: transparent !important; }
                 .fc .fc-daygrid-day.open-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; }
+
+                /* Today's day styling: blue border */
+                .fc .fc-daygrid-day.today-day .fc-daygrid-day-top { border: 2px solid #2563eb !important; }
 
               `}</style>
             </>
