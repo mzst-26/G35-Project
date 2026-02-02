@@ -25,6 +25,7 @@ export interface TradeUpcomingJob {
   location: string;
   date: string; // ISO date string (yyyy-mm-dd)
   pay: number; // daily rate in GBP
+  days: number; // job duration in days
   status: TradeJobStatus;
 }
 

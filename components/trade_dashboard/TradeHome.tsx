@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
 import { 
   Calendar, 
@@ -11,12 +10,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
-  PoundSterling,
-  Building,
-  MapPin,
-  Clock
+  PoundSterling
 } from 'lucide-react';
 import { TradeDashboardProps } from '@/types/trade-dashboard';
+import TradeJobCard from '@/components/trade_dashboard/trade_job_cards';
 
 // TODO: Replace with API call via useTradeJobs hook when backend is ready
 const upcomingJobs = [
@@ -221,68 +218,16 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
         <div className="space-y-4">
           {displayedJobs.length > 0 ? (
             displayedJobs.map((job) => (
-              <Card 
+              <TradeJobCard
                 key={job.id}
-                className="shadow-sm border-slate-200 hover:shadow-md transition-shadow cursor-pointer !py-3"
-                onClick={() => onNavigateToSection('jobs')}
-              >
-                <CardContent className="pt-3 sm:pt-4">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
-                        <h3 className="text-base sm:text-lg text-slate-900">{job.title}</h3>
-                        <Badge className={
-                          job.status === 'confirmed' 
-                            ? 'bg-green-50 text-green-700 border-green-200 border text-xs'
-                            : 'bg-amber-50 text-amber-700 border-amber-200 border text-xs'
-                        }>
-                          {job.status === 'confirmed' ? (
-                            <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-                          ) : (
-                            <span className="relative mr-1.5 flex h-3.5 w-3.5 sm:h-4 sm:w-4">
-                              <span className="absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-90 animate-ping" />
-                              <span className="relative inline-flex h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-orange-500" />
-                            </span>
-                          )}
-                          {job.status !== 'confirmed' && (
-                            <AlertTriangle className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-                          )}
-                          <span className="hidden sm:inline">{job.status === 'confirmed' ? 'Confirmed' : 'Pending'}</span>
-                          <span className="sm:hidden">{job.status === 'confirmed' ? 'Con.' : 'Pend.'}</span>
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3">
-                        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                          <Building className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate text-xs sm:text-sm">{job.company}</span>
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                          <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate text-xs sm:text-sm">{job.location}</span>
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm">{job.date}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-2 text-slate-900 text-sm sm:text-base">
-                          <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4" />
-                          <span>£{job.pay}/day · {job.days} days</span>
-                        </div>
-                        {job.status === 'pending' && (
-                          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 animate-pulse">
-                            <Clock className="h-3 w-3" />
-                            <span>{formatCountdown(pendingCountdown)} left to accept</span>
-                          </div>
-                        )}
-                    </div>
-                    <Button variant="outline" className="w-full lg:w-auto text-xs sm:text-sm py-1 sm:py-2">
-                      Details
-                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                job={job}
+                onViewDetails={() => onNavigateToSection('jobs')}
+                countdownText={
+                  job.status === 'pending'
+                    ? formatCountdown(pendingCountdown)
+                    : undefined
+                }
+              />
             ))
           ) : (
             <Card className="shadow-sm border-slate-200 !py-3">
