@@ -14,11 +14,14 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   const sampleJobs = [
     { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
     { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
+    { id: 'job-3', title: 'Paint Rooms', startDate: '2026-02-25', endDate: '2026-02-27' },
+    { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
   const effectiveJobs = (jobs && jobs.length) ? jobs : sampleJobs;
   const calendarRef = useRef<any>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
+  const [openDay, setOpenDay] = useState<string | null>(null);
 
   useEffect(() => {
     const check = () => setIsNarrow(window.innerWidth <= 640);
@@ -38,6 +41,19 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-2xl font-semibold">Calendar</h3>
+        <div className="flex items-center gap-2">
+          <button
+            className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${selectedDates.size === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-blue-600 text-white'}`}
+            onClick={() => {
+              if (selectedDates.size === 0) return;
+              const first = Array.from(selectedDates)[0];
+              setOpenDay(first || null);
+            }}
+            disabled={selectedDates.size === 0}
+          >
+            Open Day
+          </button>
+        </div>
       </div>
 
       <div className="rounded-md border p-4 bg-white">
@@ -60,7 +76,10 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             },
             dayCellClassNames: (arg: any) => {
               const dateStr = arg.date.toISOString().split('T')[0];
-              return selectedDates && selectedDates.has(dateStr) ? ['selected-day'] : [];
+              const classes: string[] = [];
+              if (effectiveJobs.some((j: any) => j.startDate === dateStr)) classes.push('has-job');
+              if (selectedDates && selectedDates.has(dateStr)) classes.push('open-day');
+              return classes;
             },
             height: 'auto',
           };
@@ -106,8 +125,21 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Calendar title spacing */
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
-                /* Highlight selected day cells */
-                .fc .selected-day { background: rgba(37,99,235,0.12) !important; border-radius: 6px; }
+
+                /* Days that have jobs (grey) */
+                .fc .has-job {
+                  background: #f1f5f9 !important; /* slate-100 */
+                  color: #0f172a !important;
+                  border-radius: 6px;
+                }
+
+                /* Open/selected days (green) */
+                .fc .open-day {
+                  background: rgba(16,185,129,0.12) !important; /* green-400 */
+                  border: 1px solid rgba(16,185,129,0.18) !important;
+                  color: #065f46 !important; /* green-800 */
+                  border-radius: 6px;
+                }
               `}</style>
             </>
           );
@@ -118,6 +150,30 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             ? `Selected days: ${selectedDates.size}`
             : 'No dates selected'}
         </div>
+        {openDay && (
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setOpenDay(null)} />
+            <div className={`bg-white w-full md:w-96 rounded-t-lg md:rounded-lg p-4 z-60 max-h-[70vh] overflow-auto ${isNarrow ? 'rounded-t-lg' : 'mt-8'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold">Jobs for {openDay}</h4>
+                <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>
+              </div>
+              <div>
+                {effectiveJobs.filter((j: any) => j.startDate === openDay).length === 0 && (
+                  <div className="text-sm text-slate-600">No jobs for this day.</div>
+                )}
+                <ul className="space-y-2">
+                  {effectiveJobs.filter((j: any) => j.startDate === openDay).map((job: any) => (
+                    <li key={job.id} className="p-2 border rounded-md">
+                      <div className="font-medium">{job.title}</div>
+                      <div className="text-xs text-slate-500">{job.startDate}</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
