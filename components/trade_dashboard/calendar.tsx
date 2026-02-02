@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
 import { Button } from '../ui/button';
+import { Lock, Check } from 'lucide-react';
 import { TradeCalendarProps, TradeCalendarJob } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
@@ -95,6 +96,30 @@ export default function TradeCalendar(props: TradeCalendarProps) {
       </div>
 
       <div className="rounded-md border p-4 bg-white">
+        {/* Calendar Guide */}
+        <div className="mb-4 p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 bg-white border-2 border-blue-500 rounded">
+                <Check className="h-3 w-3 text-blue-600" />
+              </div>
+              <span className="text-slate-700 font-medium">Today</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 rounded" style={{ background: '#94a3b8' }}>
+                <Lock className="h-2.5 w-2.5 text-slate-700" />
+              </div>
+              <span className="text-slate-700 font-medium">Busy</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 rounded border-2 border-red-500" style={{ background: 'rgba(34,197,94,0.18)' }}>
+                <Check className="h-2.5 w-2.5 text-red-600" />
+              </div>
+              <span className="text-slate-700 font-medium">Selected</span>
+            </div>
+          </div>
+        </div>
+
         {(() => {
           const calendarOptions: Record<string, unknown> = {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
