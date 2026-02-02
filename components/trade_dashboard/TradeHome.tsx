@@ -93,41 +93,41 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
       <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-4">
         <Card className="shadow-sm border-slate-200 !py-3">
           <CardContent className="pt-3">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 mb-2">
               <div className="h-8 sm:h-12 w-8 sm:w-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
                 <Calendar className="h-4 sm:h-6 w-4 sm:w-6 text-slate-600" />
+              </div>
+              {/* Mobile: Circular progress beside icon */}
+              <div className="sm:hidden">
+                <div className="relative w-10 h-10">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#e2e8f0" strokeWidth="2" />
+                    <circle 
+                      cx="20" 
+                      cy="20" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#2563eb" 
+                      strokeWidth="2"
+                      strokeDasharray={`${(availableDays / totalDays) * 100.48} 100.48`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-slate-900">{Math.round((availableDays / totalDays) * 100)}%</span>
+                  </div>
+                </div>
               </div>
             </div>
             <p className="text-lg sm:text-3xl text-slate-900 mb-0.5 sm:mb-1 font-semibold">{availableDays}/{totalDays}</p>
             <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3 line-clamp-2">Monthly Availability</p>
             
-            {/* Mobile: Circular progress, Desktop: Linear progress */}
+            {/* Desktop: Linear progress below */}
             <div className="hidden sm:block">
               <div className="w-full bg-slate-100 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(availableDays / totalDays) * 100}%` }} />
               </div>
               <p className="text-xs text-slate-500 mt-2">{Math.round((availableDays / totalDays) * 100)}%</p>
-            </div>
-            
-            <div className="sm:hidden flex justify-center">
-              <div className="relative w-12 h-12">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="24" cy="24" r="20" fill="none" stroke="#e2e8f0" strokeWidth="2" />
-                  <circle 
-                    cx="24" 
-                    cy="24" 
-                    r="20" 
-                    fill="none" 
-                    stroke="#2563eb" 
-                    strokeWidth="2"
-                    strokeDasharray={`${(availableDays / totalDays) * 125.6} 125.6`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-slate-900">{Math.round((availableDays / totalDays) * 100)}%</span>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
