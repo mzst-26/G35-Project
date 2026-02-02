@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 export type TradeSectionKey =
+  | "dashboard"
   | "calendar"
   | "jobs"
   | "penalties"
@@ -11,6 +12,36 @@ export interface TradeNavItem {
   label: string;
   icon: LucideIcon;
   section: TradeSectionKey;
+}
+
+// Job status for upcoming jobs
+export type TradeJobStatus = 'confirmed' | 'pending';
+
+// Upcoming job card data
+export interface TradeUpcomingJob {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  date: string; // ISO date string (yyyy-mm-dd)
+  pay: number; // daily rate in GBP
+  days: number; // job duration in days
+  status: TradeJobStatus;
+}
+
+// Dashboard statistics
+export interface TradeDashboardStats {
+  availableDays: number;
+  totalDays: number;
+  upcomingJobsCount: number;
+  confirmedJobsCount: number;
+  expectedEarnings: number;
+  penaltyAmount: number;
+}
+
+// Component props
+export interface TradeDashboardProps {
+  onNavigateToSection: (section: TradeSectionKey) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

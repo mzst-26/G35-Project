@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button"; //importing components for dashboard, for UI components and components for different dashboard sections
-import { Calendar, Briefcase, AlertTriangle, MessageSquare, Settings as SettingsIcon, Menu, X } from "lucide-react";
+import { Calendar, Briefcase, AlertTriangle, MessageSquare, Settings as SettingsIcon, Menu, X, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { TradeNavItem, TradeSectionKey } from "@/types/trade-dashboard";
+import TradeHome from "@/components/trade_dashboard/TradeHome";
 import TradeCalendar from "@/components/trade_dashboard/calendar";
 import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
@@ -14,6 +15,7 @@ import Settings from "@/components/trade_dashboard/settings";
 
 export default function TradeDashboard() {
     const navItems:TradeNavItem[] = [
+      { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
       { label: 'Calendar', icon: Calendar, section: 'calendar' },
       { label: 'Jobs', icon: Briefcase, section: 'jobs' },
       { label: 'Penalties', icon: AlertTriangle, section: 'penalties' },
@@ -21,7 +23,7 @@ export default function TradeDashboard() {
       { label: 'Settings', icon: SettingsIcon, section: 'settings' },
     ];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<TradeSectionKey>(navItems[0].section);
+  const [activeSection, setActiveSection] = useState<TradeSectionKey>('dashboard');
 
 
 
@@ -124,6 +126,7 @@ export default function TradeDashboard() {
       <div className="md:ml-64">
         <div className="p-4 md:p-8 pt-20 md:pt-8">
             
+          {activeSection === 'dashboard' && <TradeHome onNavigateToSection={setActiveSection} />}
           {activeSection === 'calendar' && <TradeCalendar />}
           {activeSection === 'jobs' && <TradeJobs />}
           {activeSection === 'penalties' && <Penalties />}
