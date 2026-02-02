@@ -15,28 +15,36 @@ export function useCompanyJobDetails(jobId: string | null) {
     // Stop early if there is no job id
     if (!jobId) {
       setJob(null);
+      setIsLoading(false);
+      setError(null);
       return;
     }
 
     // Use a flag so we don't set state after unmount
     let active = true;
-    setIsLoading(true);
-    setError(null);
 
-    getCompanyJobDetail(jobId)
-      .then((data) => {
-        if (!active) return;
-        setJob(data);
-      })
-      .catch((err) => {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : 'Failed to load job details';
-        setError(message);
-      })
-      .finally(() => {
-        if (!active) return;
-        setIsLoading(false);
-      });
+    const loadJob = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await getCompanyJobDetail(jobId);
+        if (active) {
+          setJob(data);
+        }
+      } catch (err) {
+        if (active) {
+          const message = err instanceof Error ? err.message : 'Failed to load job details';
+          setError(message);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadJob();
 
     return () => {
       active = false;
