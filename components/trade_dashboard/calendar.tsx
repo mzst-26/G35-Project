@@ -6,18 +6,21 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
 import { TradeCalendarProps } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
-  const { jobs = [] } = props as Record<string, unknown>;
+  const { jobs = [] } = (props as any);
   const sampleJobs: Array<{ id: string; title: string; startDate: string; endDate: string }> = [
     { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
     { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
     { id: 'job-3', title: 'Paint Rooms', startDate: '2026-02-25', endDate: '2026-02-27' },
     { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
-  const effectiveJobs = (jobs && Array.isArray(jobs) && jobs.length) ? jobs as Array<Record<string, unknown>> : sampleJobs;
-  const calendarRef = useRef<FullCalendar>(null);
+  const effectiveJobs: any[] = (Array.isArray(jobs) && jobs.length) ? (jobs as any[]) : sampleJobs;
+  const calendarRef = useRef<any>(null);
+  const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -54,10 +57,12 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     setMonthFreeCount(Math.max(0, total - taken));
   };
 
-  const events: EventInput[] = effectiveJobs.map((job: Record<string, unknown>) => ({
-    id: String(job.id),
-    title: String(job.title),
-    start: String(job.startDate || job.start),
+  
+
+  const events: EventInput[] = effectiveJobs.map((job: any) => ({
+    id: job.id,
+    title: job.title,
+    start: job.startDate || job.start,
     // FullCalendar treats event `end` as exclusive for all-day events,
     // so set end to the day after the job's endDate to make it inclusive.
     end: (() => {
@@ -133,11 +138,19 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
               return classes;
             },
-            datesSet: (arg: Record<string, unknown>) => {
-              // arg.start (inclusive) arg.end (exclusive)
+            // Only display the current month's dates (hide neighboring month days)
+            showNonCurrentDates: false,
+            // Do not force a 6-week grid; let month height vary to only show needed weeks
+            fixedWeekCount: false,
+
+            datesSet: (arg: any) => {
+              // Compute the calendar month start/end from the current view's date
               try {
-                updateMonthCounts(arg.start as Date, arg.end as Date);
-              } catch {
+                const viewStart = arg.start; // beginning of the view range
+                const monthStart = new Date(viewStart.getFullYear(), viewStart.getMonth(), 1);
+                const monthEnd = new Date(viewStart.getFullYear(), viewStart.getMonth() + 1, 1); // exclusive
+                updateMonthCounts(monthStart, monthEnd);
+              } catch (e) {
                 // ignore
               }
             },
@@ -146,7 +159,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
           return (
             <>
-              <FullCalendar ref={calendarRef} {...calendarOptions} />
+              <div ref={calendarWrapperRef} className="relative">
+                <FullCalendar ref={calendarRef} {...calendarOptions} />
+              </div>
               <style jsx global>{`
                 /* Toolbar layout tweaks */
                 .fc { max-width: 100%; }
@@ -158,6 +173,43 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   .fc .fc-toolbar { padding: 0.25rem; }
                   .fc .fc-toolbar .fc-toolbar-chunk { width: 100%; justify-content: space-between; }
                   .fc .fc-button { padding: 6px 8px; font-size: 0.85rem; }
+                }
+
+                /* Additional mobile tweaks to make the calendar fit narrower screens */
+                @media (max-width: 640px) {
+                  /* Reduce overall card padding */
+                  .rounded-md.border.p-4.bg-white { padding: 0.5rem; }
+
+                  /* Make toolbar title smaller */
+                  .fc .fc-toolbar-title { font-size: 1rem; }
+
+                  /* Day frame: smaller gaps */
+                  .fc .fc-daygrid-day-frame { padding: 0.5px 0.5px 1px; }
+
+                  /* On mobile, drop strict square aspect ratio and use a modest height so the grid fits vertically */
+                  .fc .fc-daygrid-day .fc-daygrid-day-top {
+                    aspect-ratio: auto !important;
+                    height: 48px !important;
+                    padding: 4px !important;
+                    border-radius: 8px !important;
+                    font-size: 12px;
+                  }
+
+                  /* Reduce lock icon size and position slightly inward */
+                  .fc .fc-daygrid-day.has-job .fc-daygrid-day-top::after {
+                    top: 4px;
+                    right: 4px;
+                    font-size: 0.85rem;
+                  }
+
+                  /* Compact toolbar buttons */
+                  .fc .fc-button { padding: 4px 6px !important; font-size: 0.75rem !important; }
+
+                  /* Ensure selected inner box uses subtle border and smaller radius */
+                  .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { border: 2px solid rgba(16,185,129,0.6) !important; border-radius: 8px !important; }
+
+                  /* Make modal full-screen on small devices */
+                  .bg-white.w-full.md\:w-96 { padding: 1rem; }
                 }
 
                 /* Button base style to match app UI */
@@ -188,18 +240,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Days that have jobs (darker grey) */
                 .fc .has-job { background: #94a3b8 !important; color: #0f172a !important; border-radius: 6px; position: relative; }
-                /* Lock icon in the top-left of a day with a job */
-                .fc .has-job::after {
-                  content: "🔒";
-                  position: absolute;
-                  top: 6px;
-                  left: 6px;
-                  right: auto;
-                  font-size: 0.95rem;
-                  line-height: 1;
-                  opacity: 0.95;
-                  pointer-events: none;
-                }
+                /* Lock icon for booked days is handled on the inner day-top element (top-right). */
 
                 /* Open days (brighter green) - shown for any date without jobs */
                 .fc .open-day { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border-radius: 0.5rem; overflow: hidden; }
@@ -207,8 +248,49 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 /* Booked days: keep darker grey background, no colored border */
                 .fc .has-job { background: #94a3b8 !important; color: #0f172a !important; border-radius: 0.5rem; overflow: hidden; }
 
-                /* Explicitly selected days: solid black border */
-                .fc .selected-day { box-shadow: none !important; border: 2px solid #000 !important; border-radius: 0.5rem; }
+                /* Selected day: only style the inner box */
+                .fc .selected-day { box-shadow: none !important; }
+                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 2px solid rgba(16,185,129,0.6) !important; }
+
+                /* Create small gaps between day cells by padding the outer frame and
+                   applying backgrounds to the inner day-top element. This produces
+                   horizontal and vertical spacing without breaking FullCalendar layout. */
+                .fc .fc-daygrid-day-frame { padding: 1px 1px 2px; }
+                .fc .fc-daygrid-day { background: transparent !important; }
+                .fc .fc-daygrid-day .fc-daygrid-day-top {
+                  width: 100%;
+                  aspect-ratio: 1 / 1; /* keep square */
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start; /* place content at the top-left */
+                  justify-content: flex-start;
+                  padding: 1px; /* minimal inner padding so content sits near top */
+                  box-sizing: border-box;
+                  border-radius: 10px;
+                  overflow: hidden;
+                  min-height: 0; /* prevent Flexbox stretching issues */
+                }
+
+                /* Adapt existing day states to target the inner top element so the
+                   visible colored boxes respect the gaps. */
+                .fc .fc-daygrid-day.has-job .fc-daygrid-day-top,
+                .fc .has-job { background: transparent !important; }
+                .fc .fc-daygrid-day.has-job .fc-daygrid-day-top { background: #94a3b8 !important; color: #0f172a !important; position: relative; }
+                .fc .fc-daygrid-day.has-job .fc-daygrid-day-top::after {
+                  content: "🔒";
+                  position: absolute;
+                  top: 6px;
+                  right: 6px;
+                  left: auto;
+                  font-size: 0.95rem;
+                  opacity: 0.95;
+                  pointer-events: none;
+                }
+
+                .fc .fc-daygrid-day.open-day .fc-daygrid-day-top,
+                .fc .open-day { background: transparent !important; }
+                .fc .fc-daygrid-day.open-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; }
+
               `}</style>
             </>
           );
@@ -219,10 +301,20 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             ? `Selected days: ${selectedDates.size}`
             : 'No dates selected'}
         </div>
+
         <div className="mt-2 text-sm text-slate-700">
           <span className="mr-4">Taken days this view: <strong>{monthTakenCount}</strong></span>
-          <span>Free days this view: <strong>{monthFreeCount}</strong></span>
+          <span className="mr-4">Free days: <strong>{monthFreeCount}</strong></span>
         </div>
+
+        <div className="mt-4">
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={() => setSelectedDates(new Set())} disabled={selectedDates.size === 0}>Clear Selection</Button>
+            <Button onClick={() => alert('Save availability not implemented')}>Save Availability</Button>
+          </div>
+        </div>
+
+        {/* Overlay for jobs on a day */}
         {openDay && (
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setOpenDay(null)} />
