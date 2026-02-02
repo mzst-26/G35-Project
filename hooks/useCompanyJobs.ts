@@ -14,23 +14,29 @@ export function useCompanyJobs() {
   useEffect(() => {
     // Load jobs once when the component mounts
     let active = true;
-    setIsLoading(true);
-    setError(null);
 
-    listRecentCompanyJobs()
-      .then((data) => {
-        if (!active) return;
-        setJobs(data);
-      })
-      .catch((err) => {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : 'Failed to load jobs';
-        setError(message);
-      })
-      .finally(() => {
-        if (!active) return;
-        setIsLoading(false);
-      });
+    const loadJobs = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await listRecentCompanyJobs();
+        if (active) {
+          setJobs(data);
+        }
+      } catch (err) {
+        if (active) {
+          const message = err instanceof Error ? err.message : 'Failed to load jobs';
+          setError(message);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadJobs();
 
     return () => {
       active = false;
