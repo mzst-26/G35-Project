@@ -6,20 +6,20 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { TradeCalendarProps } from "@/types/trade-dashboard";
+import { TradeCalendarProps, TradeCalendarJob } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
-  const { jobs = [] } = (props as any);
-  const sampleJobs: Array<{ id: string; title: string; startDate: string; endDate: string }> = [
+  const { jobs = [] } = props;
+  
+  const sampleJobs: TradeCalendarJob[] = [
     { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
     { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
     { id: 'job-3', title: 'Paint Rooms', startDate: '2026-02-25', endDate: '2026-02-27' },
     { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
-  const effectiveJobs: any[] = (Array.isArray(jobs) && jobs.length) ? (jobs as any[]) : sampleJobs;
-  const calendarRef = useRef<any>(null);
+  const effectiveJobs: TradeCalendarJob[] = (Array.isArray(jobs) && jobs.length) ? jobs : sampleJobs;
+  const calendarRef = useRef<InstanceType<typeof FullCalendar> | null>(null);
   const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
@@ -59,7 +59,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
   
 
-  const events: EventInput[] = effectiveJobs.map((job: any) => ({
+  const events: EventInput[] = effectiveJobs.map((job) => ({
     id: job.id,
     title: job.title,
     start: job.startDate || job.start,
@@ -143,7 +143,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             // Do not force a 6-week grid; let month height vary to only show needed weeks
             fixedWeekCount: false,
 
-            datesSet: (arg: any) => {
+            datesSet: (arg: { start: Date; end: Date }) => {
               // Compute the calendar month start/end from the current view's date
               try {
                 const viewStart = arg.start; // beginning of the view range

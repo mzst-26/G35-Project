@@ -48,8 +48,18 @@ export interface TradeDashboardProps {
   onNavigateToSection: (section: TradeSectionKey) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TradeCalendarProps {}
+export interface TradeCalendarJob {
+  id: string;
+  title: string;
+  startDate?: string;
+  endDate?: string;
+  start?: string;
+  end?: string;
+}
+
+export interface TradeCalendarProps {
+  jobs?: TradeCalendarJob[];
+}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeJobsProps {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

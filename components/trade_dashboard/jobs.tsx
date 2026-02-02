@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -12,11 +11,10 @@ import {
   Search,
   Info,
 } from "lucide-react";
-import { TradeJobsProps, TradeUpcomingJob } from "@/types/trade-dashboard";
 import TradeJobCard from "@/components/trade_dashboard/trade_job_cards";
 import { useTradeJobs } from "@/hooks/useTradeJobs";
 
-export default function TradeJobs(_props: TradeJobsProps) {
+export default function TradeJobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"pending" | "upcoming" | "completed" | "all">("pending");
   
@@ -91,7 +89,7 @@ export default function TradeJobs(_props: TradeJobsProps) {
             </CardContent>
           </Card>
           <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-            Money you've earned from completed jobs that's ready to be paid out.
+            Money you&apos;ve earned from completed jobs that&apos;s ready to be paid out.
           </div>
         </div>
 
@@ -111,7 +109,7 @@ export default function TradeJobs(_props: TradeJobsProps) {
             </CardContent>
           </Card>
           <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-            Payments expected from jobs you're currently working on.
+            Payments expected from jobs you&apos;re currently working on.
           </div>
         </div>
 
