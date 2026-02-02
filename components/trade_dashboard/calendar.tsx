@@ -33,8 +33,21 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   const events: EventInput[] = effectiveJobs.map((job: any) => ({
     id: job.id,
     title: job.title,
-    start: job.startDate,
-    end: job.endDate,
+    start: job.startDate || job.start,
+    // FullCalendar treats event `end` as exclusive for all-day events,
+    // so set end to the day after the job's endDate to make it inclusive.
+    end: (() => {
+      const rawEnd = job.endDate || job.end || job.startDate || job.start;
+      if (!rawEnd) return undefined;
+      try {
+        const d = new Date(rawEnd);
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+      } catch (e) {
+        return rawEnd;
+      }
+    })(),
+    allDay: true,
   }));
 
   return (
@@ -77,8 +90,15 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             dayCellClassNames: (arg: any) => {
               const dateStr = arg.date.toISOString().split('T')[0];
               const classes: string[] = [];
-              if (effectiveJobs.some((j: any) => j.startDate === dateStr)) classes.push('has-job');
-              if (selectedDates && selectedDates.has(dateStr)) classes.push('open-day');
+              // Treat a day as taken if it falls between any job's startDate and endDate (inclusive).
+              const hasJob = effectiveJobs.some((j: any) => {
+                const start = j.startDate || j.start || '';
+                const end = j.endDate || j.end || start;
+                return start <= dateStr && dateStr <= end;
+              });
+              if (hasJob) classes.push('has-job');
+              else classes.push('open-day');
+              if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
               return classes;
             },
             height: 'auto',
@@ -126,20 +146,14 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 /* Calendar title spacing */
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
 
-                /* Days that have jobs (grey) */
-                .fc .has-job {
-                  background: #f1f5f9 !important; /* slate-100 */
-                  color: #0f172a !important;
-                  border-radius: 6px;
-                }
+                /* Days that have jobs (darker grey) */
+                .fc .has-job { background: #cbd5e1 !important; color: #0f172a !important; border-radius: 6px; }
 
-                /* Open/selected days (green) */
-                .fc .open-day {
-                  background: rgba(16,185,129,0.12) !important; /* green-400 */
-                  border: 1px solid rgba(16,185,129,0.18) !important;
-                  color: #065f46 !important; /* green-800 */
-                  border-radius: 6px;
-                }
+                /* Open days (green) - shown for any date without jobs */
+                .fc .open-day { background: rgba(16,185,129,0.12) !important; border: 1px solid rgba(16,185,129,0.12) !important; color: #065f46 !important; border-radius: 6px; }
+
+                /* Explicitly selected days: stronger outline */
+                .fc .selected-day { box-shadow: 0 0 0 2px rgba(37,99,235,0.12) inset, 0 1px 0 rgba(0,0,0,0.02); }
               `}</style>
             </>
           );
@@ -159,14 +173,22 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>
               </div>
               <div>
-                {effectiveJobs.filter((j: any) => j.startDate === openDay).length === 0 && (
+                {effectiveJobs.filter((j: any) => {
+                  const start = j.startDate || j.start || '';
+                  const end = j.endDate || j.end || start;
+                  return start <= openDay && openDay <= end;
+                }).length === 0 && (
                   <div className="text-sm text-slate-600">No jobs for this day.</div>
                 )}
                 <ul className="space-y-2">
-                  {effectiveJobs.filter((j: any) => j.startDate === openDay).map((job: any) => (
+                  {effectiveJobs.filter((j: any) => {
+                    const start = j.startDate || j.start || '';
+                    const end = j.endDate || j.end || start;
+                    return start <= openDay && openDay <= end;
+                  }).map((job: any) => (
                     <li key={job.id} className="p-2 border rounded-md">
                       <div className="font-medium">{job.title}</div>
-                      <div className="text-xs text-slate-500">{job.startDate}</div>
+                      <div className="text-xs text-slate-500">{(job.startDate || job.start) + (job.endDate || job.end ? ` — ${job.endDate || job.end}` : '')}</div>
                     </li>
                   ))}
                 </ul>
