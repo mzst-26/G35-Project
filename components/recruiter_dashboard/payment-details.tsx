@@ -327,10 +327,6 @@ export default function PaymentDetails({
                   <Download className="h-4 w-4 mr-2" />
                   Download Receipt
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  View Payment Method
-                </Button>
               </CardContent>
             </Card>
 
