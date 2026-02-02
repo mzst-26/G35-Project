@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Calendar,
   CreditCard,
@@ -11,9 +12,12 @@ import {
   Clock,
   FileText,
   ArrowRight,
+  Search,
+  Filter,
 } from "lucide-react";
 import { useCompanyPayments } from "@/hooks/useCompanyPayments";
 import type { CompanyPaymentListItem, CompanyPaymentStatus } from "@/types/company-payments";
+import { useState, useMemo } from "react";
 
 interface PaymentsProps {
   onViewJob?: (jobId: string) => void;
@@ -23,6 +27,10 @@ interface PaymentsProps {
 export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
   // Load payments from the service hook
   const { payments, summary, isLoading, error } = useCompanyPayments();
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CompanyPaymentStatus | "all">("all");
 
   const statusConfig: Record<CompanyPaymentStatus, { label: string; color: string; icon: typeof Clock }> = {
     unpaid: { label: "Unpaid", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
@@ -39,12 +47,65 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
   const formatCurrency = (value: number) =>
     value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Filter and search payments
+  const filteredPayments = useMemo(() => {
+    let result = [...payments];
+
+    // Apply search filter (search in job title and invoice)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (payment) =>
+          payment.jobTitle.toLowerCase().includes(query) ||
+          payment.invoice.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      result = result.filter((payment) => payment.status === statusFilter);
+    }
+
+    return result;
+  }, [payments, searchQuery, statusFilter]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Payments</h1>
         <p className="text-slate-600">Manage your payments and track job expenses</p>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by job title or invoice..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="relative sm:w-64">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as CompanyPaymentStatus | "all")}
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:border-transparent"
+          >
+            <option value="all">All Statuses</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="platform-fee-paid">Platform Fee Paid</option>
+            <option value="escrowed">Payment Secured</option>
+            <option value="released">Payment Released</option>
+            <option value="refunded">Refunded</option>
+          </select>
+        </div>
       </div>
 
       {/* Payment Summary Cards */}
@@ -101,6 +162,25 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
 
         {error && !isLoading && <p className="text-red-600">{error}</p>}
 
+        {!isLoading && !error && filteredPayments.length === 0 && payments.length > 0 && (
+          <Card className="p-6">
+            <CardContent className="text-center">
+              <Search className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-600">No payments match your search or filter</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+                className="mt-4"
+              >
+                Clear Filters
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {!isLoading && !error && payments.length === 0 && (
           <Card className="p-6">
             <CardContent className="text-center">
@@ -110,9 +190,9 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
           </Card>
         )}
 
-        {!isLoading && !error && payments.length > 0 && (
+        {!isLoading && !error && filteredPayments.length > 0 && (
           <div className="space-y-4">
-            {payments.map((payment: CompanyPaymentListItem) => {
+            {filteredPayments.map((payment: CompanyPaymentListItem) => {
               const config = statusConfig[payment.status];
               const StatusIcon = config.icon;
 
