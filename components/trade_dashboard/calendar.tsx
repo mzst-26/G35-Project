@@ -12,7 +12,7 @@ import { TradeCalendarProps } from "@/types/trade-dashboard";
 export default function TradeCalendar(props: TradeCalendarProps) {
   const { jobs = [] } = props as any;
   const calendarRef = useRef<any>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
   const events: EventInput[] = jobs.map((job: any) => ({
     id: job.id,
@@ -38,7 +38,19 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               right: 'dayGridMonth,timeGridWeek,timeGridDay',
             },
             events,
-            dateClick: (info: any) => setSelectedDate(info.dateStr),
+            dateClick: (info: any) => {
+              const dateStr = info.dateStr;
+              setSelectedDates((prev: Set<string>) => {
+                const next = new Set(prev);
+                if (next.has(dateStr)) next.delete(dateStr);
+                else next.add(dateStr);
+                return next;
+              });
+            },
+            dayCellClassNames: (arg: any) => {
+              const dateStr = arg.date.toISOString().split('T')[0];
+              return selectedDates && selectedDates.has(dateStr) ? ['selected-day'] : [];
+            },
             height: 'auto',
           };
 
@@ -77,13 +89,20 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Calendar title spacing */
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
+                /* Highlight selected day cells */
+                .fc .selected-day {
+                  background: rgba(37,99,235,0.12) !important;
+                  border-radius: 6px;
+                }
               `}</style>
             </>
           );
         })()}
 
         <div className="mt-4 text-sm text-slate-600">
-          {selectedDate ? `Selected: ${selectedDate}` : 'No date selected'}
+          {selectedDates && selectedDates.size > 0
+            ? `Selected days: ${selectedDates.size}`
+            : 'No dates selected'}
         </div>
       </div>
     </div>
