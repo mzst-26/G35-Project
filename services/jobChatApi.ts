@@ -13,8 +13,8 @@ import { Message } from '@/types/chat';
 import { JobParameters } from '@/types/job';
 
 // Environment variables for API endpoints
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-const AI_ENDPOINT = process.env.NEXT_PUBLIC_AI_ENDPOINT || '/ai/chat';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+// const AI_ENDPOINT = process.env.NEXT_PUBLIC_AI_ENDPOINT || '/ai/chat';
 
 /**
  * Send message to AI backend

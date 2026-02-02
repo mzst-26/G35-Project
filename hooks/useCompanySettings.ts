@@ -8,8 +8,6 @@ import {
   CompanySettingsState,
   EmailNotifications,
   SmsNotifications,
-  ProfileUpdatePayload,
-  NotificationUpdatePayload,
 } from '@/types/company-settings';
 
 /**

@@ -10,7 +10,7 @@ export function useSupport() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? (JSON.parse(raw) as Ticket[]) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
@@ -18,7 +18,7 @@ export function useSupport() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [tickets]);

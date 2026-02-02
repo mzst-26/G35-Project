@@ -28,24 +28,23 @@ import {
  * Helper function to build fetch options with authentication
  * Adds API key and content-type headers to all requests
  */
-const buildFetchOptions = (method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH') => ({
-  method,
-  headers: {
-    'Content-Type': 'application/json',
-    // 'Authorization': `Bearer ${API_KEY}`, // TODO: Add when API key auth is ready
-  },
-});
+// const buildFetchOptions = (method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH') => ({
+//   method,
+//   headers: {
+//     'Content-Type': 'application/json',
+//     // 'Authorization': `Bearer ${API_KEY}`, // TODO: Add when API key auth is ready
+//   },
+// });
 
 /**
  * Fetch company profile from backend
  * GET /api/company/{companyId}/profile
  *
- * @param companyId - Unique identifier for the company
  * @returns Promise<CompanyProfile> - Company profile data
  *
  * TODO: Replace with actual fetch call to backend
  */
-export async function getCompanyProfile(companyId: string): Promise<CompanyProfile> {
+export async function getCompanyProfile(): Promise<CompanyProfile> {
   try {
     // TODO: Uncomment and use real API endpoint
     // const response = await fetch(
@@ -171,12 +170,11 @@ export async function updateNotificationPreferences(
  * Fetch saved payment methods from backend
  * GET /api/company/{companyId}/payment-methods
  *
- * @param companyId - Unique identifier for the company
- * @returns Promise<PaymentMethod[]> - Array of saved payment methods
+ * @returns Promise<PaymentMethod[]> - List of payment methods
  *
  * TODO: Replace with actual fetch call to backend
  */
-export async function getPaymentMethods(companyId: string): Promise<PaymentMethod[]> {
+export async function getPaymentMethods(): Promise<PaymentMethod[]> {
   try {
     // TODO: Uncomment and use real API endpoint
     // const response = await fetch(

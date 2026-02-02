@@ -118,7 +118,10 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
 export async function listCompanyPayments(): Promise<CompanyPaymentListItem[]> {
   // TODO: Replace with real API call.
   return Promise.resolve(
-    Object.values(PAYMENTS_DATABASE).map(({ transactions, pendingStripeHold, ...item }) => item)
+    Object.values(PAYMENTS_DATABASE).map(({ ...item }) => {
+      const { transactions, pendingStripeHold, ...paymentItem } = item;
+      return paymentItem;
+    })
   );
 }
 
