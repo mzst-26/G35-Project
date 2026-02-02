@@ -75,41 +75,65 @@ export default function TradeJobs(_props: TradeJobsProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-6">
-        <Card className="shadow-sm border-slate-200 !py-3">
-          <CardContent className="pt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
+        <div className="group relative">
+          <Card className="shadow-sm border-slate-200 !py-3">
+            <CardContent className="pt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
+                </div>
+                <button className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 flex items-center justify-center">
+                  <Info className="h-4 w-4" />
+                </button>
               </div>
-            </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{displayStats.pendingJobs}</p>
-            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Pending Jobs</p>
-          </CardContent>
-        </Card>
+              <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£{displayStats.completedEarnings}</p>
+              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Realised Earnings</p>
+            </CardContent>
+          </Card>
+          <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+            Money you've earned from completed jobs that's ready to be paid out.
+          </div>
+        </div>
 
-        <Card className="shadow-sm border-slate-200 !py-3">
-          <CardContent className="pt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
+        <div className="group relative">
+          <Card className="shadow-sm border-slate-200 !py-3">
+            <CardContent className="pt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
+                </div>
+                <button className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 flex items-center justify-center">
+                  <Info className="h-4 w-4" />
+                </button>
               </div>
-            </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{displayStats.upcomingJobs}</p>
-            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Upcoming Jobs</p>
-          </CardContent>
-        </Card>
+              <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£0</p>
+              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Upcoming Payments</p>
+            </CardContent>
+          </Card>
+          <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+            Payments expected from jobs you're currently working on.
+          </div>
+        </div>
 
-        <Card className="shadow-sm border-slate-200 !py-3">
-          <CardContent className="pt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="h-4 sm:h-5 w-4 sm:w-5 text-slate-600" />
+        <div className="group relative">
+          <Card className="shadow-sm border-slate-200 !py-3">
+            <CardContent className="pt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600" />
+                </div>
+                <button className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 flex items-center justify-center">
+                  <Info className="h-4 w-4" />
+                </button>
               </div>
-            </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£{displayStats.completedEarnings}</p>
-            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Earnings</p>
-          </CardContent>
-        </Card>
+              <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£0</p>
+              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Est. Next Month Earning</p>
+            </CardContent>
+          </Card>
+          <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+            Projected earnings from jobs scheduled for next month.
+          </div>
+        </div>
       </div>
 
       {/* Search */}
