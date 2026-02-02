@@ -163,7 +163,7 @@ export default function AdminDashboard() {
               </>
           )}
           
-          /* Settings is handled elsewhere now */
+        
 
         </div>
       </div>
