@@ -1,19 +1,265 @@
 "use client";
 
-import React from "react";
-import { TradeJobsProps } from "@/types/trade-dashboard";
-// Penalties moved to its own dashboard page
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import { Alert, AlertDescription } from "../ui/alert";
+import {
+  Briefcase,
+  Clock,
+  CheckCircle2,
+  PlayCircle,
+  Search,
+  Info,
+  XCircle,
+} from "lucide-react";
+import { TradeJobsProps, TradeUpcomingJob } from "@/types/trade-dashboard";
+import TradeJobCard from "@/components/trade_dashboard/trade_job_cards";
+
+// TODO: Replace with API call via useTradeJobs hook when backend is ready
+const allJobs: TradeUpcomingJob[] = [
+  {
+    id: 1,
+    title: "Emergency Repair",
+    company: "Retail Solutions",
+    location: "Birmingham, B1",
+    date: "2026-03-02",
+    pay: 450,
+    days: 5,
+    status: "pending",
+    description: "Urgent electrical repair needed",
+    actionByHours: 12,
+  },
+  {
+    id: 3,
+    title: "Residential Installation",
+    company: "Property Group",
+    location: "Manchester, M1",
+    date: "2026-02-28",
+    pay: 320,
+    days: 3,
+    status: "pending",
+    description: "New electrical installation in residential property",
+    actionByHours: 24,
+  },
+  {
+    id: 2,
+    title: "Office Lighting Upgrade",
+    company: "Business Solutions Ltd",
+    location: "London, EC2",
+    date: "2026-03-05",
+    pay: 300,
+    days: 2,
+    status: "upcoming",
+    description: "LED lighting installation throughout office",
+  },
+  {
+    id: 7,
+    title: "Factory Electrical Work",
+    company: "Manufacturing Co",
+    location: "Sheffield, S1",
+    date: "2026-03-10",
+    pay: 350,
+    days: 4,
+    status: "upcoming",
+    description: "Industrial electrical system installation",
+  },
+  {
+    id: 4,
+    title: "Warehouse Wiring",
+    company: "Logistics Ltd",
+    location: "Leeds, LS1",
+    date: "2026-02-20",
+    pay: 380,
+    days: 4,
+    status: "completed",
+    description: "Completed warehouse electrical system",
+    completedDate: "2026-02-23",
+  },
+  {
+    id: 8,
+    title: "Shop Rewiring",
+    company: "Retail Solutions",
+    location: "Bristol, BS1",
+    date: "2026-02-15",
+    pay: 350,
+    days: 5,
+    status: "completed",
+    description: "Complete shop electrical rewiring",
+    completedDate: "2026-02-19",
+  },
+];
+
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    color: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: Clock,
+    description: "Awaiting your decision",
+  },
+  upcoming: {
+    label: "Upcoming",
+    color: "bg-blue-50 text-blue-700 border-blue-200",
+    icon: CheckCircle2,
+    description: "Jobs you've accepted",
+  },
+  completed: {
+    label: "Completed",
+    color: "bg-slate-900 text-white border-slate-900",
+    icon: CheckCircle2,
+    description: "Successfully completed jobs",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "bg-red-50 text-red-700 border-red-200",
+    icon: XCircle,
+    description: "Jobs you rejected",
+  },
+};
 
 export default function TradeJobs(_props: TradeJobsProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"pending" | "upcoming" | "completed" | "all">("pending");
+  const [jobs, setJobs] = useState<TradeUpcomingJob[]>(allJobs);
+
+  const filteredJobs = jobs.filter((job) => {
+    const matchesSearch =
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesTab = activeTab === "all" || job.status === activeTab;
+
+    return matchesSearch && matchesTab;
+  });
+
+  const tabCounts = {
+    all: jobs.length,
+    pending: jobs.filter((j) => j.status === "pending").length,
+    upcoming: jobs.filter((j) => j.status === "upcoming").length,
+    completed: jobs.filter((j) => j.status === "completed").length,
+  };
+
+  const stats = {
+    pendingJobs: tabCounts.pending,
+    upcomingJobs: tabCounts.upcoming,
+    completedEarnings: jobs
+      .filter((j) => j.status === "completed")
+      .reduce((sum, j) => sum + j.pay * j.days, 0),
+  };
+
   return (
     <div>
-      <h3 className="text-2xl font-semibold mb-4">Jobs</h3>
-      
-      <div className="rounded-md border p-6 bg-white">
-        <p className="text-sm text-slate-600">Manage your active and past jobs here.</p>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl text-slate-900 mb-2">My Jobs</h1>
+        <p className="text-slate-600">View and manage jobs allocated to you</p>
       </div>
 
-      {/* Penalties page moved — no penalty UI here */}
+      {/* Info Alert */}
+      <Alert className="mb-6 bg-blue-50 border-blue-200">
+        <Info className="h-5 w-5 text-blue-600" />
+        <AlertDescription className="text-blue-900">
+          <strong>Pending Jobs:</strong> You have <strong>{tabCounts.pending}</strong> job(s) awaiting your decision. Review and accept or reject them before the deadline. Rejecting after acceptance will incur a penalty fee of <strong>£50</strong>.
+        </AlertDescription>
+      </Alert>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-6">
+        <Card className="shadow-sm border-slate-200 !py-3">
+          <CardContent className="pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
+              </div>
+            </div>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{stats.pendingJobs}</p>
+            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Pending Jobs</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-slate-200 !py-3">
+          <CardContent className="pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
+              </div>
+            </div>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{stats.upcomingJobs}</p>
+            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Upcoming Jobs</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-slate-200 !py-3">
+          <CardContent className="pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="h-4 sm:h-5 w-4 sm:w-5 text-slate-600" />
+              </div>
+            </div>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£{stats.completedEarnings}</p>
+            <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Earnings</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+          <Input
+            placeholder="Search by job title, company, or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4 border-b border-slate-200 overflow-x-auto">
+        {["pending", "upcoming", "completed", "all"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as typeof activeTab)}
+            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === tab
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} (
+            {tabCounts[tab as keyof typeof tabCounts]})
+          </button>
+        ))}
+      </div>
+
+      {/* Jobs List */}
+      <div className="space-y-4">
+        {filteredJobs.length === 0 ? (
+          <Card className="shadow-sm border-slate-200 !py-3">
+            <CardContent className="pt-3 text-center py-12">
+              <Briefcase className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+              <h3 className="text-lg text-slate-900 mb-1">No jobs found</h3>
+              <p className="text-sm text-slate-500">
+                {activeTab === "pending"
+                  ? "You have no pending jobs at the moment."
+                  : activeTab === "upcoming"
+                    ? "You have no upcoming jobs yet."
+                    : "Try adjusting your search or check other tabs"}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredJobs.map((job) => (
+            <div key={job.id}>
+              <TradeJobCard job={job} onViewDetails={() => {}} />
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

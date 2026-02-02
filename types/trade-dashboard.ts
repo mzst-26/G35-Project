@@ -15,7 +15,7 @@ export interface TradeNavItem {
 }
 
 // Job status throughout lifecycle
-export type TradeJobStatus = 'confirmed' | 'pending' | 'active' | 'completed' | 'rejected';
+export type TradeJobStatus = 'pending' | 'upcoming' | 'completed' | 'rejected';
 
 // Upcoming job card data
 export interface TradeUpcomingJob {

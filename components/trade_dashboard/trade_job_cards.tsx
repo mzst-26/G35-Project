@@ -38,27 +38,47 @@ export default function TradeJobCard({
               <h3 className="text-base sm:text-lg text-slate-900">{job.title}</h3>
               <Badge
                 className={
-                  job.status === "confirmed"
-                    ? "bg-green-50 text-green-700 border-green-200 border text-xs"
-                    : "bg-amber-50 text-amber-700 border-amber-200 border text-xs"
+                  job.status === "pending"
+                    ? "bg-amber-50 text-amber-700 border-amber-200 border text-xs"
+                    : job.status === "upcoming"
+                      ? "bg-blue-50 text-blue-700 border-blue-200 border text-xs"
+                      : job.status === "completed"
+                        ? "bg-slate-900 text-white border-slate-900 border text-xs"
+                        : "bg-red-50 text-red-700 border-red-200 border text-xs"
                 }
               >
-                {job.status === "confirmed" ? (
-                  <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-                ) : (
+                {job.status === "pending" && (
                   <span className="relative mr-1.5 flex h-3.5 w-3.5 sm:h-4 sm:w-4">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-90 animate-ping" />
                     <span className="relative inline-flex h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-orange-500" />
                   </span>
                 )}
-                {job.status !== "confirmed" && (
+                {job.status === "upcoming" && (
+                  <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                )}
+                {job.status === "completed" && (
+                  <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                )}
+                {job.status === "rejected" && (
                   <AlertTriangle className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
                 )}
                 <span className="hidden sm:inline">
-                  {job.status === "confirmed" ? "Confirmed" : "Pending"}
+                  {job.status === "pending"
+                    ? "Pending"
+                    : job.status === "upcoming"
+                      ? "Upcoming"
+                      : job.status === "completed"
+                        ? "Completed"
+                        : "Rejected"}
                 </span>
                 <span className="sm:hidden">
-                  {job.status === "confirmed" ? "Con." : "Pend."}
+                  {job.status === "pending"
+                    ? "Pend."
+                    : job.status === "upcoming"
+                      ? "Upco."
+                      : job.status === "completed"
+                        ? "Done"
+                        : "Rej."}
                 </span>
               </Badge>
             </div>
@@ -76,9 +96,9 @@ export default function TradeJobCard({
                 <span className="text-xs sm:text-sm">{job.date}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2 text-slate-900 text-sm sm:text-base">
+            <div className="flex items-center gap-1 sm:gap-2 text-green-600 text-sm sm:text-base">
               <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>
+              <span className="font-semibold">
                 £{job.pay}/day · {job.days} days
               </span>
             </div>
