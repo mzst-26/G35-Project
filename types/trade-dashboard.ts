@@ -14,8 +14,8 @@ export interface TradeNavItem {
   section: TradeSectionKey;
 }
 
-// Job status for upcoming jobs
-export type TradeJobStatus = 'confirmed' | 'pending';
+// Job status throughout lifecycle
+export type TradeJobStatus = 'confirmed' | 'pending' | 'active' | 'completed' | 'rejected';
 
 // Upcoming job card data
 export interface TradeUpcomingJob {
@@ -27,6 +27,10 @@ export interface TradeUpcomingJob {
   pay: number; // daily rate in GBP
   days: number; // job duration in days
   status: TradeJobStatus;
+  description?: string; // Job description/details
+  actionByHours?: number; // For pending jobs: hours until decision deadline
+  completedDate?: string; // For completed jobs: completion date (yyyy-mm-dd)
+  rejectionReason?: string; // For rejected jobs: reason for rejection
 }
 
 // Dashboard statistics
