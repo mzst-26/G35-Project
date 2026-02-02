@@ -227,8 +227,6 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
                         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                           <span className="text-slate-600">Labour: £{formatCurrency(payment.labourCost)}</span>
                           <span className="text-slate-400">•</span>
-                          <span className="text-slate-600">Platform Fee: £{formatCurrency(payment.platformFee)}</span>
-                          <span className="text-slate-400">•</span>
                           <span className="text-slate-900">Total: £{formatCurrency(payment.totalAmount)}</span>
                         </div>
                       </div>

@@ -128,8 +128,8 @@ export default function PaymentDetails({
           <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
             <Shield className="h-5 w-5 text-blue-600" />
             <p className="text-blue-900 text-sm">
-              <strong>Stripe Hold:</strong> Your labour payment of £{formatCurrency(
-                payment.labourCost
+              <strong>Stripe Hold:</strong> Your payment of £{formatCurrency(
+                payment.totalAmount
               )} is held securely by Stripe. Funds will be automatically released
               to workers once the job is marked as complete.
             </p>
@@ -152,8 +152,8 @@ export default function PaymentDetails({
           <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             <p className="text-green-900 text-sm">
-              <strong>Payment Complete:</strong> The labour cost of £{formatCurrency(
-                payment.labourCost
+              <strong>Payment Complete:</strong> The payment of £{formatCurrency(
+                payment.totalAmount
               )} was released to workers on {formatDate(payment.releasedAt)}.
             </p>
           </div>
@@ -176,24 +176,8 @@ export default function PaymentDetails({
                   </button>
                 </div>
                 <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Labour Cost</span>
-                  <span className="text-slate-900">£{formatCurrency(payment.labourCost)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Platform Fee (10%)</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-900">£{formatCurrency(payment.platformFee)}</span>
-                    {payment.platformFeePaid && (
-                      <Badge className="bg-green-50 text-green-700 border-green-200 border text-xs">
-                        Paid
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <Separator />
                 <div className="flex items-center justify-between text-lg">
-                  <span className="text-slate-900">Total Amount</span>
+                  <span className="text-slate-900">Total Paid</span>
                   <span className="text-slate-900">£{formatCurrency(payment.totalAmount)}</span>
                 </div>
                 <Separator />
@@ -261,22 +245,12 @@ export default function PaymentDetails({
                     1
                   </div>
                   <p>
-                    <strong>Platform fee paid immediately:</strong> The 10% platform fee is charged
-                    to your payment method right away.
+                    <strong>Payment held by Stripe:</strong> Your payment is charged but held securely by Stripe (not released to workers yet).
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
                     2
-                  </div>
-                  <p>
-                    <strong>Labour cost held by Stripe:</strong> The labour payment is charged but
-                    held securely by Stripe (not released to workers yet).
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
-                    3
                   </div>
                   <p>
                     <strong>Job completion:</strong> Once you mark the job as complete, the held
@@ -285,11 +259,10 @@ export default function PaymentDetails({
                 </div>
                 <div className="flex gap-3">
                   <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
-                    4
+                    3
                   </div>
                   <p>
-                    <strong>Cancellation:</strong> If the job is cancelled, the held labour cost is
-                    refunded (platform fee is non-refundable).
+                    <strong>Cancellation:</strong> If the job is cancelled, the held payment is refunded to your account.
                   </p>
                 </div>
               </CardContent>
