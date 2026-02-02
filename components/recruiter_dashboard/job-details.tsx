@@ -341,7 +341,7 @@ export default function JobDetails({
                     Platform fee paid. Labour payment will be processed before job start.
                   </div>
                 )}
-                {job.paymentStatus === 'Stripeed' && (
+                {job.paymentStatus === 'stripe-hold' && (
                   <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
                     Labour cost held in Stripe. Will be released upon completion.
                   </div>
@@ -402,9 +402,9 @@ export default function JobDetails({
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
                 Are you sure you want to cancel this job? This action cannot be undone.
-                {job.paymentStatus === 'Stripeed' && (
+                {job.paymentStatus === 'stripe-hold' && (
                   <span className="block mt-2 text-blue-600">
-                    The Stripeed amount (£{job.labourCost}) will be refunded to your account.
+                    The Stripe hold amount (£{job.labourCost}) will be refunded to your account.
                     Platform fee (£{job.platformFee}) is non-refundable.
                   </span>
                 )}
@@ -446,7 +446,7 @@ export default function JobDetails({
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
                 By marking this job as complete, you confirm that all work has been
-                satisfactorily finished. The Stripeed payment of £{job.labourCost} will be
+                satisfactorily finished. The Stripe hold payment of £{job.labourCost} will be
                 released to the workers.
               </p>
               <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
