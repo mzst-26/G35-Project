@@ -1,92 +1,43 @@
-import { Card } from "@/components/ui/card";
-import { DollarSign, Clock, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
-import { useCompanyJobs } from "@/hooks/useCompanyJobs";
-import { PaymentSummary, JobHistory, JobStatus } from "@/types/payment";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Calendar,
+  CreditCard,
+  DollarSign,
+  AlertCircle,
+  CheckCircle2,
+  Shield,
+  Clock,
+  FileText,
+  ArrowRight,
+} from "lucide-react";
+import { useCompanyPayments } from "@/hooks/useCompanyPayments";
+import type { CompanyPaymentListItem, CompanyPaymentStatus } from "@/types/company-payments";
 
 interface PaymentsProps {
-  paymentSummary?: PaymentSummary;
-  jobHistory?: JobHistory[];
-  onViewJob?: (jobId: number) => void;
+  onViewJob?: (jobId: string) => void;
+  onViewPayment?: (paymentId: string) => void;
 }
 
-export default function Payments({ paymentSummary, jobHistory, onViewJob }: PaymentsProps) {
-  // Load jobs from the service hook
-  const { jobs, isLoading, error } = useCompanyJobs();
+export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
+  // Load payments from the service hook
+  const { payments, summary, isLoading, error } = useCompanyPayments();
 
-  // Build table rows from the company jobs data
-  const derivedHistory: JobHistory[] = jobs.map((job) => {
-    const jobDate = new Date(job.date);
-    const today = new Date();
-
-    let status: JobStatus = "upcoming";
-    if (job.status === "completed") status = "completed";
-    else if (jobDate < today) status = "overdue";
-
-    const baseRate = 280;
-    const amount = job.workers * baseRate;
-    const outstanding = status === "completed" ? 0 : amount;
-
-    return {
-      id: Number(job.id),
-      jobTitle: job.title,
-      tradesperson: `${job.trade} team`,
-      amount,
-      outstanding,
-      status,
-      date: job.date,
-    };
-  });
-
-  const derivedSummary: PaymentSummary = derivedHistory.reduce(
-    (acc, row) => {
-      if (row.status === "completed") {
-        acc.totalPaid += row.amount;
-        acc.platformFeesPaid += row.amount * 0.055;
-      }
-      if (row.status !== "completed") {
-        acc.unpaidJobs += 1;
-      }
-      if (row.status === "upcoming") {
-        acc.totalInEscrow += row.amount;
-      }
-      return acc;
+  const statusConfig: Record<CompanyPaymentStatus, { label: string; color: string; icon: typeof Clock }> = {
+    unpaid: { label: "Unpaid", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
+    "platform-fee-paid": {
+      label: "Platform Fee Paid",
+      color: "bg-amber-50 text-amber-700 border-amber-200",
+      icon: Clock,
     },
-    {
-      totalPaid: 0,
-      totalInEscrow: 0,
-      platformFeesPaid: 0,
-      unpaidJobs: 0,
-    }
-  );
-
-  const summary = paymentSummary || derivedSummary;
-  const history = jobHistory || derivedHistory;
-
-  const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-600 bg-green-50';
-      case 'overdue':
-        return 'text-red-600 bg-red-50';
-      case 'upcoming':
-        return 'text-blue-600 bg-blue-50';
-      default:
-        return 'text-slate-600 bg-slate-50';
-    }
+    escrowed: { label: "Payment Secured", color: "bg-blue-50 text-blue-700 border-blue-200", icon: Shield },
+    released: { label: "Payment Released", color: "bg-green-50 text-green-700 border-green-200", icon: CheckCircle2 },
+    refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700 border-slate-200", icon: CheckCircle2 },
   };
 
-  const getStatusIcon = (status: JobStatus) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'overdue':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'upcoming':
-        return <Clock className="h-4 w-4" />;
-      default:
-        return null;
-    }
-  };
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="space-y-6">
@@ -97,7 +48,7 @@ export default function Payments({ paymentSummary, jobHistory, onViewJob }: Paym
       </div>
 
       {/* Payment Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Total Paid */}
         <Card className="p-6">
           <div className="flex items-start justify-between">
@@ -113,32 +64,17 @@ export default function Payments({ paymentSummary, jobHistory, onViewJob }: Paym
           </div>
         </Card>
 
-        {/* Total in Escrow */}
+        {/* Total in Stripe */}
         <Card className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-slate-600 mb-1">Total in Escrow</p>
+              <p className="text-sm text-slate-600 mb-1">Total in Stripe</p>
               <p className="text-2xl font-bold text-slate-900">
                 £{summary.totalInEscrow.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
               <Clock className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-
-        {/* Platform Fees Paid */}
-        <Card className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-slate-600 mb-1">Platform Fees Paid</p>
-              <p className="text-2xl font-bold text-slate-900">
-                £{summary.platformFeesPaid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-              </p>
-            </div>
-            <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-purple-600" />
             </div>
           </div>
         </Card>
@@ -159,86 +95,86 @@ export default function Payments({ paymentSummary, jobHistory, onViewJob }: Paym
         </Card>
       </div>
 
-      {/* Job History Table */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Completed Job History</h2>
-
+      {/* Payments List */}
+      <div className="space-y-4">
         {isLoading && <p className="text-slate-600">Loading payments...</p>}
 
-        {error && !isLoading && (
-          <p className="text-red-600">{error}</p>
+        {error && !isLoading && <p className="text-red-600">{error}</p>}
+
+        {!isLoading && !error && payments.length === 0 && (
+          <Card className="p-6">
+            <CardContent className="text-center">
+              <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-600">No payments available</p>
+            </CardContent>
+          </Card>
         )}
 
-        {!isLoading && !error && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Job Title</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Tradesperson</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Date</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">Amount Paid</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">Outstanding</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((job) => (
-                  <tr
-                    key={job.id}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
-                    onClick={() => onViewJob?.(job.id)}
-                  >
-                    <td className="py-4 px-4">
-                      <p className="text-sm font-medium text-slate-900">{job.jobTitle}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-sm text-slate-600">{job.tradesperson}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-sm text-slate-600">{job.date}</p>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <p className="text-sm font-medium text-slate-900">
-                        £{job.amount.toLocaleString("en-GB", { minimumFractionDigits: 2 })}
-                      </p>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <p
-                        className={`text-sm font-medium ${
-                          job.outstanding > 0 ? "text-red-600" : "text-slate-600"
-                        }`}
-                      >
-                        £{job.outstanding.toLocaleString("en-GB", { minimumFractionDigits: 2 })}
-                      </p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            job.status
-                          )}`}
-                        >
-                          {getStatusIcon(job.status)}
-                          {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-                        </span>
+        {!isLoading && !error && payments.length > 0 && (
+          <div className="space-y-4">
+            {payments.map((payment: CompanyPaymentListItem) => {
+              const config = statusConfig[payment.status];
+              const StatusIcon = config.icon;
+
+              return (
+                <Card key={payment.id} className="shadow-sm border-slate-200">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <h3 className="text-lg text-slate-900">{payment.jobTitle}</h3>
+                          <Badge className={`${config.color} border`}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {config.label}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-slate-600">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 flex-shrink-0" />
+                            <span>Invoice: {payment.invoice}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 flex-shrink-0" />
+                            <span>{payment.date}</span>
+                          </div>
+                          {payment.paymentMethod && (
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-4 w-4 flex-shrink-0" />
+                              <span>{payment.paymentMethod}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                          <span className="text-slate-600">Labour: £{formatCurrency(payment.labourCost)}</span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-600">Platform Fee: £{formatCurrency(payment.platformFee)}</span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-900">Total: £{formatCurrency(payment.totalAmount)}</span>
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => onViewPayment?.(payment.id)}
+                        >
+                          View Details
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => onViewJob?.(payment.jobId)}
+                        >
+                          View Job
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
-
-        {/* Empty State (if no jobs) */}
-        {!isLoading && !error && history.length === 0 && (
-          <div className="text-center py-12">
-            <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-600">No job history available</p>
-          </div>
-        )}
-      </Card>
+      </div>
     </div>
   );
 }

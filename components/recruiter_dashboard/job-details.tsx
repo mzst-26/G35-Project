@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,11 +26,16 @@ interface JobDetailsProps {
   onBack: () => void;
   // Lets the parent control the back button text
   backLabel?: string;
+  // Optional handler to open payment details
+  onViewPayment?: (paymentId: string) => void;
 }
 
-export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDetailsProps) {
-  // Router is used for optional navigation buttons
-  const router = useRouter();
+export default function JobDetails({
+  jobId,
+  onBack,
+  backLabel = "Back",
+  onViewPayment,
+}: JobDetailsProps) {
   // Load job detail data from the hook
   const { job, isLoading, error } = useCompanyJobDetails(jobId);
   // Dialog state for cancel/complete actions
@@ -139,7 +143,7 @@ export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDet
               {job.paymentId && (
                 <Button
                   variant="outline"
-                  onClick={() => router.push(`/company/payment/${job.paymentId}`)}
+                  onClick={() => onViewPayment?.(job.paymentId as string)}
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   View Payment
@@ -174,7 +178,7 @@ export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDet
           <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
             <PoundSterling className="h-5 w-5 text-blue-600" />
             <p className="text-blue-900 text-sm">
-              <strong>Payment Secured:</strong> £{job.labourCost} is held in escrow and will be
+              <strong>Payment Secured:</strong> £{job.labourCost} is held by Stripe and will be
               released to workers once the job is completed and approved. Platform fee of £
               {job.platformFee} has been paid.
             </p>
@@ -337,9 +341,9 @@ export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDet
                     Platform fee paid. Labour payment will be processed before job start.
                   </div>
                 )}
-                {job.paymentStatus === 'escrowed' && (
+                {job.paymentStatus === 'Stripeed' && (
                   <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
-                    Labour cost held in escrow. Will be released upon completion.
+                    Labour cost held in Stripe. Will be released upon completion.
                   </div>
                 )}
                 {job.paymentStatus === 'released' && (
@@ -398,9 +402,9 @@ export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDet
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
                 Are you sure you want to cancel this job? This action cannot be undone.
-                {job.paymentStatus === 'escrowed' && (
+                {job.paymentStatus === 'Stripeed' && (
                   <span className="block mt-2 text-blue-600">
-                    The escrowed amount (£{job.labourCost}) will be refunded to your account.
+                    The Stripeed amount (£{job.labourCost}) will be refunded to your account.
                     Platform fee (£{job.platformFee}) is non-refundable.
                   </span>
                 )}
@@ -442,7 +446,7 @@ export default function JobDetails({ jobId, onBack, backLabel = "Back" }: JobDet
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
                 By marking this job as complete, you confirm that all work has been
-                satisfactorily finished. The escrowed payment of £{job.labourCost} will be
+                satisfactorily finished. The Stripeed payment of £{job.labourCost} will be
                 released to the workers.
               </p>
               <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">

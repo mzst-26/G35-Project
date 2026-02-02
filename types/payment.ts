@@ -1,6 +1,6 @@
 export interface PaymentSummary {
   totalPaid: number;
-  totalInEscrow: number;
+  totalInStripe: number;
   platformFeesPaid: number;
   unpaidJobs: number;
 }

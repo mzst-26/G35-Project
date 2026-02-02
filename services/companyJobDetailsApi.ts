@@ -41,7 +41,7 @@ const JOBS_DATABASE: Record<string, CompanyJobDetail> = {
       },
     ],
     paymentId: 'pay-1',
-    paymentStatus: 'escrowed',
+    paymentStatus: 'Stripeed',
     createdAt: '2025-11-20',
     startedAt: '2025-11-25T09:00:00',
     completedAt: null,
