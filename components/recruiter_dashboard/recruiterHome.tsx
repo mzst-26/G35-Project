@@ -3,8 +3,19 @@
 import { ArrowRight, CheckCircle2, Clock, PlayCircle, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { DashboardHomeProps } from "@/types/dashboard"
-export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
+import { DashboardHomeProps } from "@/types/dashboard";
+import { useCompanyJobs } from "@/hooks/useCompanyJobs";
+import { CompanyJobCard } from "@/components/recruiter_dashboard/CompanyJobCard";
+
+export default function RecruiterHome ({ onCreateJob, onViewJob }: DashboardHomeProps){
+  // Load jobs and stats for the dashboard
+  const { jobs, stats, isLoading, error } = useCompanyJobs();
+
+  const handleViewJob = (jobId: string) => {
+    // Let the parent decide where to navigate
+    onViewJob?.(jobId);
+  };
+
   return (
       <div>
       {/* Header */}
@@ -37,13 +48,12 @@ export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-
         <Card className="shadow-sm border-slate-200">
           <CardContent className="pt-6">
             <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
               <Clock className="h-5 w-5 text-slate-600" />
             </div>
-            <p className="text-3xl text-slate-900 mb-1">0</p>
+            <p className="text-3xl text-slate-900 mb-1">{stats.pending}</p>
             <p className="text-sm text-slate-600">Pending</p>
           </CardContent>
         </Card>
@@ -53,7 +63,7 @@ export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
             <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
               <CheckCircle2 className="h-5 w-5 text-slate-600" />
             </div>
-            <p className="text-3xl text-slate-900 mb-1">0</p>
+            <p className="text-3xl text-slate-900 mb-1">{stats.allocated}</p>
             <p className="text-sm text-slate-600">Allocated</p>
           </CardContent>
         </Card>
@@ -63,7 +73,7 @@ export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
             <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
               <PlayCircle className="h-5 w-5 text-slate-600" />
             </div>
-            <p className="text-3xl text-slate-900 mb-1">0</p>
+            <p className="text-3xl text-slate-900 mb-1">{stats.inProgress}</p>
             <p className="text-sm text-slate-600">In Progress</p>
           </CardContent>
         </Card>
@@ -73,29 +83,62 @@ export default function RecruiterHome ({ onCreateJob }: DashboardHomeProps){
             <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
               <CheckCircle2 className="h-5 w-5 text-slate-600" />
             </div>
-            <p className="text-3xl text-slate-900 mb-1">0</p>
+            <p className="text-3xl text-slate-900 mb-1">{stats.completed}</p>
             <p className="text-sm text-slate-600">Completed</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Jobs */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl text-slate-900">Recent Jobs</h2>
-            <Button
-              variant="ghost"
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-              View All
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl text-slate-900">Recent Jobs</h2>
+          <Button
+            variant="ghost"
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          >
+            View All
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
 
-          <p className="text-slate-600 text-sm">You don’t have any jobs yet.</p>
-        </CardContent>
-      </Card>
+        {isLoading && (
+          <Card className="border-slate-200 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-slate-600 text-sm">Loading recent jobs...</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {error && !isLoading && (
+          <Card className="border-red-200 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-red-600 text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!isLoading && !error && jobs.length === 0 && (
+          <Card className="border-slate-200 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-slate-600 text-sm">You don’t have any jobs yet.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!isLoading && !error && jobs.length > 0 && (
+          <div className="space-y-4">
+            {jobs.map((job) => (
+              <CompanyJobCard
+                key={job.id}
+                job={job}
+                onOpen={handleViewJob}
+                onViewDetails={handleViewJob}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

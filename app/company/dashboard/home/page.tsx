@@ -24,9 +24,15 @@ export default function CompanyDashboard() {
       { label: 'Settings', icon: Settings, section: 'settings' },
     ];
   //define the states
+  // Sidebar state for small screens
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Current section + selected job
   const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
-  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  // where we came from before opening job details
+  const [jobDetailsReturnSection, setJobDetailsReturnSection] = useState<SectionKey>(
+    navItems[0].section
+  );
 
   const router = useRouter();
 
@@ -171,9 +177,16 @@ export default function CompanyDashboard() {
           
             <>
               {activeSection === 'dashboard' && (
-                <RecruiterHome onCreateJob={() =>
-                  setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section) 
-                }/>
+                <RecruiterHome
+                  onCreateJob={() =>
+                    setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section)
+                  }
+                  onViewJob={(jobId) => {
+                    setJobDetailsReturnSection("dashboard");
+                    setSelectedJobId(jobId);
+                    setActiveSection("payments");
+                  }}
+                />
               )}
 
               {activeSection === "create-job" && (
@@ -187,12 +200,25 @@ export default function CompanyDashboard() {
 
             {activeSection === 'payments' && (
               selectedJobId ? (
-                <JobDetails 
-                  jobId={selectedJobId} 
-                  onBack={() => setSelectedJobId(null)} 
+                <JobDetails
+                  jobId={selectedJobId}
+                  backLabel={
+                    jobDetailsReturnSection === "dashboard"
+                      ? "Back to Dashboard"
+                      : "Back to Payments"
+                  }
+                  onBack={() => {
+                    setSelectedJobId(null);
+                    setActiveSection(jobDetailsReturnSection);
+                  }}
                 />
               ) : (
-                <Payments onViewJob={(jobId) => setSelectedJobId(jobId)} />
+                <Payments
+                  onViewJob={(jobId) => {
+                    setJobDetailsReturnSection("payments");
+                    setSelectedJobId(String(jobId));
+                  }}
+                />
               )
             )}
 
