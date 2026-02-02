@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function AdminDashboard() {
+  const router = useRouter();
     //this items are the buttons on the sidebar, this will be converted into rendered html
     const navItems:NavItem[] = [
       { label: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
@@ -108,7 +109,16 @@ export default function AdminDashboard() {
               <Button
                 key={sideBarActionItem.label}
                 variant={activeSection === sideBarActionItem.section ? "default" : "ghost"}
-                onClick={() => setActiveSection(sideBarActionItem.section)}
+                onClick={() => {
+                  if (sideBarActionItem.section === "settings") {
+                    router.push("/admin/settings");
+                    setMobileMenuOpen(false); // only needed on mobile
+                    return;
+                  }
+
+                  setActiveSection(sideBarActionItem.section);
+                  setMobileMenuOpen(false); // only for mobile
+                }}
                 className={`w-full justify-start gap-3 ${
                   activeSection === sideBarActionItem.section
                     ? "bg-blue-600 text-white hover:bg-blue-700"
@@ -152,51 +162,8 @@ export default function AdminDashboard() {
                 this is Analytics
               </>
           )}
-             {activeSection === 'settings' && (
-              <div className="space-y-4">
-              <h2 className="text-xl text-slate-900 flex items-center gap-2">
-                <Settings className="h-5 w-5 text-purple-600" />
-                Settings
-              </h2>
-              <p className="text-slate-600">
-                Choose a settings area to configure.
-              </p>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("general")}>
-                  General
-                </Button>
-
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("notifications")}>
-                  Notifications
-                </Button>
-
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("security")}>
-                  Security
-                </Button>
-
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("payments")}>
-                  Payments
-                </Button>
-
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("jobs")}>
-                  Jobs
-                </Button>
-
-                <Button variant="outline" className="justify-start" onClick={() => goToSettings("users")}>
-                  Users
-                </Button>
-              </div>
-
-              <div className="pt-2">
-                <Button className="bg-green-600 hover:bg-green-700" onClick={() => goToSettings()}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Open Full Settings Page
-                </Button>
-              </div>
-            </div>
-          )}
           
+          /* Settings is handled elsewhere now */
 
         </div>
       </div>
