@@ -13,23 +13,29 @@ export function useCompanyPayments() {
 
   useEffect(() => {
     let active = true;
-    setIsLoading(true);
-    setError(null);
 
-    listCompanyPayments()
-      .then((data) => {
-        if (!active) return;
-        setPayments(data);
-      })
-      .catch((err) => {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : 'Failed to load payments';
-        setError(message);
-      })
-      .finally(() => {
-        if (!active) return;
-        setIsLoading(false);
-      });
+    const loadPayments = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await listCompanyPayments();
+        if (active) {
+          setPayments(data);
+        }
+      } catch (err) {
+        if (active) {
+          const message = err instanceof Error ? err.message : 'Failed to load payments';
+          setError(message);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadPayments();
 
     return () => {
       active = false;
