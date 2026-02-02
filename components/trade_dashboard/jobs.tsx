@@ -3,126 +3,25 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Alert, AlertDescription } from "../ui/alert";
 import {
   Briefcase,
   Clock,
   CheckCircle2,
-  PlayCircle,
   Search,
   Info,
-  XCircle,
 } from "lucide-react";
 import { TradeJobsProps, TradeUpcomingJob } from "@/types/trade-dashboard";
 import TradeJobCard from "@/components/trade_dashboard/trade_job_cards";
-
-// TODO: Replace with API call via useTradeJobs hook when backend is ready
-const allJobs: TradeUpcomingJob[] = [
-  {
-    id: 1,
-    title: "Emergency Repair",
-    company: "Retail Solutions",
-    location: "Birmingham, B1",
-    date: "2026-03-02",
-    pay: 450,
-    days: 5,
-    status: "pending",
-    description: "Urgent electrical repair needed",
-    actionByHours: 12,
-  },
-  {
-    id: 3,
-    title: "Residential Installation",
-    company: "Property Group",
-    location: "Manchester, M1",
-    date: "2026-02-28",
-    pay: 320,
-    days: 3,
-    status: "pending",
-    description: "New electrical installation in residential property",
-    actionByHours: 24,
-  },
-  {
-    id: 2,
-    title: "Office Lighting Upgrade",
-    company: "Business Solutions Ltd",
-    location: "London, EC2",
-    date: "2026-03-05",
-    pay: 300,
-    days: 2,
-    status: "upcoming",
-    description: "LED lighting installation throughout office",
-  },
-  {
-    id: 7,
-    title: "Factory Electrical Work",
-    company: "Manufacturing Co",
-    location: "Sheffield, S1",
-    date: "2026-03-10",
-    pay: 350,
-    days: 4,
-    status: "upcoming",
-    description: "Industrial electrical system installation",
-  },
-  {
-    id: 4,
-    title: "Warehouse Wiring",
-    company: "Logistics Ltd",
-    location: "Leeds, LS1",
-    date: "2026-02-20",
-    pay: 380,
-    days: 4,
-    status: "completed",
-    description: "Completed warehouse electrical system",
-    completedDate: "2026-02-23",
-  },
-  {
-    id: 8,
-    title: "Shop Rewiring",
-    company: "Retail Solutions",
-    location: "Bristol, BS1",
-    date: "2026-02-15",
-    pay: 350,
-    days: 5,
-    status: "completed",
-    description: "Complete shop electrical rewiring",
-    completedDate: "2026-02-19",
-  },
-];
-
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-    icon: Clock,
-    description: "Awaiting your decision",
-  },
-  upcoming: {
-    label: "Upcoming",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
-    icon: CheckCircle2,
-    description: "Jobs you've accepted",
-  },
-  completed: {
-    label: "Completed",
-    color: "bg-slate-900 text-white border-slate-900",
-    icon: CheckCircle2,
-    description: "Successfully completed jobs",
-  },
-  rejected: {
-    label: "Rejected",
-    color: "bg-red-50 text-red-700 border-red-200",
-    icon: XCircle,
-    description: "Jobs you rejected",
-  },
-};
+import { useTradeJobs } from "@/hooks/useTradeJobs";
 
 export default function TradeJobs(_props: TradeJobsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"pending" | "upcoming" | "completed" | "all">("pending");
-  const [jobs, setJobs] = useState<TradeUpcomingJob[]>(allJobs);
+  
+  // Use the hook to fetch jobs
+  const { jobs, stats, isLoading } = useTradeJobs();
 
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
@@ -142,12 +41,11 @@ export default function TradeJobs(_props: TradeJobsProps) {
     completed: jobs.filter((j) => j.status === "completed").length,
   };
 
-  const stats = {
-    pendingJobs: tabCounts.pending,
-    upcomingJobs: tabCounts.upcoming,
-    completedEarnings: jobs
-      .filter((j) => j.status === "completed")
-      .reduce((sum, j) => sum + j.pay * j.days, 0),
+  // Use stats from hook, fallback to local calculation if needed
+  const displayStats = {
+    pendingJobs: stats.pending,
+    upcomingJobs: stats.upcoming,
+    completedEarnings: stats.completedEarnings,
   };
 
   return (
@@ -166,6 +64,15 @@ export default function TradeJobs(_props: TradeJobsProps) {
         </AlertDescription>
       </Alert>
 
+      {/* Loading state */}
+      {isLoading && (
+        <Card className="shadow-sm border-slate-200 !py-3 mb-6">
+          <CardContent className="pt-3 text-center py-8">
+            <p className="text-slate-600">Loading jobs...</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-6">
         <Card className="shadow-sm border-slate-200 !py-3">
@@ -175,7 +82,7 @@ export default function TradeJobs(_props: TradeJobsProps) {
                 <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
               </div>
             </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{stats.pendingJobs}</p>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{displayStats.pendingJobs}</p>
             <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Pending Jobs</p>
           </CardContent>
         </Card>
@@ -187,7 +94,7 @@ export default function TradeJobs(_props: TradeJobsProps) {
                 <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
               </div>
             </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{stats.upcomingJobs}</p>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">{displayStats.upcomingJobs}</p>
             <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Upcoming Jobs</p>
           </CardContent>
         </Card>
@@ -199,7 +106,7 @@ export default function TradeJobs(_props: TradeJobsProps) {
                 <Briefcase className="h-4 sm:h-5 w-4 sm:w-5 text-slate-600" />
               </div>
             </div>
-            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£{stats.completedEarnings}</p>
+            <p className="text-lg sm:text-2xl text-slate-900 mb-0.5 font-semibold">£{displayStats.completedEarnings}</p>
             <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">Earnings</p>
           </CardContent>
         </Card>
