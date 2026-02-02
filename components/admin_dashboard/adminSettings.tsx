@@ -87,7 +87,7 @@ export default function AdminSettings(): JSX.Element {
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
-          {/* ✅ General (implemented) */}
+          {/* General */}
           <TabsContent value="general">
             <Card>
               <CardHeader>
