@@ -20,9 +20,9 @@ import { TradeDashboardProps } from '@/types/trade-dashboard';
 
 // TODO: Replace with API call via useTradeJobs hook when backend is ready
 const upcomingJobs = [
-  { id: 1, title: 'Office Electrical Rewiring', company: 'Tech Corp Ltd', location: 'London, EC1', date: '2026-02-25', pay: 280, status: 'confirmed' as const },
-  { id: 2, title: 'Residential Installation', company: 'Property Group', location: 'Manchester, M1', date: '2026-02-28', pay: 320, status: 'confirmed' as const },
-  { id: 3, title: 'Emergency Repair', company: 'Retail Solutions', location: 'Birmingham, B1', date: '2026-03-02', pay: 450, status: 'pending' as const },
+  { id: 1, title: 'Office Electrical Rewiring', company: 'Tech Corp Ltd', location: 'London, EC1', date: '2026-02-25', pay: 280, days: 2, status: 'confirmed' as const },
+  { id: 2, title: 'Residential Installation', company: 'Property Group', location: 'Manchester, M1', date: '2026-02-28', pay: 320, days: 3, status: 'confirmed' as const },
+  { id: 3, title: 'Emergency Repair', company: 'Retail Solutions', location: 'Birmingham, B1', date: '2026-03-02', pay: 450, days: 5, status: 'pending' as const },
 ];
 
 export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) {
@@ -218,9 +218,19 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                         <Badge className={
                           job.status === 'confirmed' 
                             ? 'bg-green-50 text-green-700 border-green-200 border text-xs'
-                            : 'bg-slate-100 text-slate-700 border-slate-200 border text-xs'
+                            : 'bg-amber-50 text-amber-700 border-amber-200 border text-xs'
                         }>
-                          {job.status === 'confirmed' ? <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" /> : <Clock className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />}
+                          {job.status === 'confirmed' ? (
+                            <CheckCircle2 className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                          ) : (
+                            <span className="relative mr-1.5 flex h-3.5 w-3.5 sm:h-4 sm:w-4">
+                              <span className="absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-90 animate-ping" />
+                              <span className="relative inline-flex h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-orange-500" />
+                            </span>
+                          )}
+                          {job.status !== 'confirmed' && (
+                            <AlertTriangle className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                          )}
                           <span className="hidden sm:inline">{job.status === 'confirmed' ? 'Confirmed' : 'Pending'}</span>
                           <span className="sm:hidden">{job.status === 'confirmed' ? 'Con.' : 'Pend.'}</span>
                         </Badge>
@@ -241,7 +251,7 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 text-slate-900 text-sm sm:text-base">
                         <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>£{job.pay}/day</span>
+                        <span>£{job.pay}/day · {job.days} days</span>
                       </div>
                     </div>
                     <Button variant="outline" className="w-full lg:w-auto text-xs sm:text-sm py-1 sm:py-2">
