@@ -56,15 +56,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
         <h3 className="text-2xl font-semibold">Calendar</h3>
         <div className="flex items-center gap-2">
           <button
-            className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${selectedDates.size === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-blue-600 text-white'}`}
-            onClick={() => {
-              if (selectedDates.size === 0) return;
-              const first = Array.from(selectedDates)[0];
-              setOpenDay(first || null);
-            }}
+            className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${selectedDates.size === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-slate-700 text-white'}`}
+            onClick={() => setSelectedDates(new Set())}
             disabled={selectedDates.size === 0}
           >
-            Open Day
+            Clear Selection
           </button>
         </div>
       </div>
@@ -80,6 +76,17 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             events,
             dateClick: (info: any) => {
               const dateStr = info.dateStr;
+              const hasJob = effectiveJobs.some((j: any) => {
+                const start = j.startDate || j.start || '';
+                const end = j.endDate || j.end || start;
+                return start <= dateStr && dateStr <= end;
+              });
+              if (hasJob) {
+                // open overlay for job days
+                setOpenDay(dateStr);
+                return;
+              }
+              // otherwise toggle selection for open days
               setSelectedDates((prev: Set<string>) => {
                 const next = new Set(prev);
                 if (next.has(dateStr)) next.delete(dateStr);
@@ -147,7 +154,19 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
 
                 /* Days that have jobs (darker grey) */
-                .fc .has-job { background: #cbd5e1 !important; color: #0f172a !important; border-radius: 6px; }
+                .fc .has-job { background: #cbd5e1 !important; color: #0f172a !important; border-radius: 6px; position: relative; }
+                /* Lock icon in the top-left of a day with a job */
+                .fc .has-job::after {
+                  content: "🔒";
+                  position: absolute;
+                  top: 6px;
+                  left: 6px;
+                  right: auto;
+                  font-size: 0.95rem;
+                  line-height: 1;
+                  opacity: 0.95;
+                  pointer-events: none;
+                }
 
                 /* Open days (green) - shown for any date without jobs */
                 .fc .open-day { background: rgba(16,185,129,0.12) !important; border: 1px solid rgba(16,185,129,0.12) !important; color: #065f46 !important; border-radius: 6px; }
