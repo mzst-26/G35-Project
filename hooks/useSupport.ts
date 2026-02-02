@@ -6,18 +6,14 @@ import { Ticket } from "@/types/support";
 const STORAGE_KEY = "supportTickets";
 
 export function useSupport() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-
-  useEffect(() => {
+  const [tickets, setTickets] = useState<Ticket[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setTickets(JSON.parse(raw) as Ticket[]);
-      }
+      return raw ? (JSON.parse(raw) as Ticket[]) : [];
     } catch (e) {
-      // ignore
+      return [];
     }
-  }, []);
+  });
 
   useEffect(() => {
     try {
