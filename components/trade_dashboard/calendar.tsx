@@ -154,7 +154,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
 
                 /* Days that have jobs (darker grey) */
-                .fc .has-job { background: #cbd5e1 !important; color: #0f172a !important; border-radius: 6px; position: relative; }
+                .fc .has-job { background: #94a3b8 !important; color: #0f172a !important; border-radius: 6px; position: relative; }
                 /* Lock icon in the top-left of a day with a job */
                 .fc .has-job::after {
                   content: "🔒";
@@ -168,11 +168,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   pointer-events: none;
                 }
 
-                /* Open days (green) - shown for any date without jobs */
-                .fc .open-day { background: rgba(16,185,129,0.12) !important; border: 1px solid rgba(16,185,129,0.12) !important; color: #065f46 !important; border-radius: 6px; }
+                /* Open days (brighter green) - shown for any date without jobs */
+                .fc .open-day { background: rgba(34,197,94,0.18) !important; border: 1px solid rgba(34,197,94,0.24) !important; color: #065f46 !important; border-radius: 6px; }
 
-                /* Explicitly selected days: stronger outline */
-                .fc .selected-day { box-shadow: 0 0 0 2px rgba(37,99,235,0.12) inset, 0 1px 0 rgba(0,0,0,0.02); }
+                /* Explicitly selected days: black border */
+                .fc .selected-day { box-shadow: none !important; border: 2px solid #000 !important; border-radius: 6px; }
               `}</style>
             </>
           );
