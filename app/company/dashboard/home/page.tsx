@@ -8,6 +8,7 @@ import RecruiterHome from "@/components/recruiter_dashboard/recruiterHome";
 import CreateJobHome from "@/components/recruiter_dashboard/create-job";
 import Payments from "@/components/recruiter_dashboard/payments";
 import JobDetails from "@/components/recruiter_dashboard/job-details";
+import PaymentDetails from "@/components/recruiter_dashboard/payment-details";
 import { JobRequestPage } from "@/components/chat/JobRequestPage";
 import Support from "@/components/recruiter_dashboard/support";
 import { SettingsSection } from "@/components/trade_dashboard/SettingsSection";
@@ -24,9 +25,16 @@ export default function CompanyDashboard() {
       { label: 'Settings', icon: Settings, section: 'settings' },
     ];
   //define the states
+  // Sidebar state for small screens
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Current section + selected job
   const [activeSection, setActiveSection] = useState<SectionKey>(navItems[0].section);
-  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  // where we came from before opening job details
+  const [jobDetailsReturnSection, setJobDetailsReturnSection] = useState<SectionKey>(
+    navItems[0].section
+  );
 
   const router = useRouter();
 
@@ -171,9 +179,16 @@ export default function CompanyDashboard() {
           
             <>
               {activeSection === 'dashboard' && (
-                <RecruiterHome onCreateJob={() =>
-                  setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section) 
-                }/>
+                <RecruiterHome
+                  onCreateJob={() =>
+                    setActiveSection(navItems.find(i => i.section === "create-job")?.section ?? navItems[0].section)
+                  }
+                  onViewJob={(jobId) => {
+                    setJobDetailsReturnSection("dashboard");
+                    setSelectedJobId(jobId);
+                    setActiveSection("payments");
+                  }}
+                />
               )}
 
               {activeSection === "create-job" && (
@@ -186,13 +201,49 @@ export default function CompanyDashboard() {
               )}
 
             {activeSection === 'payments' && (
-              selectedJobId ? (
-                <JobDetails 
-                  jobId={selectedJobId} 
-                  onBack={() => setSelectedJobId(null)} 
+              selectedPaymentId ? (
+                <PaymentDetails
+                  paymentId={selectedPaymentId}
+                  onBack={() => setSelectedPaymentId(null)}
+                  onViewJob={(jobId) => {
+                    setSelectedPaymentId(null);
+                    setJobDetailsReturnSection("payments");
+                    setSelectedJobId(jobId);
+                  }}
+                  onContactSupport={() => {
+                    setSelectedPaymentId(null);
+                    setActiveSection("support");
+                  }}
+                />
+              ) : selectedJobId ? (
+                <JobDetails
+                  jobId={selectedJobId}
+                  backLabel={
+                    jobDetailsReturnSection === "dashboard"
+                      ? "Back to Dashboard"
+                      : "Back to Payments"
+                  }
+                  onBack={() => {
+                    setSelectedJobId(null);
+                    setActiveSection(jobDetailsReturnSection);
+                  }}
+                  onViewPayment={(paymentId) => {
+                    setSelectedJobId(null);
+                    setSelectedPaymentId(paymentId);
+                  }}
                 />
               ) : (
-                <Payments onViewJob={(jobId) => setSelectedJobId(jobId)} />
+                <Payments
+                  onViewJob={(jobId) => {
+                    setJobDetailsReturnSection("payments");
+                    setSelectedJobId(String(jobId));
+                    setSelectedPaymentId(null);
+                  }}
+                  onViewPayment={(paymentId) => {
+                    setSelectedPaymentId(paymentId);
+                    setSelectedJobId(null);
+                  }}
+                />
               )
             )}
 

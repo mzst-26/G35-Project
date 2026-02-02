@@ -214,12 +214,12 @@ export async function addPaymentMethod(
     // 1. Create payment method in Stripe using paymentToken
     // 2. Save payment method reference in backend database
     // Example:
-    // const stripeResponse = await stripe.paymentMethods.create({ ... });
+    // const StripeResponse = await Stripe.paymentMethods.create({ ... });
     // const response = await fetch(
     //   `${API_BASE_URL}/company/${companyId}/payment-methods`,
     //   {
     //     ...buildFetchOptions('POST'),
-    //     body: JSON.stringify({ stripePaymentMethodId: stripeResponse.id }),
+    //     body: JSON.stringify({ StripePaymentMethodId: StripeResponse.id }),
     //   }
     // );
     // return await response.json();
