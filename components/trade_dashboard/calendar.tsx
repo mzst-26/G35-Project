@@ -46,7 +46,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
       // Only count days that belong to the calendar month (exclude padding if needed)
       // We'll count all days in the view range (FullCalendar month view usually includes padding days);
       total += 1;
-      const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+      const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
         const s = String(j.startDate || j.start || '');
         const e = String(j.endDate || j.end || s);
         return s <= ds && ds <= e;
@@ -100,12 +100,12 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
             initialView: 'dayGridMonth',
             headerToolbar: isNarrow
-              ? { left: 'prev,next', center: 'title', right: 'today' }
-              : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+              ? { left: 'prev,next', center: 'title', right: '' }
+              : { left: 'prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
             events,
             dateClick: (info: Record<string, unknown>) => {
               const dateStr = String(info.dateStr);
-              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+              const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
                 const start = String(j.startDate || j.start || '');
                 const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
@@ -128,7 +128,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               const dateStr = dateObj.toISOString().split('T')[0];
               const classes: string[] = [];
               // Treat a day as taken if it falls between any job's startDate and endDate (inclusive).
-              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+              const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
                 const start = String(j.startDate || j.start || '');
                 const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
@@ -324,7 +324,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>
               </div>
               <div>
-                {effectiveJobs.filter((j: Record<string, unknown>) => {
+                {effectiveJobs.filter((j: TradeCalendarJob) => {
                   const start = String(j.startDate || j.start || '');
                   const end = String(j.endDate || j.end || start);
                   return start <= openDay && openDay <= end;
@@ -332,11 +332,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   <div className="text-sm text-slate-600">No jobs for this day.</div>
                 )}
                 <ul className="space-y-2">
-                  {effectiveJobs.filter((j: Record<string, unknown>) => {
+                  {effectiveJobs.filter((j: TradeCalendarJob) => {
                     const start = String(j.startDate || j.start || '');
                     const end = String(j.endDate || j.end || start);
                     return start <= openDay && openDay <= end;
-                  }).map((job: Record<string, unknown>) => (
+                  }).map((job: TradeCalendarJob) => (
                     <li key={String(job.id)} className="p-2 border rounded-md">
                       <div className="font-medium">{String(job.title)}</div>
                       <div className="text-xs text-slate-500">{String(job.startDate || job.start) + (job.endDate || job.end ? ` — ${job.endDate || job.end}` : '')}</div>
