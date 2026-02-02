@@ -169,10 +169,13 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 }
 
                 /* Open days (brighter green) - shown for any date without jobs */
-                .fc .open-day { background: rgba(34,197,94,0.18) !important; border: 1px solid rgba(34,197,94,0.24) !important; color: #065f46 !important; border-radius: 6px; }
+                .fc .open-day { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border-radius: 0.5rem; overflow: hidden; }
 
-                /* Explicitly selected days: black border */
-                .fc .selected-day { box-shadow: none !important; border: 2px solid #000 !important; border-radius: 6px; }
+                /* Booked days: keep darker grey background, no colored border */
+                .fc .has-job { background: #94a3b8 !important; color: #0f172a !important; border-radius: 0.5rem; overflow: hidden; }
+
+                /* Explicitly selected days: restore original blue inset outline */
+                .fc .selected-day { box-shadow: inset 0 0 0 2px rgba(37,99,235,0.12) !important, 0 1px 0 rgba(0,0,0,0.02); border: none !important; border-radius: 0.5rem; }
               `}</style>
             </>
           );
