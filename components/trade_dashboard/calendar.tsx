@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -11,10 +11,23 @@ import { TradeCalendarProps } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
   const { jobs = [] } = props as any;
+  const sampleJobs = [
+    { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
+    { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
+  ];
+  const effectiveJobs = (jobs && jobs.length) ? jobs : sampleJobs;
   const calendarRef = useRef<any>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [isNarrow, setIsNarrow] = useState<boolean>(false);
 
-  const events: EventInput[] = jobs.map((job: any) => ({
+  useEffect(() => {
+    const check = () => setIsNarrow(window.innerWidth <= 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const events: EventInput[] = effectiveJobs.map((job: any) => ({
     id: job.id,
     title: job.title,
     start: job.startDate,
@@ -32,11 +45,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
           const calendarOptions: any = {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
             initialView: 'dayGridMonth',
-            headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
-            },
+            headerToolbar: isNarrow
+              ? { left: 'prev,next', center: 'title', right: 'today' }
+              : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
             events,
             dateClick: (info: any) => {
               const dateStr = info.dateStr;
@@ -59,8 +70,16 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               <FullCalendar ref={calendarRef} {...calendarOptions} />
               <style jsx global>{`
                 /* Toolbar layout tweaks */
-                .fc .fc-toolbar { display:flex; align-items:center; gap:0.5rem; }
+                .fc { max-width: 100%; }
+                .fc .fc-toolbar { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
                 .fc .fc-toolbar .fc-toolbar-chunk { display:flex; align-items:center; gap:0.5rem; }
+
+                /* Mobile: make toolbar chunks stack and spread */
+                @media (max-width: 640px) {
+                  .fc .fc-toolbar { padding: 0.25rem; }
+                  .fc .fc-toolbar .fc-toolbar-chunk { width: 100%; justify-content: space-between; }
+                  .fc .fc-button { padding: 6px 8px; font-size: 0.85rem; }
+                }
 
                 /* Button base style to match app UI */
                 .fc .fc-button {
@@ -83,17 +102,12 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 }
 
                 /* Make view buttons compact */
-                .fc .fc-button-primary + .fc-button {
-                  margin-left: 0.25rem;
-                }
+                .fc .fc-button-primary + .fc-button { margin-left: 0.25rem; }
 
                 /* Calendar title spacing */
                 .fc .fc-toolbar-title { font-weight:600; color:#0f172a; }
                 /* Highlight selected day cells */
-                .fc .selected-day {
-                  background: rgba(37,99,235,0.12) !important;
-                  border-radius: 6px;
-                }
+                .fc .selected-day { background: rgba(37,99,235,0.12) !important; border-radius: 6px; }
               `}</style>
             </>
           );
