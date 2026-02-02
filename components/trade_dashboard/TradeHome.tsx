@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -22,11 +22,12 @@ import { TradeDashboardProps } from '@/types/trade-dashboard';
 const upcomingJobs = [
   { id: 1, title: 'Office Electrical Rewiring', company: 'Tech Corp Ltd', location: 'London, EC1', date: '2026-02-25', pay: 280, days: 2, status: 'confirmed' as const },
   { id: 2, title: 'Residential Installation', company: 'Property Group', location: 'Manchester, M1', date: '2026-02-28', pay: 320, days: 3, status: 'confirmed' as const },
-  { id: 3, title: 'Emergency Repair', company: 'Retail Solutions', location: 'Birmingham, B1', date: '2026-03-02', pay: 450, days: 5, status: 'pending' as const },
+  { id: 3, title: 'Emergency Repair', company: 'Retail Solutions', location: 'Birmingham, B1', date: '2026-03-02', pay: 450, days: 5, status: 'pending' as const, actionByHours: 12 },
 ];
 
 export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) {
   const [jobTab, setJobTab] = useState<'pending' | 'upcoming'>('pending');
+  const [pendingCountdown, setPendingCountdown] = useState<number>(() => 60 * 60); // 1 hour in seconds
   
   // TODO: Replace with API call to fetch availability data
   const availabilityDeadline = 7;
@@ -41,6 +42,21 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
   const displayedJobs = jobTab === 'pending' 
     ? upcomingJobs.filter(j => j.status === 'pending')
     : upcomingJobs.filter(j => j.status === 'confirmed');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPendingCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatCountdown = (totalSeconds: number) => {
+    const clamped = Math.max(totalSeconds, 0);
+    const days = Math.floor(clamped / 86400);
+    const hours = Math.floor((clamped % 86400) / 3600);
+    const minutes = Math.floor((clamped % 3600) / 60);
+    return `${days}d ${hours}h ${minutes}m`;
+  };
 
   return (
     <div>
@@ -250,9 +266,15 @@ export default function TradeHome({ onNavigateToSection }: TradeDashboardProps) 
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 text-slate-900 text-sm sm:text-base">
-                        <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>£{job.pay}/day · {job.days} days</span>
-                      </div>
+                          <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span>£{job.pay}/day · {job.days} days</span>
+                        </div>
+                        {job.status === 'pending' && (
+                          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 animate-pulse">
+                            <Clock className="h-3 w-3" />
+                            <span>{formatCountdown(pendingCountdown)} left to accept</span>
+                          </div>
+                        )}
                     </div>
                     <Button variant="outline" className="w-full lg:w-auto text-xs sm:text-sm py-1 sm:py-2">
                       Details
