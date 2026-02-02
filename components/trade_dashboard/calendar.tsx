@@ -22,6 +22,8 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
+  const [monthTakenCount, setMonthTakenCount] = useState<number>(0);
+  const [monthFreeCount, setMonthFreeCount] = useState<number>(0);
 
   useEffect(() => {
     const check = () => setIsNarrow(window.innerWidth <= 640);
@@ -29,6 +31,29 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // Helper to format Date -> YYYY-MM-DD
+  const isoDate = (d: Date) => d.toISOString().split('T')[0];
+
+  const updateMonthCounts = (start: Date, end: Date) => {
+    // iterate days from start (inclusive) to end (exclusive)
+    let taken = 0;
+    let total = 0;
+    for (let dt = new Date(start); dt < end; dt.setDate(dt.getDate() + 1)) {
+      const ds = isoDate(new Date(dt));
+      // Only count days that belong to the calendar month (exclude padding if needed)
+      // We'll count all days in the view range (FullCalendar month view usually includes padding days);
+      total += 1;
+      const hasJob = effectiveJobs.some((j: any) => {
+        const s = j.startDate || j.start || '';
+        const e = j.endDate || j.end || s;
+        return s <= ds && ds <= e;
+      });
+      if (hasJob) taken += 1;
+    }
+    setMonthTakenCount(taken);
+    setMonthFreeCount(Math.max(0, total - taken));
+  };
 
   const events: EventInput[] = effectiveJobs.map((job: any) => ({
     id: job.id,
@@ -108,6 +133,14 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
               return classes;
             },
+            datesSet: (arg: any) => {
+              // arg.start (inclusive) arg.end (exclusive)
+              try {
+                updateMonthCounts(arg.start, arg.end);
+              } catch (e) {
+                // ignore
+              }
+            },
             height: 'auto',
           };
 
@@ -174,8 +207,8 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 /* Booked days: keep darker grey background, no colored border */
                 .fc .has-job { background: #94a3b8 !important; color: #0f172a !important; border-radius: 0.5rem; overflow: hidden; }
 
-                /* Explicitly selected days: restore original blue inset outline */
-                .fc .selected-day { box-shadow: inset 0 0 0 2px rgba(37,99,235,0.12) !important, 0 1px 0 rgba(0,0,0,0.02); border: none !important; border-radius: 0.5rem; }
+                /* Explicitly selected days: solid black border */
+                .fc .selected-day { box-shadow: none !important; border: 2px solid #000 !important; border-radius: 0.5rem; }
               `}</style>
             </>
           );
@@ -185,6 +218,10 @@ export default function TradeCalendar(props: TradeCalendarProps) {
           {selectedDates && selectedDates.size > 0
             ? `Selected days: ${selectedDates.size}`
             : 'No dates selected'}
+        </div>
+        <div className="mt-2 text-sm text-slate-700">
+          <span className="mr-4">Taken days this view: <strong>{monthTakenCount}</strong></span>
+          <span>Free days this view: <strong>{monthFreeCount}</strong></span>
         </div>
         {openDay && (
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
