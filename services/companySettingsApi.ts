@@ -88,7 +88,7 @@ export async function updateCompanyProfile(
     // return await response.json();
 
     // Placeholder: Log the data that would be sent
-    console.log('updateCompanyProfile called with:', { companyId, profileData });
+    console.log('updateCompanyProfile called with:', { profileData });
     throw new Error('Backend integration not yet implemented');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update profile';

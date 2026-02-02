@@ -4,7 +4,6 @@ import React, { useRef, useState, useEffect } from "react";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-// @ts-expect-error - interaction plugin types may not be present in the workspace
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
 import { TradeCalendarProps } from "@/types/trade-dashboard";
@@ -18,7 +17,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
   const effectiveJobs = (jobs && Array.isArray(jobs) && jobs.length) ? jobs as Array<Record<string, unknown>> : sampleJobs;
-  const calendarRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<FullCalendar>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -233,22 +232,22 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>
               </div>
               <div>
-                {effectiveJobs.filter((j: any) => {
-                  const start = j.startDate || j.start || '';
-                  const end = j.endDate || j.end || start;
+                {effectiveJobs.filter((j: Record<string, unknown>) => {
+                  const start = String(j.startDate || j.start || '');
+                  const end = String(j.endDate || j.end || start);
                   return start <= openDay && openDay <= end;
                 }).length === 0 && (
                   <div className="text-sm text-slate-600">No jobs for this day.</div>
                 )}
                 <ul className="space-y-2">
-                  {effectiveJobs.filter((j: any) => {
-                    const start = j.startDate || j.start || '';
-                    const end = j.endDate || j.end || start;
+                  {effectiveJobs.filter((j: Record<string, unknown>) => {
+                    const start = String(j.startDate || j.start || '');
+                    const end = String(j.endDate || j.end || start);
                     return start <= openDay && openDay <= end;
-                  }).map((job: any) => (
-                    <li key={job.id} className="p-2 border rounded-md">
-                      <div className="font-medium">{job.title}</div>
-                      <div className="text-xs text-slate-500">{(job.startDate || job.start) + (job.endDate || job.end ? ` — ${job.endDate || job.end}` : '')}</div>
+                  }).map((job: Record<string, unknown>) => (
+                    <li key={String(job.id)} className="p-2 border rounded-md">
+                      <div className="font-medium">{String(job.title)}</div>
+                      <div className="text-xs text-slate-500">{String(job.startDate || job.start) + (job.endDate || job.end ? ` — ${job.endDate || job.end}` : '')}</div>
                     </li>
                   ))}
                 </ul>
