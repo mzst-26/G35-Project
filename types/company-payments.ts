@@ -2,7 +2,7 @@
 export type CompanyPaymentStatus =
   | 'unpaid'
   | 'platform-fee-paid'
-  | 'escrowed'
+  | 'stripe-hold'
   | 'released'
   | 'refunded';
 
@@ -12,8 +12,8 @@ export interface CompanyPaymentTransaction {
   date: string;
   description: string;
   amount: number;
-  status: 'completed' | 'escrowed' | 'pending';
-  type: 'platform-fee' | 'escrow' | 'release';
+  status: 'completed' | 'stripe-hold' | 'pending';
+  type: 'platform-fee' | 'stripe-hold' | 'release';
 }
 
 // Light-weight payment info used in the payments list
@@ -36,9 +36,9 @@ export interface CompanyPaymentDetail extends CompanyPaymentListItem {
   paidAt: string | null;
   releasedAt: string | null;
   platformFeePaid: boolean;
-  labourCostEscrowed: boolean;
+  labourCostHeld: boolean;
   transactions: CompanyPaymentTransaction[];
-  pendingEscrow?: {
+  pendingStripeHold?: {
     amount: number;
     scheduledDate: string;
     description: string;
@@ -48,7 +48,7 @@ export interface CompanyPaymentDetail extends CompanyPaymentListItem {
 // Summary values for the payment header cards
 export interface CompanyPaymentSummary {
   totalPaid: number;
-  totalInEscrow: number;
+  totalInStripeHold: number;
   unpaidJobs: number;
   platformFeesPaid: number;
 }

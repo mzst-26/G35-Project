@@ -2,7 +2,7 @@
 export type CompanyJobStatus = 'pending' | 'allocated' | 'in-progress' | 'completed' | 'cancelled';
 
 // Payment status for the cost section
-export type CompanyPaymentStatus = 'unpaid' | 'platform-fee-paid' | 'Stripeed' | 'released';
+export type CompanyPaymentStatus = 'unpaid' | 'platform-fee-paid' | 'stripe-hold' | 'released';
 
 // Simple worker info used on the job detail page
 export interface CompanyJobWorker {

@@ -33,7 +33,7 @@ const statusConfig: Record<
     icon: Clock,
     description: "Platform fee paid. Labour payment pending.",
   },
-  escrowed: {
+  "stripe-hold": {
     label: "Payment Secured",
     color: "bg-blue-50 text-blue-700 border-blue-200",
     icon: Shield,
@@ -124,7 +124,7 @@ export default function PaymentDetails({
           </div>
         </div>
 
-        {payment.status === "escrowed" && (
+        {payment.status === "stripe-hold" && (
           <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
             <Shield className="h-5 w-5 text-blue-600" />
             <p className="text-blue-900 text-sm">
@@ -136,14 +136,14 @@ export default function PaymentDetails({
           </div>
         )}
 
-        {payment.pendingEscrow && (
+        {payment.pendingStripeHold && (
           <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <Clock className="h-5 w-5 text-amber-600" />
             <p className="text-amber-900 text-sm">
               <strong>Pending Payment:</strong> Labour cost of £{formatCurrency(
-                payment.pendingEscrow.amount
-              )} will be charged on {formatDate(payment.pendingEscrow.scheduledDate)}. {" "}
-              {payment.pendingEscrow.description}
+                payment.pendingStripeHold.amount
+              )} will be charged on {formatDate(payment.pendingStripeHold.scheduledDate)}. {" "}
+              {payment.pendingStripeHold.description}
             </p>
           </div>
         )}
@@ -201,7 +201,7 @@ export default function PaymentDetails({
                 {payment.transactions.map((txn, index) => {
                   const txnStatusConfig = {
                     completed: { icon: CheckCircle2, color: "text-green-600", bg: "bg-green-100" },
-                    escrowed: { icon: Shield, color: "text-blue-600", bg: "bg-blue-100" },
+                    "stripe-hold": { icon: Shield, color: "text-blue-600", bg: "bg-blue-100" },
                     pending: { icon: Clock, color: "text-amber-600", bg: "bg-amber-100" },
                   } as const;
                   const txnConfig = txnStatusConfig[txn.status];

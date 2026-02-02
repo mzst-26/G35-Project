@@ -7,7 +7,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
     id: 'pay-1',
     jobId: '1',
     jobTitle: 'Office Electrical Rewiring',
-    status: 'escrowed',
+    status: 'stripe-hold',
     date: '2025-11-24',
     invoice: 'INV-001',
     paymentMethod: 'Visa ending in 4242',
@@ -15,7 +15,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
     platformFee: 56,
     totalAmount: 616,
     platformFeePaid: true,
-    labourCostEscrowed: true,
+    labourCostHeld: true,
     createdAt: '2025-11-24T10:30:00',
     paidAt: '2025-11-24T10:35:00',
     releasedAt: null,
@@ -33,8 +33,8 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
         date: '2025-11-24T10:35:00',
         description: 'Labour Cost - Held by Stripe',
         amount: 560,
-        status: 'escrowed',
-        type: 'escrow',
+        status: 'stripe-hold',
+        type: 'stripe-hold',
       },
     ],
   },
@@ -50,7 +50,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
     platformFee: 32,
     totalAmount: 352,
     platformFeePaid: true,
-    labourCostEscrowed: false,
+    labourCostHeld: false,
     createdAt: '2025-11-24T14:20:00',
     paidAt: '2025-11-24T14:25:00',
     releasedAt: null,
@@ -64,7 +64,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
         type: 'platform-fee',
       },
     ],
-    pendingEscrow: {
+    pendingStripeHold: {
       amount: 320,
       scheduledDate: '2025-11-27T00:00:00',
       description: 'Labour payment will be processed 1 day before job start',
@@ -82,7 +82,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
     platformFee: 75,
     totalAmount: 825,
     platformFeePaid: true,
-    labourCostEscrowed: false,
+    labourCostHeld: false,
     createdAt: '2025-11-17T09:00:00',
     paidAt: '2025-11-17T09:05:00',
     releasedAt: '2025-11-21T10:00:00',
@@ -101,7 +101,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
         description: 'Labour Cost - Held by Stripe',
         amount: 750,
         status: 'completed',
-        type: 'escrow',
+        type: 'stripe-hold',
       },
       {
         id: 'txn-6',
@@ -118,7 +118,7 @@ const PAYMENTS_DATABASE: Record<string, CompanyPaymentDetail> = {
 export async function listCompanyPayments(): Promise<CompanyPaymentListItem[]> {
   // TODO: Replace with real API call.
   return Promise.resolve(
-    Object.values(PAYMENTS_DATABASE).map(({ transactions, pendingEscrow, ...item }) => item)
+    Object.values(PAYMENTS_DATABASE).map(({ transactions, pendingStripeHold, ...item }) => item)
   );
 }
 

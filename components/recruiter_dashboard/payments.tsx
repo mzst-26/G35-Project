@@ -39,7 +39,7 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
       color: "bg-amber-50 text-amber-700 border-amber-200",
       icon: Clock,
     },
-    escrowed: { label: "Payment Secured", color: "bg-blue-50 text-blue-700 border-blue-200", icon: Shield },
+    "stripe-hold": { label: "Payment Secured", color: "bg-blue-50 text-blue-700 border-blue-200", icon: Shield },
     released: { label: "Payment Released", color: "bg-green-50 text-green-700 border-green-200", icon: CheckCircle2 },
     refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700 border-slate-200", icon: CheckCircle2 },
   };
@@ -101,7 +101,7 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
             <option value="all">All Statuses</option>
             <option value="unpaid">Unpaid</option>
             <option value="platform-fee-paid">Platform Fee Paid</option>
-            <option value="escrowed">Payment Secured</option>
+            <option value="stripe-hold">Payment Secured</option>
             <option value="released">Payment Released</option>
             <option value="refunded">Refunded</option>
           </select>
@@ -131,7 +131,7 @@ export default function Payments({ onViewJob, onViewPayment }: PaymentsProps) {
             <div>
               <p className="text-sm text-slate-600 mb-1">Total in Stripe</p>
               <p className="text-2xl font-bold text-slate-900">
-                £{summary.totalInEscrow.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                £{summary.totalInStripeHold.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">

@@ -42,8 +42,8 @@ export function useCompanyPayments() {
         if (payment.status === 'released') {
           acc.totalPaid += payment.totalAmount;
         }
-        if (payment.status === 'escrowed') {
-          acc.totalInEscrow += payment.labourCost;
+        if (payment.status === 'stripe-hold') {
+          acc.totalInStripeHold += payment.labourCost;
         }
         if (payment.status !== 'released') {
           acc.unpaidJobs += 1;
@@ -51,7 +51,7 @@ export function useCompanyPayments() {
         acc.platformFeesPaid += payment.platformFee;
         return acc;
       },
-      { totalPaid: 0, totalInEscrow: 0, unpaidJobs: 0, platformFeesPaid: 0 }
+      { totalPaid: 0, totalInStripeHold: 0, unpaidJobs: 0, platformFeesPaid: 0 }
     );
   }, [payments]);
 

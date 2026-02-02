@@ -174,7 +174,7 @@ export default function JobDetails({
         </div>
 
         {/* Payment Status Alerts */}
-        {job.paymentStatus === 'escrowed' && (
+        {job.paymentStatus === 'stripe-hold' && (
           <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
             <PoundSterling className="h-5 w-5 text-blue-600" />
             <p className="text-blue-900 text-sm">
