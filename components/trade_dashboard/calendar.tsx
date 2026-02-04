@@ -235,7 +235,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   .fc .fc-button { padding: 4px 6px !important; font-size: 0.75rem !important; }
 
                   /* Ensure selected inner box uses subtle border and smaller radius */
-                  .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { border: 2px solid rgba(16,185,129,0.6) !important; border-radius: 8px !important; }
+                  .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { border: 2px solid #000 !important; border-radius: 8px !important; }
 
                   /* Make modal full-screen on small devices */
                   .bg-white.w-full.md\:w-96 { padding: 1rem; }
@@ -279,7 +279,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Selected day: only style the inner box */
                 .fc .selected-day { box-shadow: none !important; }
-                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 2px solid rgba(16,185,129,0.6) !important; }
+                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 2px solid #000 !important; }
 
                 /* Create small gaps between day cells by padding the outer frame and
                    applying backgrounds to the inner day-top element. This produces
