@@ -84,15 +84,6 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-2xl font-semibold">Calendar</h3>
-        <div className="flex items-center gap-2">
-          <button
-            className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${selectedDates.size === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-slate-700 text-white'}`}
-            onClick={() => setSelectedDates(new Set())}
-            disabled={selectedDates.size === 0}
-          >
-            Clear Selection
-          </button>
-        </div>
       </div>
 
       <div className="rounded-md border p-4 bg-white">
