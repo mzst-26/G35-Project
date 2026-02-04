@@ -38,6 +38,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   // Helper to format Date -> YYYY-MM-DD
   const isoDate = (d: Date): string => d.toISOString().split('T')[0];
 
+  // Minimum selectable date (today + 7 days)
+  const minSelectableDate = new Date();
+  minSelectableDate.setDate(minSelectableDate.getDate() + 7);
+  const minSelectableStr = isoDate(minSelectableDate);
+
   const updateMonthCounts = (start: Date, end: Date): void => {
     // iterate days from start (inclusive) to end (exclusive)
     let taken = 0;
@@ -129,6 +134,8 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 setOpenDay(dateStr);
                 return;
               }
+              // Disallow selecting days that are less than 7 days ahead
+              if (dateStr < minSelectableStr) return;
               // otherwise toggle selection for open days
               setSelectedDates((prev: Set<string>) => {
                 const next = new Set(prev);
@@ -152,6 +159,8 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               });
               if (hasJob) classes.push('has-job');
               else classes.push('open-day');
+              // Mark as not-selectable if before minimum selectable date
+              if (dateStr < minSelectableStr) classes.push('not-selectable');
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
               if (dateStr === todayStr) classes.push('today-day');
               return classes;
@@ -304,6 +313,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   opacity: 0.95;
                   pointer-events: none;
                 }
+
+                /* Days that are not yet selectable (within the next 7 days) - keep same color as selectable days */
+                .fc .not-selectable .fc-daygrid-day-top { cursor: not-allowed; }
 
                 .fc .fc-daygrid-day.open-day .fc-daygrid-day-top,
                 .fc .open-day { background: transparent !important; }
