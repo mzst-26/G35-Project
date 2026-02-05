@@ -1,7 +1,7 @@
 "use client";
 
-import { SettingsSection } from "@/components/trade_dashboard/SettingsSection";
+import { TradeSettingsSection } from "@/components/trade_dashboard/TradeSettingsSection";
 
 export default function Settings() {
-  return <SettingsSection companyId="trade_123" />;
+  return <TradeSettingsSection tradeId="trade_123" />;
 }
