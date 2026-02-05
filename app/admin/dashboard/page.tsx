@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import AppealsManagement from "@/components/admin_dashboard/AppealsManagement";
 import { AlertCircle, BarChart3, Briefcase, LayoutDashboard, Menu, MessageSquare, Settings as SettingsIcon, Users, X } from "lucide-react";
 import { useState } from "react";
 
@@ -169,15 +170,7 @@ export default function AdminDashboard() {
           )}
 
           {activeSection === "appeals" && (
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Appeals Management</h1>
-                <p className="text-slate-600">Review and manage penalty appeals</p>
-              </div>
-              <div className="bg-white rounded-lg border border-slate-200 p-6">
-                <p className="text-slate-600">Appeals will be displayed here</p>
-              </div>
-            </div>
+            <AppealsManagement />
           )}
 
           {activeSection === "users" && (
