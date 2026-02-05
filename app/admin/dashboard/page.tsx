@@ -186,7 +186,7 @@ export default function AdminDashboard() {
 
           {activeSection === "analytics" && (
             <AnalyticsManagement />
-          )}}
+          )}
 
           {activeSection === "settings" && (
             <div className="space-y-6">
