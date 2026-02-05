@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import TicketReviewModal from "./TicketReviewModal";
 
 type TicketStatus = "open" | "pending" | "closed";
 
@@ -60,6 +61,8 @@ const sampleTickets: Ticket[] = [
 
 export default function SupportManagement() {
   const [activeTab, setActiveTab] = useState<TicketStatus>("open");
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredTickets = sampleTickets.filter(
     (ticket) => ticket.status === activeTab
@@ -117,7 +120,13 @@ export default function SupportManagement() {
                         Submitted: {ticket.date}
                       </p>
                     </div>
-                    <button className="px-4 py-2 text-sm font-medium text-black border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                    <button
+                      onClick={() => {
+                        setSelectedTicket(ticket);
+                        setIsModalOpen(true);
+                      }}
+                      className="px-4 py-2 text-sm font-medium text-black border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
                       Review
                     </button>
                   </div>
@@ -131,6 +140,17 @@ export default function SupportManagement() {
           )}
         </div>
       </div>
+
+      {selectedTicket && (
+        <TicketReviewModal
+          ticket={selectedTicket}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedTicket(null);
+          }}
+        />
+      )}
     </div>
   );
 }
