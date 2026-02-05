@@ -4,11 +4,16 @@ import { useState } from "react";
 import { Users, Briefcase, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserListView from "./UserListView";
+import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { DashboardMetric } from "@/types/admin-dashboard";
 
-export default function UsersManagement() {
-  const [activeView, setActiveView] = useState<"overview" | "trade" | "company">("overview");
+type UsersView = "overview" | "trade" | "company";
 
-  const metrics = [
+export default function UsersManagement(): JSX.Element {
+  const [activeView, setActiveView] = useState<UsersView>("overview");
+  const { getActiveUsersCount, getSuspendedUsersCount } = useAdminUsers();
+
+  const metrics: DashboardMetric[] = [
     {
       label: "Total Trade Users",
       value: "1,245",
@@ -32,11 +37,21 @@ export default function UsersManagement() {
   ];
 
   if (activeView === "trade") {
-    return <UserListView listType="trade" onBack={() => setActiveView("overview")} />;
+    return (
+      <UserListView
+        listType="trade"
+        onBack={() => setActiveView("overview")}
+      />
+    );
   }
 
   if (activeView === "company") {
-    return <UserListView listType="company" onBack={() => setActiveView("overview")} />;
+    return (
+      <UserListView
+        listType="company"
+        onBack={() => setActiveView("overview")}
+      />
+    );
   }
 
   return (
@@ -81,7 +96,9 @@ export default function UsersManagement() {
         </Button>
       </div>
       <div className="bg-white rounded-lg border border-slate-200 p-6">
-        <p className="text-slate-600">Additional user management features coming soon</p>
+        <p className="text-slate-600">
+          Additional user management features coming soon
+        </p>
       </div>
     </div>
   );

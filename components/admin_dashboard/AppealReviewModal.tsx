@@ -5,30 +5,19 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { Appeal, BaseModalProps, AppealReviewData, ReviewTab } from "@/types/admin-dashboard";
 
-interface Appeal {
-  id: string;
-  userName: string;
-  reason: string;
-  date: string;
-  status: "open" | "pending" | "closed";
-}
-
-interface AppealReviewModalProps {
+interface AppealReviewModalProps extends BaseModalProps {
   appeal: Appeal;
-  isOpen: boolean;
-  onClose: () => void;
 }
-
-type TicketTab = "details" | "notes" | "attachments" | "history";
 
 export default function AppealReviewModal({
   appeal,
   isOpen,
   onClose,
-}: AppealReviewModalProps) {
+}: AppealReviewModalProps): JSX.Element | null {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<TicketTab>("details");
+  const [activeTab, setActiveTab] = useState<ReviewTab>("details");
   const [title, setTitle] = useState(appeal.reason);
   const [details, setDetails] = useState(
     "Appeal submitted by " + appeal.userName
@@ -41,22 +30,23 @@ export default function AppealReviewModal({
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    console.log({
+    const reviewData: AppealReviewData = {
       appealId: appeal.id,
       title,
       details,
       date,
       notes,
       resolution,
-    });
+    };
+    console.log(reviewData);
     onClose();
   };
 
   if (!isOpen || !mounted) return null;
 
-  const tabs: { value: TicketTab; label: string }[] = [
+  const tabs: Array<{ value: ReviewTab; label: string }> = [
     { value: "details", label: "Details" },
     { value: "notes", label: "Notes" },
     { value: "attachments", label: "Attachments" },

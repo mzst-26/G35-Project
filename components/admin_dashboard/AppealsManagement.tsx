@@ -3,75 +3,22 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import AppealReviewModal from "./AppealReviewModal";
+import { useAppeals } from "@/hooks/useAppeals";
+import { Appeal, AppealStatus, TabConfig } from "@/types/admin-dashboard";
 
-type AppealStatus = "open" | "pending" | "closed";
-
-interface Appeal {
-  id: string;
-  userName: string;
-  reason: string;
-  date: string;
-  status: AppealStatus;
-}
-
-const sampleAppeals: Appeal[] = [
-  {
-    id: "1",
-    userName: "John Smith",
-    reason: "Disputed penalty charge",
-    date: "2026-02-03",
-    status: "open",
-  },
-  {
-    id: "2",
-    userName: "Sarah Johnson",
-    reason: "Job cancellation appeal",
-    date: "2026-02-02",
-    status: "open",
-  },
-  {
-    id: "3",
-    userName: "Mike Davis",
-    reason: "Rating dispute",
-    date: "2026-02-01",
-    status: "pending",
-  },
-  {
-    id: "4",
-    userName: "Emma Wilson",
-    reason: "Payment issue",
-    date: "2026-01-31",
-    status: "pending",
-  },
-  {
-    id: "5",
-    userName: "Robert Brown",
-    reason: "Account suspension appeal",
-    date: "2026-01-25",
-    status: "closed",
-  },
-  {
-    id: "6",
-    userName: "Lisa Anderson",
-    reason: "Contract dispute",
-    date: "2026-01-20",
-    status: "closed",
-  },
-];
-
-export default function AppealsManagement() {
+export default function AppealsManagement(): JSX.Element {
   const [activeTab, setActiveTab] = useState<AppealStatus>("open");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredAppeals = sampleAppeals.filter(
-    (appeal) => appeal.status === activeTab
-  );
+  const { getAppealsCount, getFilteredAppeals } = useAppeals();
 
-  const tabConfig = [
-    { value: "open" as AppealStatus, label: "Open", count: sampleAppeals.filter((a) => a.status === "open").length },
-    { value: "pending" as AppealStatus, label: "Pending", count: sampleAppeals.filter((a) => a.status === "pending").length },
-    { value: "closed" as AppealStatus, label: "Closed", count: sampleAppeals.filter((a) => a.status === "closed").length },
+  const filteredAppeals = getFilteredAppeals(activeTab);
+
+  const tabConfig: TabConfig<AppealStatus>[] = [
+    { value: "open", label: "Open", count: getAppealsCount("open") },
+    { value: "pending", label: "Pending", count: getAppealsCount("pending") },
+    { value: "closed", label: "Closed", count: getAppealsCount("closed") },
   ];
 
   return (

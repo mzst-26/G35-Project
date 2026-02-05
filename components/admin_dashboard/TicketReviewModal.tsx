@@ -5,30 +5,19 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { Ticket, BaseModalProps, TicketReviewData, ReviewTab } from "@/types/admin-dashboard";
 
-interface Ticket {
-  id: string;
-  userName: string;
-  subject: string;
-  date: string;
-  status: "open" | "pending" | "closed";
-}
-
-interface TicketReviewModalProps {
+interface TicketReviewModalProps extends BaseModalProps {
   ticket: Ticket;
-  isOpen: boolean;
-  onClose: () => void;
 }
-
-type TicketTab = "details" | "notes" | "attachments" | "history";
 
 export default function TicketReviewModal({
   ticket,
   isOpen,
   onClose,
-}: TicketReviewModalProps) {
+}: TicketReviewModalProps): JSX.Element | null {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<TicketTab>("details");
+  const [activeTab, setActiveTab] = useState<ReviewTab>("details");
   const [title, setTitle] = useState(ticket.subject);
   const [details, setDetails] = useState(
     "Support ticket submitted by " + ticket.userName
@@ -41,22 +30,23 @@ export default function TicketReviewModal({
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    console.log({
+    const reviewData: TicketReviewData = {
       ticketId: ticket.id,
       title,
       details,
       date,
       notes,
       resolution,
-    });
+    };
+    console.log(reviewData);
     onClose();
   };
 
   if (!isOpen || !mounted) return null;
 
-  const tabs: { value: TicketTab; label: string }[] = [
+  const tabs: Array<{ value: ReviewTab; label: string }> = [
     { value: "details", label: "Details" },
     { value: "notes", label: "Notes" },
     { value: "attachments", label: "Attachments" },

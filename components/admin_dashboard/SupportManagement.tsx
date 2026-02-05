@@ -3,75 +3,22 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import TicketReviewModal from "./TicketReviewModal";
+import { useTickets } from "@/hooks/useTickets";
+import { Ticket, TicketStatus, TabConfig } from "@/types/admin-dashboard";
 
-type TicketStatus = "open" | "pending" | "closed";
-
-interface Ticket {
-  id: string;
-  userName: string;
-  subject: string;
-  date: string;
-  status: TicketStatus;
-}
-
-const sampleTickets: Ticket[] = [
-  {
-    id: "1",
-    userName: "Alex Turner",
-    subject: "Unable to access dashboard",
-    date: "2026-02-04",
-    status: "open",
-  },
-  {
-    id: "2",
-    userName: "Rachel Green",
-    subject: "Payment not processed",
-    date: "2026-02-04",
-    status: "open",
-  },
-  {
-    id: "3",
-    userName: "David Chen",
-    subject: "Profile update issue",
-    date: "2026-02-03",
-    status: "pending",
-  },
-  {
-    id: "4",
-    userName: "Maria Garcia",
-    subject: "Job posting error",
-    date: "2026-02-02",
-    status: "pending",
-  },
-  {
-    id: "5",
-    userName: "James Wilson",
-    subject: "Account verification",
-    date: "2026-01-30",
-    status: "closed",
-  },
-  {
-    id: "6",
-    userName: "Linda Martinez",
-    subject: "Password reset request",
-    date: "2026-01-28",
-    status: "closed",
-  },
-];
-
-export default function SupportManagement() {
+export default function SupportManagement(): JSX.Element {
   const [activeTab, setActiveTab] = useState<TicketStatus>("open");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredTickets = sampleTickets.filter(
-    (ticket) => ticket.status === activeTab
-  );
+  const { getTicketsCount, getFilteredTickets } = useTickets();
 
-  const tabConfig = [
-    { value: "open" as TicketStatus, label: "Open", count: sampleTickets.filter((t) => t.status === "open").length },
-    { value: "pending" as TicketStatus, label: "Pending", count: sampleTickets.filter((t) => t.status === "pending").length },
-    { value: "closed" as TicketStatus, label: "Closed", count: sampleTickets.filter((t) => t.status === "closed").length },
+  const filteredTickets = getFilteredTickets(activeTab);
+
+  const tabConfig: TabConfig<TicketStatus>[] = [
+    { value: "open", label: "Open", count: getTicketsCount("open") },
+    { value: "pending", label: "Pending", count: getTicketsCount("pending") },
+    { value: "closed", label: "Closed", count: getTicketsCount("closed") },
   ];
 
   return (
