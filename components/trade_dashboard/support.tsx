@@ -11,6 +11,10 @@ import React from "react";
 
 export default function Support() {
   const router = useRouter();
+  const exampleTickets = [
+    { id: "TCK-1042", title: "Payment pending for Job #7841", date: "2 Feb 2026", status: "Open" },
+    { id: "TCK-1051", title: "Reschedule requested for Job #7903", date: "30 Jan 2026", status: "Open" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -31,7 +35,18 @@ export default function Support() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Ongoing:</h2>
-            <p className="text-sm text-slate-600 mt-2">No ongoing tickets to show (navigation skeleton).</p>
+            <p className="text-sm text-slate-600 mt-2">Example tickets (navigation skeleton).</p>
+            <div className="mt-3 space-y-2">
+              {exampleTickets.map((ticket) => (
+                <div key={ticket.id} className="rounded-md border border-slate-200 p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-slate-900">{ticket.title}</p>
+                    <span className="text-xs text-slate-500">{ticket.status}</span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1">{ticket.id} • {ticket.date}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </Card>
