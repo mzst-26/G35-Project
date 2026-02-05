@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { AlertCircle, BarChart3, LayoutDashboard, Menu, MessageSquare, Settings as SettingsIcon, Users, X } from "lucide-react";
+import { AlertCircle, BarChart3, Briefcase, LayoutDashboard, Menu, MessageSquare, Settings as SettingsIcon, Users, X } from "lucide-react";
 import { useState } from "react";
 
 type AdminSectionKey = "dashboard" | "appeals" | "users" | "support" | "analytics" | "settings";
@@ -129,20 +129,40 @@ export default function AdminDashboard() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg border border-slate-200 p-6">
-                  <p className="text-sm text-slate-600">Total Users</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">—</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Total Users</p>
+                      <p className="text-3xl font-bold text-slate-900 mt-2">2,543</p>
+                    </div>
+                    <Users className="h-10 w-10 text-black" />
+                  </div>
                 </div>
                 <div className="bg-white rounded-lg border border-slate-200 p-6">
-                  <p className="text-sm text-slate-600">Pending Appeals</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">—</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Pending Appeals</p>
+                      <p className="text-3xl font-bold text-slate-900 mt-2">12</p>
+                    </div>
+                    <AlertCircle className="h-10 w-10 text-black" />
+                  </div>
                 </div>
                 <div className="bg-white rounded-lg border border-slate-200 p-6">
-                  <p className="text-sm text-slate-600">Open Tickets</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">—</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Open Tickets</p>
+                      <p className="text-3xl font-bold text-slate-900 mt-2">8</p>
+                    </div>
+                    <MessageSquare className="h-10 w-10 text-black" />
+                  </div>
                 </div>
                 <div className="bg-white rounded-lg border border-slate-200 p-6">
-                  <p className="text-sm text-slate-600">Active Jobs</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">—</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Active Jobs</p>
+                      <p className="text-3xl font-bold text-slate-900 mt-2">156</p>
+                    </div>
+                    <Briefcase className="h-10 w-10 text-black" />
+                  </div>
                 </div>
               </div>
             </div>
