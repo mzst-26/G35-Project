@@ -6,58 +6,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Clock, CheckCircle2, HelpCircle, Banknote, FileText } from "lucide-react";
-import { TradePenaltiesProps } from "@/types/trade-dashboard";
-
-interface Penalty {
-  id: number;
-  reason: string;
-  amount: number;
-  date: string; // ISO date string (yyyy-mm-dd)
-  status: "paid" | "unpaid" | "disputed";
-  description?: string;
-  referenceJob?: string;
-}
+import { TradePenaltiesProps, type TradePenalty } from "@/types/trade-dashboard";
+import { useTradePenalties } from "@/hooks/useTradePenalties";
 
 export default function Penalties(_props: TradePenaltiesProps) {
   const [expandedPenaltyId, setExpandedPenaltyId] = useState<number | null>(null);
+  const { penalties, stats, isLoading, error } = useTradePenalties();
 
-  // Mock penalty data - TODO: Replace with API call
-  const penalties: Penalty[] = [
-    {
-      id: 1,
-      reason: "Job Rejection",
-      amount: 50,
-      date: "2026-01-15",
-      status: "unpaid",
-      description: "Penalty applied for rejecting accepted job offer",
-      referenceJob: "Emergency Repair - Retail Solutions",
-    },
-    {
-      id: 2,
-      reason: "Late Arrival",
-      amount: 120,
-      date: "2025-11-21",
-      status: "paid",
-      description: "Penalty applied for arriving 45 minutes late to scheduled job",
-      referenceJob: "Office Lighting Upgrade - Business Solutions Ltd",
-    },
-    {
-      id: 3,
-      reason: "Missing Documentation",
-      amount: 30,
-      date: "2025-09-12",
-      status: "disputed",
-      description: "Penalty for incomplete paperwork submission. Currently under review.",
-      referenceJob: "Residential Installation - Property Group",
-    },
-  ];
-
-  // Calculate totals
-  const totalPenalties = penalties.reduce((sum, p) => sum + p.amount, 0);
-  const unpaidPenalties = penalties.filter((p) => p.status === "unpaid").reduce((sum, p) => sum + p.amount, 0);
-  const paidPenalties = penalties.filter((p) => p.status === "paid").reduce((sum, p) => sum + p.amount, 0);
-
-  const getStatusBadge = (status: Penalty["status"]) => {
+  const getStatusBadge = (status: TradePenalty["status"]) => {
     const statusConfig = {
       paid: { bg: "bg-green-100", text: "text-green-800", label: "Paid" },
       unpaid: { bg: "bg-red-100", text: "text-red-800", label: "Unpaid" },
@@ -93,6 +49,43 @@ export default function Penalties(_props: TradePenaltiesProps) {
     }
   };
 
+  // Error state
+  if (error) {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl text-slate-900 mb-2">Penalties</h1>
+          <p className="text-slate-600">View and manage your penalty history</p>
+        </div>
+        <Alert className="bg-red-50 border-red-200">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertDescription className="text-red-900">
+            <strong>Error:</strong> {error}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl text-slate-900 mb-2">Penalties</h1>
+          <p className="text-slate-600">View and manage your penalty history</p>
+        </div>
+        <Card className="shadow-sm border-slate-200">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <p className="text-slate-600">Loading penalties...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
@@ -102,11 +95,11 @@ export default function Penalties(_props: TradePenaltiesProps) {
       </div>
 
       {/* Info Alert */}
-      {unpaidPenalties > 0 && (
+      {stats.unpaid > 0 && (
         <Alert className="mb-6 bg-red-50 border-red-200">
           <AlertTriangle className="h-5 w-5 text-red-600" />
           <AlertDescription className="text-red-900">
-            <strong>Outstanding Penalties:</strong> You have <strong>£{unpaidPenalties}</strong> in unpaid penalties. These will be deducted from your next payout.
+            <strong>Outstanding Penalties:</strong> You have <strong>£{stats.unpaid}</strong> in unpaid penalties. These will be deducted from your next payout.
           </AlertDescription>
         </Alert>
       )}
@@ -122,7 +115,7 @@ export default function Penalties(_props: TradePenaltiesProps) {
               </div>
               <div>
                 <p className="text-xs text-slate-600 font-medium">Total Penalties</p>
-                <p className="text-2xl font-semibold text-slate-900">£{totalPenalties}</p>
+                <p className="text-2xl font-semibold text-slate-900">£{stats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -137,23 +130,23 @@ export default function Penalties(_props: TradePenaltiesProps) {
               </div>
               <div>
                 <p className="text-xs text-slate-600 font-medium">Paid</p>
-                <p className="text-2xl font-semibold text-slate-900">£{paidPenalties}</p>
+                <p className="text-2xl font-semibold text-slate-900">£{stats.paid}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Unpaid Penalties */}
-        <Card className={`shadow-sm border-slate-200 ${unpaidPenalties > 0 ? "border-red-200" : ""}`}>
+        <Card className={`shadow-sm border-slate-200 ${stats.unpaid > 0 ? "border-red-200" : ""}`}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${unpaidPenalties > 0 ? "bg-red-100" : "bg-slate-100"}`}>
-                <Banknote className={`h-5 w-5 ${unpaidPenalties > 0 ? "text-red-600" : "text-slate-700"}`} />
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${stats.unpaid > 0 ? "bg-red-100" : "bg-slate-100"}`}>
+                <Banknote className={`h-5 w-5 ${stats.unpaid > 0 ? "text-red-600" : "text-slate-700"}`} />
               </div>
               <div>
                 <p className="text-xs text-slate-600 font-medium">Unpaid</p>
-                <p className={`text-2xl font-semibold ${unpaidPenalties > 0 ? "text-red-600" : "text-slate-900"}`}>
-                  £{unpaidPenalties}
+                <p className={`text-2xl font-semibold ${stats.unpaid > 0 ? "text-red-600" : "text-slate-900"}`}>
+                  £{stats.unpaid}
                 </p>
               </div>
             </div>

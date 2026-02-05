@@ -60,6 +60,29 @@ export interface TradeCalendarJob {
 export interface TradeCalendarProps {
   jobs?: TradeCalendarJob[];
 }
+
+// Penalty status throughout lifecycle
+export type PenaltyStatus = 'paid' | 'unpaid' | 'disputed';
+
+// Penalty record data
+export interface TradePenalty {
+  id: number;
+  reason: string;
+  amount: number;
+  date: string; // ISO date string (yyyy-mm-dd)
+  status: PenaltyStatus;
+  description?: string;
+  referenceJob?: string;
+}
+
+// Penalties statistics
+export interface TradePenaltiesStats {
+  total: number;
+  paid: number;
+  unpaid: number;
+  disputed: number;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TradeJobsProps {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
