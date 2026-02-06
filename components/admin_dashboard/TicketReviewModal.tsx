@@ -15,7 +15,7 @@ export default function TicketReviewModal({
   ticket,
   isOpen,
   onClose,
-}: TicketReviewModalProps): JSX.Element | null {
+}: TicketReviewModalProps) {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<ReviewTab>("details");
   const [title, setTitle] = useState(ticket.subject);
