@@ -14,15 +14,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { Settings, Save, Globe } from "lucide-react";
+import { Settings, Save, Globe, Bell } from "lucide-react";
 
 export default function AdminSettings(): JSX.Element {
-  const { settings, isLoading, isSaving, error, saveSuccess, save } =
+  const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
     useAdminSettings();
 
-  // For a clean skeleton, show "—" instead of demo values when empty
+  // Keep General "read-only" look for now, using "—" if empty.
   const general = useMemo(() => {
     return {
       platformName: settings.general.platformName || "—",
@@ -156,11 +157,61 @@ export default function AdminSettings(): JSX.Element {
           </Card>
         </TabsContent>
 
-        {/* Placeholders */}
+        {/* Notifications */}
         <TabsContent value="notifications">
-          <PlaceholderCard title="Notifications" text="This is the notifications section." />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-blue-600" />
+                Notification Preferences
+              </CardTitle>
+              <CardDescription>
+                Configure admin notification settings
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <ToggleRow
+                title="Email Notifications"
+                description="Receive notifications via email"
+                checked={settings.notifications.emailNotifications}
+                onChange={(v) => actions.setNotifications("emailNotifications", v)}
+              />
+
+              <ToggleRow
+                title="New User Alerts"
+                description="Get notified when new users register"
+                checked={settings.notifications.newUserAlerts}
+                onChange={(v) => actions.setNotifications("newUserAlerts", v)}
+              />
+
+              <ToggleRow
+                title="Appeal Alerts"
+                description="Receive notifications for new appeals"
+                checked={settings.notifications.appealAlerts}
+                onChange={(v) => actions.setNotifications("appealAlerts", v)}
+              />
+
+              <ToggleRow
+                title="Support Ticket Alerts"
+                description="Get notified about new support tickets"
+                checked={settings.notifications.supportTicketAlerts}
+                onChange={(v) =>
+                  actions.setNotifications("supportTicketAlerts", v)
+                }
+              />
+
+              <ToggleRow
+                title="System Alerts"
+                description="Critical system notifications"
+                checked={settings.notifications.systemAlerts}
+                onChange={(v) => actions.setNotifications("systemAlerts", v)}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* Placeholders */}
         <TabsContent value="security">
           <PlaceholderCard title="Security" text="This is the security section." />
         </TabsContent>
@@ -178,7 +229,7 @@ export default function AdminSettings(): JSX.Element {
         </TabsContent>
       </Tabs>
 
-      {/* Bottom Save Button (optional, but matches the design) */}
+      {/* Bottom Save Button (matches your design) */}
       <div className="flex justify-end">
         <Button
           onClick={save}
@@ -190,6 +241,28 @@ export default function AdminSettings(): JSX.Element {
           {isSaving ? "Saving..." : "Save All Changes"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex-1 pr-4">
+        <Label className="text-slate-900">{title}</Label>
+        <p className="text-sm text-slate-600">{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }
