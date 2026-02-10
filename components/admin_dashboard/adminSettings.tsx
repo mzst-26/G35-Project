@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Settings, Save, Globe, Bell } from "lucide-react";
 import { PoundSterling } from "lucide-react";
+import { Shield, Lock } from "lucide-react";
 
 export default function AdminSettings(): JSX.Element {
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
@@ -214,7 +215,39 @@ export default function AdminSettings(): JSX.Element {
 
         {/* Placeholders */}
         <TabsContent value="security">
-          <PlaceholderCard title="Security" text="This is the security section." />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-red-600" />
+                Security Information
+              </CardTitle>
+              <CardDescription>
+                Admin security and access information
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Lock className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm text-slate-900 mb-1">
+                      Admin Account Security
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      Admin login credentials cannot be changed from this panel for security reasons.
+                      Contact a system administrator for any account modifications.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-slate-600">
+                Future security controls (e.g., two-factor authentication, session timeout, IP allow-listing)
+                will appear here once backend support is available.
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Payments */}
