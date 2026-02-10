@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Save, Globe, Bell } from "lucide-react";
 import { PoundSterling } from "lucide-react";
 import { Shield, Lock } from "lucide-react";
+import { Clock } from "lucide-react";
 
 export default function AdminSettings(): JSX.Element {
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
@@ -324,7 +325,57 @@ export default function AdminSettings(): JSX.Element {
         </TabsContent>
 
         <TabsContent value="jobs">
-          <PlaceholderCard title="Jobs" text="This is the jobs section." />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-blue-600" />
+                Job Management Settings
+              </CardTitle>
+              <CardDescription>
+                Configure job allocation and management rules
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="max-jobs-per-trade">Max Jobs Per Trade</Label>
+                  <Input
+                    id="max-jobs-per-trade"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="e.g. 10"
+                    value={settings.jobs.maxJobsPerTrade ?? ""}
+                    onChange={(e) => actions.setJobsNumber("maxJobsPerTrade", e.target.value)}
+                    disabled={isLoading || isSaving}
+                  />
+                  <p className="text-xs text-slate-500">
+                    Maximum concurrent jobs per trade professional
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="job-cancellation-window-hours">
+                    Cancellation Window (hours)
+                  </Label>
+                  <Input
+                    id="job-cancellation-window-hours"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="e.g. 24"
+                    value={settings.jobs.jobCancellationWindowHours ?? ""}
+                    onChange={(e) =>
+                      actions.setJobsNumber("jobCancellationWindowHours", e.target.value)
+                    }
+                    disabled={isLoading || isSaving}
+                  />
+                  <p className="text-xs text-slate-500">
+                    Minimum notice required for penalty-free cancellation
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="users">
