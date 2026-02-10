@@ -18,6 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Settings, Save, Globe, Bell } from "lucide-react";
+import { PoundSterling } from "lucide-react";
 
 export default function AdminSettings(): JSX.Element {
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
@@ -216,8 +217,77 @@ export default function AdminSettings(): JSX.Element {
           <PlaceholderCard title="Security" text="This is the security section." />
         </TabsContent>
 
+        {/* Payments */}
         <TabsContent value="payments">
-          <PlaceholderCard title="Payments" text="This is the payments section." />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PoundSterling className="h-5 w-5 text-green-600" />
+                Payment &amp; Fee Settings
+              </CardTitle>
+              <CardDescription>
+                Configure platform fees and penalty amounts
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* Platform fee */}
+              <div className="space-y-2">
+                <Label htmlFor="platform-fee">Platform Fee (%)</Label>
+                <Input
+                  id="platform-fee"
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 5.5"
+                  value={settings.payments.platformFeePercent ?? ""}
+                  onChange={(e) => actions.setPaymentsNumber("platformFeePercent", e.target.value)}
+                />
+                <p className="text-xs text-slate-500">
+                  Commission taken from each job payment
+                </p>
+              </div>
+
+              {/* Penalty fees */}
+              <div className="pt-4 border-t border-slate-200">
+                <h3 className="text-sm text-slate-900 mb-3">Penalty Fees (£)</h3>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="late-cancellation-fee">Late Cancellation</Label>
+                    <Input
+                      id="late-cancellation-fee"
+                      type="number"
+                      placeholder="e.g. 50"
+                      value={settings.payments.lateCancellationFee ?? ""}
+                      onChange={(e) => actions.setPaymentsNumber("lateCancellationFee", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="no-show-fee">No Show</Label>
+                    <Input
+                      id="no-show-fee"
+                      type="number"
+                      placeholder="e.g. 100"
+                      value={settings.payments.noShowFee ?? ""}
+                      onChange={(e) => actions.setPaymentsNumber("noShowFee", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="late-arrival-fee">Late Arrival</Label>
+                    <Input
+                      id="late-arrival-fee"
+                      type="number"
+                      placeholder="e.g. 30"
+                      value={settings.payments.lateArrivalFee ?? ""}
+                      onChange={(e) => actions.setPaymentsNumber("lateArrivalFee", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="jobs">
