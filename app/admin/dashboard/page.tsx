@@ -12,7 +12,6 @@ import {
   Shield,
 } from "lucide-react";
 import { useState } from "react";
-import { NavItem, SectionKey } from "@/types/admin-dashboard";
 
 // import the settings section component
 import AdminSettings from "@/components/admin_dashboard/adminSettings";
@@ -45,7 +44,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-slate-900">TradesFair</h2>
-              <p className="text-xs text-slate-500">Admin Panel</p>
+              <p className="text-xs text-slate-500">Admin</p>
             </div>
           </div>
 
@@ -71,7 +70,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-slate-900">TradesFair</h2>
-              <p className="text-sm text-slate-500">Admin Panel</p>
+              <p className="text-sm text-slate-500">Admin Portal</p>
             </div>
           </div>
 
@@ -102,7 +101,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop sidebar */}
       <div className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 z-40 bg-white border-r border-slate-200 flex-col">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -111,7 +110,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-slate-900">TradesFair</h2>
-              <p className="text-sm text-slate-500">Admin Panel</p>
+              <p className="text-sm text-slate-500">Admin Portal</p>
             </div>
           </div>
         </div>
@@ -137,7 +136,7 @@ export default function AdminDashboard() {
         </nav>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* Main content */}
       <div className="md:ml-64">
         <div className="p-4 md:p-8 pt-20 md:pt-8">
           {activeSection === "dashboard" && <>this is Dashboard</>}

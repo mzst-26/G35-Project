@@ -6,20 +6,21 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { TradeCalendarProps } from "@/types/trade-dashboard";
+import { Lock, Check } from 'lucide-react';
+import { TradeCalendarProps, TradeCalendarJob } from "@/types/trade-dashboard";
 
 export default function TradeCalendar(props: TradeCalendarProps) {
-  const { jobs = [] } = (props as any);
-  const sampleJobs: Array<{ id: string; title: string; startDate: string; endDate: string }> = [
+  const { jobs = [] } = props;
+  
+  const sampleJobs: TradeCalendarJob[] = [
     { id: 'job-1', title: 'Install Wiring', startDate: '2026-02-05', endDate: '2026-02-05' },
     { id: 'job-2', title: 'Repair Roof', startDate: '2026-02-08', endDate: '2026-02-08' },
     { id: 'job-3', title: 'Paint Rooms', startDate: '2026-02-25', endDate: '2026-02-27' },
     { id: 'job-4', title: 'Plumb Kitchen', startDate: '2026-02-14', endDate: '2026-02-18' },
   ];
-  const effectiveJobs: any[] = (Array.isArray(jobs) && jobs.length) ? (jobs as any[]) : sampleJobs;
-  const calendarRef = useRef<any>(null);
+  const effectiveJobs: TradeCalendarJob[] = (Array.isArray(jobs) && jobs.length) ? jobs : sampleJobs;
+  const calendarRef = useRef<InstanceType<typeof FullCalendar> | null>(null);
   const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
@@ -37,6 +38,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
   // Helper to format Date -> YYYY-MM-DD
   const isoDate = (d: Date): string => d.toISOString().split('T')[0];
 
+  // Minimum selectable date (today + 7 days)
+  const minSelectableDate = new Date();
+  minSelectableDate.setDate(minSelectableDate.getDate() + 7);
+  const minSelectableStr = isoDate(minSelectableDate);
+
   const updateMonthCounts = (start: Date, end: Date): void => {
     // iterate days from start (inclusive) to end (exclusive)
     let taken = 0;
@@ -46,7 +52,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
       // Only count days that belong to the calendar month (exclude padding if needed)
       // We'll count all days in the view range (FullCalendar month view usually includes padding days);
       total += 1;
-      const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+      const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
         const s = String(j.startDate || j.start || '');
         const e = String(j.endDate || j.end || s);
         return s <= ds && ds <= e;
@@ -59,7 +65,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
   
 
-  const events: EventInput[] = effectiveJobs.map((job: any) => ({
+  const events: EventInput[] = effectiveJobs.map((job) => ({
     id: job.id,
     title: job.title,
     start: job.startDate || job.start,
@@ -83,29 +89,42 @@ export default function TradeCalendar(props: TradeCalendarProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-2xl font-semibold">Calendar</h3>
-        <div className="flex items-center gap-2">
-          <button
-            className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${selectedDates.size === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-slate-700 text-white'}`}
-            onClick={() => setSelectedDates(new Set())}
-            disabled={selectedDates.size === 0}
-          >
-            Clear Selection
-          </button>
-        </div>
       </div>
 
       <div className="rounded-md border p-4 bg-white">
+        {/* Calendar Guide */}
+        <div className="mb-4 p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 bg-white border-2 border-blue-500 rounded">
+                <Check className="h-3 w-3 text-blue-600" />
+              </div>
+              <span className="text-slate-700 font-medium">Today</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 rounded" style={{ background: '#94a3b8' }}>
+                <Lock className="h-2.5 w-2.5 text-slate-700" />
+              </div>
+              <span className="text-slate-700 font-medium">Busy</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center w-6 h-6 rounded border-2 border-black" style={{ background: 'rgba(34,197,94,0.18)' }} />
+              <span className="text-slate-700 font-medium">Selected</span>
+            </div>
+          </div>
+        </div>
+
         {(() => {
           const calendarOptions: Record<string, unknown> = {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
             initialView: 'dayGridMonth',
             headerToolbar: isNarrow
-              ? { left: 'prev,next', center: 'title', right: 'today' }
-              : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+              ? { left: 'prev,next', center: 'title', right: '' }
+              : { left: 'prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
             events,
             dateClick: (info: Record<string, unknown>) => {
               const dateStr = String(info.dateStr);
-              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+              const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
                 const start = String(j.startDate || j.start || '');
                 const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
@@ -115,6 +134,8 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 setOpenDay(dateStr);
                 return;
               }
+              // Disallow selecting days that are less than 7 days ahead
+              if (dateStr < minSelectableStr) return;
               // otherwise toggle selection for open days
               setSelectedDates((prev: Set<string>) => {
                 const next = new Set(prev);
@@ -127,15 +148,21 @@ export default function TradeCalendar(props: TradeCalendarProps) {
               const dateObj = arg.date as Date;
               const dateStr = dateObj.toISOString().split('T')[0];
               const classes: string[] = [];
+              // Get today's date
+              const today = new Date();
+              const todayStr = today.toISOString().split('T')[0];
               // Treat a day as taken if it falls between any job's startDate and endDate (inclusive).
-              const hasJob = effectiveJobs.some((j: Record<string, unknown>) => {
+              const hasJob = effectiveJobs.some((j: TradeCalendarJob) => {
                 const start = String(j.startDate || j.start || '');
                 const end = String(j.endDate || j.end || start);
                 return start <= dateStr && dateStr <= end;
               });
               if (hasJob) classes.push('has-job');
               else classes.push('open-day');
+              // Mark as not-selectable if before minimum selectable date
+              if (dateStr < minSelectableStr) classes.push('not-selectable');
               if (selectedDates && selectedDates.has(dateStr)) classes.push('selected-day');
+              if (dateStr === todayStr) classes.push('today-day');
               return classes;
             },
             // Only display the current month's dates (hide neighboring month days)
@@ -143,7 +170,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
             // Do not force a 6-week grid; let month height vary to only show needed weeks
             fixedWeekCount: false,
 
-            datesSet: (arg: any) => {
+            datesSet: (arg: { start: Date; end: Date }) => {
               // Compute the calendar month start/end from the current view's date
               try {
                 const viewStart = arg.start; // beginning of the view range
@@ -206,7 +233,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   .fc .fc-button { padding: 4px 6px !important; font-size: 0.75rem !important; }
 
                   /* Ensure selected inner box uses subtle border and smaller radius */
-                  .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { border: 2px solid rgba(16,185,129,0.6) !important; border-radius: 8px !important; }
+                  .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { border: 4px solid #000 !important; border-radius: 8px !important; }
 
                   /* Make modal full-screen on small devices */
                   .bg-white.w-full.md\:w-96 { padding: 1rem; }
@@ -250,7 +277,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Selected day: only style the inner box */
                 .fc .selected-day { box-shadow: none !important; }
-                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 2px solid rgba(16,185,129,0.6) !important; }
+                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 4px solid #000 !important; }
 
                 /* Create small gaps between day cells by padding the outer frame and
                    applying backgrounds to the inner day-top element. This produces
@@ -287,9 +314,15 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   pointer-events: none;
                 }
 
+                /* Days that are not yet selectable (within the next 7 days) - keep same color as selectable days */
+                .fc .not-selectable .fc-daygrid-day-top { cursor: not-allowed; }
+
                 .fc .fc-daygrid-day.open-day .fc-daygrid-day-top,
                 .fc .open-day { background: transparent !important; }
                 .fc .fc-daygrid-day.open-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; }
+
+                /* Today's day styling: blue border */
+                .fc .fc-daygrid-day.today-day .fc-daygrid-day-top { border: 2px solid #2563eb !important; }
 
               `}</style>
             </>
@@ -324,7 +357,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>
               </div>
               <div>
-                {effectiveJobs.filter((j: Record<string, unknown>) => {
+                {effectiveJobs.filter((j: TradeCalendarJob) => {
                   const start = String(j.startDate || j.start || '');
                   const end = String(j.endDate || j.end || start);
                   return start <= openDay && openDay <= end;
@@ -332,11 +365,11 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                   <div className="text-sm text-slate-600">No jobs for this day.</div>
                 )}
                 <ul className="space-y-2">
-                  {effectiveJobs.filter((j: Record<string, unknown>) => {
+                  {effectiveJobs.filter((j: TradeCalendarJob) => {
                     const start = String(j.startDate || j.start || '');
                     const end = String(j.endDate || j.end || start);
                     return start <= openDay && openDay <= end;
-                  }).map((job: Record<string, unknown>) => (
+                  }).map((job: TradeCalendarJob) => (
                     <li key={String(job.id)} className="p-2 border rounded-md">
                       <div className="font-medium">{String(job.title)}</div>
                       <div className="text-xs text-slate-500">{String(job.startDate || job.start) + (job.endDate || job.end ? ` — ${job.endDate || job.end}` : '')}</div>
