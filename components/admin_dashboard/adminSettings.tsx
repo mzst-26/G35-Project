@@ -21,6 +21,7 @@ import { Settings, Save, Globe, Bell } from "lucide-react";
 import { PoundSterling } from "lucide-react";
 import { Shield, Lock } from "lucide-react";
 import { Clock } from "lucide-react";
+import { Users } from "lucide-react";
 
 export default function AdminSettings(): JSX.Element {
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
@@ -379,7 +380,40 @@ export default function AdminSettings(): JSX.Element {
         </TabsContent>
 
         <TabsContent value="users">
-          <PlaceholderCard title="Users" text="This is the users section." />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-purple-600" />
+                User Management Settings
+              </CardTitle>
+              <CardDescription>
+                Configure automatic user moderation rules
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="auto-suspension-threshold">
+                  Auto-Suspension Threshold
+                </Label>
+                <Input
+                  id="auto-suspension-threshold"
+                  type="number"
+                  placeholder="—"
+                  value={settings.users.autoSuspensionThreshold ?? ""}
+                  onChange={(e) =>
+                    actions.setUsersNumber(
+                      "autoSuspensionThreshold",
+                      e.target.value
+                    )
+                  }
+                />
+                <p className="text-xs text-slate-500">
+                  Number of active penalties before a user is automatically suspended
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
