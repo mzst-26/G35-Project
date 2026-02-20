@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, ReactElement } from "react";
 
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 
@@ -23,7 +23,7 @@ import { Shield, Lock } from "lucide-react";
 import { Clock } from "lucide-react";
 import { Users } from "lucide-react";
 
-export default function AdminSettings(): JSX.Element {
+export default function AdminSettings(): ReactElement {
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
     useAdminSettings();
 
