@@ -24,7 +24,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-import type { UsersFilterType } from "@/types/admin-users";
+//import type { UsersFilterType } from "@/types/admin-users";
 export type UsersFilterType = "all" | "trade" | "company";
 
 const statusConfig = {
