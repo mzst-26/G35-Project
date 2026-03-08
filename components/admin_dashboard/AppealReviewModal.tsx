@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,8 +15,7 @@ export default function AppealReviewModal({
   appeal,
   isOpen,
   onClose,
-}: AppealReviewModalProps): JSX.Element | null {
-  const [mounted, setMounted] = useState(false);
+}: AppealReviewModalProps): React.JSX.Element | null {
   const [activeTab, setActiveTab] = useState<ReviewTab>("details");
   const [title, setTitle] = useState(appeal.reason);
   const [details, setDetails] = useState(
@@ -25,10 +24,6 @@ export default function AppealReviewModal({
   const [date, setDate] = useState(appeal.date);
   const [notes, setNotes] = useState("");
   const [resolution, setResolution] = useState<"approved" | "rejected" | "">("");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -44,7 +39,7 @@ export default function AppealReviewModal({
     onClose();
   };
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const tabs: Array<{ value: ReviewTab; label: string }> = [
     { value: "details", label: "Details" },

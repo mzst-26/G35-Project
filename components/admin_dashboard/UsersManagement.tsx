@@ -9,7 +9,7 @@ import { DashboardMetric } from "@/types/admin-dashboard";
 
 type UsersView = "overview" | "trade" | "company";
 
-export default function UsersManagement(): JSX.Element {
+export default function UsersManagement(): React.JSX.Element {
   const [activeView, setActiveView] = useState<UsersView>("overview");
   const { getActiveUsersCount, getSuspendedUsersCount } = useAdminUsers();
 

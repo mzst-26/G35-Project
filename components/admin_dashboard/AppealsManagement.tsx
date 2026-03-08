@@ -6,7 +6,7 @@ import AppealReviewModal from "./AppealReviewModal";
 import { useAppeals } from "@/hooks/useAppeals";
 import { Appeal, AppealStatus, TabConfig } from "@/types/admin-dashboard";
 
-export default function AppealsManagement(): JSX.Element {
+export default function AppealsManagement(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<AppealStatus>("open");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -277,7 +277,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
                 /* Selected day: only style the inner box */
                 .fc .selected-day { box-shadow: none !important; }
-                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 4px solid #000 !important; }
+                .fc .fc-daygrid-day.selected-day .fc-daygrid-day-top { background: rgba(34,197,94,0.18) !important; color: #065f46 !important; border: 2px solid #dc2626 !important; }
 
                 /* Create small gaps between day cells by padding the outer frame and
                    applying backgrounds to the inner day-top element. This produces
@@ -349,9 +349,9 @@ export default function TradeCalendar(props: TradeCalendarProps) {
 
         {/* Overlay for jobs on a day */}
         {openDay && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setOpenDay(null)} />
-            <div className={`bg-white w-full md:w-96 rounded-t-lg md:rounded-lg p-4 z-60 max-h-[70vh] overflow-auto ${isNarrow ? 'rounded-t-lg' : 'mt-8'}`}>
+            <div className="bg-white w-full md:w-96 rounded-lg p-4 z-60 max-h-[70vh] overflow-auto mx-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold">Jobs for {openDay}</h4>
                 <button className="text-slate-500 hover:text-slate-700" onClick={() => setOpenDay(null)}>Close</button>

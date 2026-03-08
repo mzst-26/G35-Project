@@ -3,7 +3,7 @@
 import { TrendingUp, Users, AlertTriangle, Bug, BarChart3, Clock } from "lucide-react";
 import { DashboardMetric } from "@/types/admin-dashboard";
 
-export default function AnalyticsManagement(): JSX.Element {
+export default function AnalyticsManagement(): React.JSX.Element {
   const metrics: DashboardMetric[] = [
     {
       label: "Daily Revenue",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,6 @@ export default function TicketReviewModal({
   isOpen,
   onClose,
 }: TicketReviewModalProps) {
-  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<ReviewTab>("details");
   const [title, setTitle] = useState(ticket.subject);
   const [details, setDetails] = useState(
@@ -25,10 +24,6 @@ export default function TicketReviewModal({
   const [date, setDate] = useState(ticket.date);
   const [notes, setNotes] = useState("");
   const [resolution, setResolution] = useState<"resolved" | "closed" | "">("");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -44,7 +39,7 @@ export default function TicketReviewModal({
     onClose();
   };
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const tabs: Array<{ value: ReviewTab; label: string }> = [
     { value: "details", label: "Details" },

@@ -14,7 +14,7 @@ interface UserListViewProps {
 export default function UserListView({
   listType,
   onBack,
-}: UserListViewProps): JSX.Element {
+}: UserListViewProps): React.JSX.Element {
   const { getUsersByType } = useAdminUsers();
   const title = useMemo(
     () => (listType === "trade" ? "Trade Users" : "Company Users"),

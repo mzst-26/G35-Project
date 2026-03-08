@@ -12,6 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useState } from "react";
+import type { NavItem, SectionKey } from "@/types/admin-dashboard";
 
 // import the settings section component
 import AdminSettings from "@/components/admin_dashboard/adminSettings";

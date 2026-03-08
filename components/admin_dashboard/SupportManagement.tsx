@@ -6,7 +6,7 @@ import TicketReviewModal from "./TicketReviewModal";
 import { useTickets } from "@/hooks/useTickets";
 import { Ticket, TicketStatus, TabConfig } from "@/types/admin-dashboard";
 
-export default function SupportManagement(): JSX.Element {
+export default function SupportManagement(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<TicketStatus>("open");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
