@@ -15,6 +15,10 @@ import { useState } from "react";
 
 // import the settings section component
 import AdminSettings from "@/components/admin_dashboard/adminSettings";
+import UserManagement from "@/components/admin_dashboard/UserManagement";
+import UserDetailView from "@/components/admin_dashboard/UserDetailView";
+
+import type { NavItem, SectionKey } from "@/types/admin-dashboard";
 
 export default function AdminDashboard() {
   // this items are the buttons on the sidebar, this will be converted into rendered html
@@ -32,6 +36,7 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<SectionKey>(
     navItems[0].section
   );
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -83,10 +88,17 @@ export default function AdminDashboard() {
                     ? "default"
                     : "ghost"
                 }
+
                 onClick={() => {
                   setActiveSection(sideBarActionItem.section);
+
+                  if (sideBarActionItem.section !== "users") {
+                    setSelectedUserId(null);
+                  }
+
                   setMobileMenuOpen(false);
                 }}
+
                 className={`w-full justify-start gap-3 ${
                   activeSection === sideBarActionItem.section
                     ? "bg-blue-600 text-white hover:bg-blue-700"
@@ -122,7 +134,14 @@ export default function AdminDashboard() {
               variant={
                 activeSection === sideBarActionItem.section ? "default" : "ghost"
               }
-              onClick={() => setActiveSection(sideBarActionItem.section)}
+
+              onClick={() => {
+                setActiveSection(sideBarActionItem.section);
+
+                if (sideBarActionItem.section !== "users") {
+                  setSelectedUserId(null);
+                }
+              }}
               className={`w-full justify-start gap-3 ${
                 activeSection === sideBarActionItem.section
                   ? "bg-blue-600 text-white hover:bg-blue-700"
@@ -141,7 +160,18 @@ export default function AdminDashboard() {
         <div className="p-4 md:p-8 pt-20 md:pt-8">
           {activeSection === "dashboard" && <>this is Dashboard</>}
 
-          {activeSection === "users" && <>this is Users</>}
+          {activeSection === "users" && (
+            <>
+              {selectedUserId ? (
+                <UserDetailView
+                  userId={selectedUserId}
+                  onBackToList={() => setSelectedUserId(null)}
+                />
+              ) : (
+                <UserManagement onSelectUser={(id) => setSelectedUserId(id)} />
+              )}
+            </>
+          )}
 
           {activeSection === "appeals" && <>this is Appeals</>}
 
