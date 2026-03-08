@@ -1,7 +1,8 @@
 export type UserType = "trade" | "company";
 export type UserStatus = "active" | "suspended" | "pending";
-
+export type UsersFilterType = "all" | "trade" | "company";
 export type ActivityType = "success" | "error" | "warning" | "info";
+
 
 export type UserActivityItem = {
   date: string; // ISO string or YYYY-MM-DD
