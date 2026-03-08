@@ -1,107 +1,115 @@
-/**
- * Custom hook for managing admin users data
- */
-import { useState } from "react";
-import { User, UserType } from "@/types/admin-dashboard";
+"use client";
 
-const tradeUsers: User[] = [
-  {
-    id: "T001",
-    name: "John Smith",
-    email: "john.smith@email.com",
-    status: "active",
-    joinDate: "2025-11-15",
-  },
-  {
-    id: "T002",
-    name: "Mike Johnson",
-    email: "mike.j@email.com",
-    status: "active",
-    joinDate: "2025-12-02",
-  },
-  {
-    id: "T003",
-    name: "Sarah Williams",
-    email: "s.williams@email.com",
-    status: "suspended",
-    joinDate: "2025-10-20",
-  },
-  {
-    id: "T004",
-    name: "Robert Davis",
-    email: "robert.d@email.com",
-    status: "active",
-    joinDate: "2026-01-10",
-  },
-];
+import { useCallback, useEffect, useState } from "react";
+import type { AdminUserDetail, AdminUserSummary } from "@/types/admin-users";
+import {
+  getAdminUserById,
+  listAdminUsers,
+  suspendAdminUser,
+  unsuspendAdminUser,
+  updateAdminUser,
+} from "@/services/adminUsersAPI";
 
-const companyUsers: User[] = [
-  {
-    id: "C001",
-    name: "Tech Solutions Ltd",
-    email: "contact@techsolutions.com",
-    status: "active",
-    joinDate: "2025-09-05",
-  },
-  {
-    id: "C002",
-    name: "BuildCorp Industries",
-    email: "info@buildcorp.com",
-    status: "active",
-    joinDate: "2025-11-20",
-  },
-  {
-    id: "C003",
-    name: "Green Energy Co",
-    email: "admin@greenenergy.com",
-    status: "active",
-    joinDate: "2025-12-15",
-  },
-  {
-    id: "C004",
-    name: "Metro Construction",
-    email: "contact@metroconstruction.com",
-    status: "suspended",
-    joinDate: "2025-08-12",
-  },
-];
+export function useAdminUsers(selectedUserId: string | null) {
+  const [users, setUsers] = useState<AdminUserSummary[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AdminUserDetail | null>(null);
 
-export const useAdminUsers = () => {
-  const [users] = useState<Map<UserType, User[]>>(
-    new Map([
-      ["trade", tradeUsers],
-      ["company", companyUsers],
-    ])
-  );
+  const [isLoadingList, setIsLoadingList] = useState(true);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const getUsersByType = (type: UserType): User[] => {
-    return users.get(type) || [];
-  };
+  const fetchList = useCallback(async () => {
+    setIsLoadingList(true);
+    setError(null);
+    try {
+      const data = await listAdminUsers();
+      setUsers(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setIsLoadingList(false);
+    }
+  }, []);
 
-  const getUserById = (id: string, type: UserType): User | undefined => {
-    const userList = users.get(type);
-    return userList?.find((user) => user.id === id);
-  };
+  const fetchSelected = useCallback(async () => {
+    if (!selectedUserId) {
+      setSelectedUser(null);
+      return;
+    }
+    setIsLoadingUser(true);
+    setError(null);
+    try {
+      const data = await getAdminUserById(selectedUserId);
+      setSelectedUser(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setIsLoadingUser(false);
+    }
+  }, [selectedUserId]);
 
-  const getActiveUsersCount = (): number => {
-    const allUsers = Array.from(users.values()).flat();
-    return allUsers.filter((user) => user.status === "active").length;
-  };
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
 
-  const getSuspendedUsersCount = (): number => {
-    const allUsers = Array.from(users.values()).flat();
-    return allUsers.filter((user) => user.status === "suspended").length;
-  };
+  useEffect(() => {
+    fetchSelected();
+  }, [fetchSelected]);
 
-  const getTotalUsersCount = (type: UserType): number => {
-    return getUsersByType(type).length;
-  };
+  const saveUser = useCallback(async (user: AdminUserDetail) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await updateAdminUser(user);
+      await fetchList();
+      await fetchSelected();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [fetchList, fetchSelected]);
+
+  const suspend = useCallback(async (userId: string, reason: string) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await suspendAdminUser(userId, reason);
+      await fetchList();
+      await fetchSelected();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [fetchList, fetchSelected]);
+
+  const unsuspend = useCallback(async (userId: string) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await unsuspendAdminUser(userId);
+      await fetchList();
+      await fetchSelected();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [fetchList, fetchSelected]);
 
   return {
-    getUsersByType,
-    getUserById,
-    getActiveUsersCount,
-    getSuspendedUsersCount,
-    getTotalUsersCount,
+    users,
+    selectedUser,
+    isLoadingList,
+    isLoadingUser,
+    isSaving,
+    error,
+    refetchList: fetchList,
+    refetchSelected: fetchSelected,
+    saveUser,
+    suspend,
+    unsuspend,
   };
-};
+}
