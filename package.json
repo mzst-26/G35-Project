@@ -1,5 +1,5 @@
 {
-  "name": "Group35",
+  "name": "Infra",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -24,7 +24,6 @@
     "next": "^16.0.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-router-dom": "^7.10.1",
     "shadcn": "^3.5.1",
     "tailwind-merge": "^3.4.0"
   },
@@ -33,6 +32,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
     "tailwindcss": "^4",
