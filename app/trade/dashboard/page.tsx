@@ -38,7 +38,7 @@ export default function TradeDashboard() {
               <span className="text-white text-sm">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-xs text-slate-500">Trade</p>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function TradeDashboard() {
               <span className="text-white">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Trade Portal</p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function TradeDashboard() {
               <span className="text-white">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Trade Portal</p>
             </div>
           </div>
