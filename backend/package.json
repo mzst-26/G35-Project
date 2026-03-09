@@ -1,0 +1,24 @@
+{
+  "name": "@infra/backend",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:identity": "npm run dev -w @infra/identity-service",
+    "dev:core": "npm run dev -w @infra/core-platform-service",
+    "dev:payments": "npm run dev -w @infra/payments-penalties-service",
+    "dev:communications": "npm run dev -w @infra/communications-service",
+    "allocation:dev": "cd services/allocation && uvicorn allocation_service.main:app --reload --app-dir src",
+    "allocation:test": "cd services/allocation && pytest"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
