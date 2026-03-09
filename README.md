@@ -1,3 +1,7 @@
+# Infra
+
+Infra is a platform that connects companies with qualified trade professionals through fair, reliable job matching.
+
 ## Getting Started
 
 First, run the development server:
@@ -14,28 +18,28 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## About Infra
 
-##About Infra
+There are two fundamental problems in the construction industry:
 
-
-##About Infra
-There are two fundamental flaws in the construction industry: A lack of consistent and high quality workers for construction companies to hire and a lack of consistent, fairly paid work for those workers.
+- Companies struggle to consistently find high-quality workers.
+- Skilled workers often struggle to get consistent, fair-paid work.
 
 Infra fixes that.
 
-From personal experience in the construction industry, we realised how hard it is to find the quality of worker needed to take the stress away of management. There is nowhere that you can go to and find the right worker the right time. Infra fixes this problem and adopts the saying "Buy once cry once". Choosing the premium worker up front is actually the cheaper option, as poor quality labour can cost untold 1000's in repairs.
+From personal experience in the construction industry, we saw how difficult it is to find the right worker at the right time. Infra addresses this by matching companies with highly qualified professionals, following the idea of "buy once, cry once"—choosing quality up front is often cheaper than fixing poor work later.
 
-We also fix the problem of highly paid workers being unfairly paid for their quality of work and qualifications they provide. These workers who provide a high quality of work first-time round due to their training deserve to be compensated accordingly.
+Infra also supports workers by helping them get compensated fairly for their training, qualifications, and quality of work.
 
-We solve these problems with one solution, automatic matching of companies (and their respective job they need doing) to a supply of highly qualified workers. These workers are matched based on multiple variables such as distance to job, relevant experience and more. This matching algorithm also ensures an equal distribution of work amongst the supply of tradespeople.
+The core solution is automatic matching between company job requests and available trade professionals, based on factors like distance, relevant experience, and other fit criteria. The matching system is also designed to support fairer distribution of opportunities among tradespeople.
 
 Infra saves money for companies and makes money for those who've worked for it in a way that removes trust from the equation.
 
+## Deployment
 
- - Dev branch would be hosted on netlify for testing
-    if dev has no errors and is ready to be merged with Main branch then:
- - Main branch would be deployed on the production server.
+- Dev branch is hosted on Netlify for testing.
+- If `dev` has no errors and is ready to merge into `main`, `main` is deployed to the production server.
 
-Testing deployment:https://group35-test.netlify.app/
+Testing deployment: https://group35-test.netlify.app/
  
-Production deployment hosted on google cloud platform :https://group35-p-repo-101930512528.europe-west1.run.app
+Production deployment hosted on Google Cloud Platform: https://group35-p-repo-101930512528.europe-west1.run.app
