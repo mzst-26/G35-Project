@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 export type SectionKey =
   | "dashboard"
   | "users"
+  | "applications"
   | "appeals"
   | "support"
   | "analytics"
