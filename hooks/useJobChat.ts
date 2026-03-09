@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Message } from '@/types/chat';
 import { JobParameters } from '@/types/job';
-import { parseJobParameters } from '@/services/jobParser';
+import { parseJobParameters } from '@/mockservices/jobParser';
 
 /**
  * Custom hook to manage job chat state and logic

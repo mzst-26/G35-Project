@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { CompanyPaymentListItem, CompanyPaymentSummary } from '@/types/company-payments';
-import { listCompanyPayments } from '@/services/companyPaymentsApi';
+import { listCompanyPayments } from '@/mockservices/companyPaymentsApi';
 
 export function useCompanyPayments() {
   // Store the payment list

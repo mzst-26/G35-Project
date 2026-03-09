@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CompanyJobDetail } from '@/types/company-job-detail';
-import { getCompanyJobDetail } from '@/services/companyJobDetailsApi';
+import { getCompanyJobDetail } from '@/mockservices/companyJobDetailsApi';
 
 export function useCompanyJobDetails(jobId: string | null) {
   // Store one job detail record
