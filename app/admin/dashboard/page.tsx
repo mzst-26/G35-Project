@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import {
   BarChart3,
+  ClipboardList,
   CreditCard,
   LayoutDashboard,
   Menu,
@@ -18,12 +19,14 @@ import AnalyticsManagement from "@/components/admin_dashboard/AnalyticsManagemen
 import AppealsManagement from "@/components/admin_dashboard/AppealsManagement";
 import SupportManagement from "@/components/admin_dashboard/SupportManagement";
 import UsersManagement from "@/components/admin_dashboard/UsersManagement";
-import AdminHome from "@/components/admin_dashboard/adminHome";
+import AdminHome from "@/components/admin_dashboard/AdminHome";
 import AdminSettings from "@/components/admin_dashboard/AdminSettings";
+import ApplicationsManagement from "@/components/admin_dashboard/ApplicationsManagement";
 
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, section: "dashboard" },
   { label: "Users", icon: Users, section: "users" },
+  { label: "Applications", icon: ClipboardList, section: "applications" },
   { label: "Appeals", icon: CreditCard, section: "appeals" },
   { label: "Support", icon: MessageSquare, section: "support" },
   { label: "Analytics", icon: BarChart3, section: "analytics" },
@@ -37,6 +40,7 @@ export default function AdminDashboard() {
   const sectionComponentMap: Record<SectionKey, ReactNode> = {
     dashboard: <AdminHome />,
     users: <UsersManagement />,
+    applications: <ApplicationsManagement />,
     appeals: <AppealsManagement />,
     support: <SupportManagement />,
     analytics: <AnalyticsManagement />,
