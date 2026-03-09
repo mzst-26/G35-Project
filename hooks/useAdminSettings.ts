@@ -7,7 +7,7 @@ import {
   getAdminSettings,
   updateAdminSettings,
   validateAdminSettings,
-} from "@/services/adminSettingsAPI";
+} from "@/mockservices/adminSettingsAPI";
 
 function parseNumberOrNull(value: string): number | null {
   const trimmed = value.trim();

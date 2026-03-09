@@ -44,7 +44,7 @@ export default function AdminDashboard() {
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-xs text-slate-500">Admin</p>
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Admin Portal</p>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Admin Portal</p>
             </div>
           </div>

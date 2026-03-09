@@ -84,7 +84,7 @@ export default function CompanyDashboard() {
               <span className="text-white text-sm">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-xs text-slate-500">Company</p>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function CompanyDashboard() {
               <span className="text-white">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Company Portal</p>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function CompanyDashboard() {
               <span className="text-white">TF</span>
             </div>
             <div>
-              <h2 className="text-slate-900">TradesFair</h2>
+              <h2 className="text-slate-900">Infra</h2>
               <p className="text-sm text-slate-500">Company Portal</p>
             </div>
           </div>

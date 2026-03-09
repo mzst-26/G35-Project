@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { CompanyJob, CompanyJobStats } from '@/types/company-jobs';
-import { listRecentCompanyJobs } from '@/services/companyJobsApi';
+import { listRecentCompanyJobs } from '@/mockservices/companyJobsApi';
 
 export function useCompanyJobs() {
   // Store job list data for the dashboard

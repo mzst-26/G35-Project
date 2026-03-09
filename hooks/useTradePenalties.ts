@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { TradePenalty, TradePenaltiesStats } from '@/types/trade-dashboard';
-import { getTradePenalties } from '@/services/tradePenaltiesApi';
+import { getTradePenalties } from '@/mockservices/tradePenaltiesApi';
 
 export function useTradePenalties() {
   // Store penalties list data

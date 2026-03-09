@@ -8,9 +8,9 @@ import type { AdminSettings } from "@/types/admin-settings";
 
 let MOCK_ADMIN_SETTINGS: AdminSettings = {
   general: {
-    platformName: "TradesFair",
-    platformEmail: "admin@tradesfair.com",
-    supportEmail: "support@tradesfair.com",
+    platformName: "infra",
+    platformEmail: "admin@infra.com",
+    supportEmail: "support@infra.com",
     timezone: "Europe/London",
   },
   notifications: {
@@ -64,9 +64,9 @@ export async function resetAdminSettings(): Promise<AdminSettings> {
   // TODO: Replace with backend-driven defaults
   MOCK_ADMIN_SETTINGS = {
     general: {
-      platformName: "TradesFair",
-      platformEmail: "admin@tradesfair.com",
-      supportEmail: "support@tradesfair.com",
+      platformName: "infra",
+      platformEmail: "admin@infra.com",
+      supportEmail: "support@infra.com",
       timezone: "Europe/London",
     },
     notifications: {

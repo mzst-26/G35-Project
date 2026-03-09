@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CompanyPaymentDetail } from '@/types/company-payments';
-import { getCompanyPaymentDetail } from '@/services/companyPaymentsApi';
+import { getCompanyPaymentDetail } from '@/mockservices/companyPaymentsApi';
 
 export function useCompanyPaymentDetails(paymentId: string | null) {
   // Store a single payment record

@@ -109,3 +109,10 @@ Created list of necessary and unneccessary UI to complete before starting implem
 
 29/01/26: Jamie, Mobin
 Worked on company UI side, completing dashboard. 
+
+08/03/2026: Jamie, Mobin
+-Worked on database design refinment, integration and policies.
+-Created the draft presentation for one of the fundraising and planned the next steps. 
+-Recorded a 5 min pitch for another fundraising and submited it today.
+-Worked on implementing authentiaction & database.
+

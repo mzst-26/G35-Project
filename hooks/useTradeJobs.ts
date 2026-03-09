@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { TradeUpcomingJob } from '@/types/trade-dashboard';
-import { getTradeJobs } from '@/services/tradeJobsApi';
+import { getTradeJobs } from '@/mockservices/tradeJobsApi';
 
 export interface TradeJobsStats {
   pending: number;

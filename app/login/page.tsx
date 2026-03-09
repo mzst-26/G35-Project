@@ -43,11 +43,11 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
 
         <div className="flex items-center justify-center gap-3 mb-6" >
             <div className="h-15 w-15 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-2xl">
-              <Image src="/logoCrisp.png" alt="TradesFair logo" width={56} height={56} className="rounded-xl" />
+              <Image src="/logoCrisp.png" alt="Infra logo" width={56} height={56} className="rounded-xl" />
             </div>
 
             <div>
-              <h1 className="text-3xl text-white">TradesFair</h1>
+              <h1 className="text-3xl text-white">Infra</h1>
               <p className="text-blue-300 text-sm">Connect. Work. Succeed.</p>
             </div>
         </div>
@@ -160,7 +160,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white px-2 text-slate-500">
-                  New to TradesFair?
+                  New to Infra?
                 </span>
               </div>
             </div>
