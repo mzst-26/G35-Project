@@ -15,7 +15,7 @@ import { useState } from "react";
 import type { NavItem, SectionKey } from "@/types/admin-dashboard";
 
 // import the settings section component
-import AdminSettings from "@/components/admin_dashboard/adminSettings";
+import AdminSettings from "@/components/admin_dashboard/AdminSettings";
 
 export default function AdminDashboard() {
   // this items are the buttons on the sidebar, this will be converted into rendered html
