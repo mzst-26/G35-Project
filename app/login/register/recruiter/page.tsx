@@ -17,12 +17,11 @@ interface CompanyRegistrationFormData {
   addressLine2: string;
   city: string;
   postcode: string;
-  password: string;
-  confirmPassword: string;
 }
 
 export default function RegisterRecruiter() {
   const router = useRouter(); // 2. Initialize the router
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState<CompanyRegistrationFormData>({
     companyName: '',
     contactName: '',
@@ -31,13 +30,12 @@ export default function RegisterRecruiter() {
     addressLine1: '',
     addressLine2: '',
     city: '',
-    postcode: '',
-    password: '',
-    confirmPassword: ''
+    postcode: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
   };
 
   const handleChange = (field: keyof CompanyRegistrationFormData, value: string) => {
@@ -65,11 +63,17 @@ export default function RegisterRecruiter() {
               </div>
               <div>
                 <CardTitle className="text-2xl">Recruiter Registration</CardTitle>
-                <CardDescription>Request to create your recruiter account</CardDescription>
+                <CardDescription>Submit an access request and our admin team will provision your account.</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
+            {submitted && (
+              <div className="mb-4 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">
+                Access request submitted. You will receive an OTP login invite once approved by admin.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Company Information */}
               <div className="space-y-4">
@@ -172,38 +176,15 @@ export default function RegisterRecruiter() {
                 </div>
               </div>
 
-              {/* Password */}
-              <div className="space-y-4">
-                <h3 className="text-sm text-slate-500 uppercase tracking-wide">Security</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleChange('password', e.target.value)}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                Create Account
+                Request Recruiter Access
               </Button>
+
+              {submitted && (
+                <Button type="button" variant="outline" className="w-full" onClick={() => router.push('/login')}>
+                  Back to Login
+                </Button>
+              )}
             </form>
           </CardContent>
         </Card>
