@@ -99,8 +99,7 @@ export interface OtpVerifyRequest {
 }
 
 /**
- * Response after successful OTP verification.
- * Contains the session details needed to set the secure cookie.
+ * Response after successful OTP verification where the user is fully authenticated.
  */
 export interface OtpVerifyResult {
   readonly user: AuthenticatedUser;
@@ -116,7 +115,24 @@ export interface OtpVerifyResult {
    * Never exposed to client JavaScript.
    */
   readonly refreshToken: string;
+  readonly mfaSetupRequired?: false;
 }
+
+/**
+ * Response when an admin has verified their OTP but has no TOTP factor enrolled.
+ *
+ * The route handler sets the Supabase access token cookie so that the client
+ * can immediately call the MFA enrollment endpoints without re-authenticating.
+ * No platform session is created yet — that happens after TOTP enrollment is
+ * completed via POST /api/auth/mfa/complete-admin-login.
+ */
+export interface OtpVerifyMfaSetupResult {
+  readonly mfaSetupRequired: true;
+  readonly accessToken: string;
+  readonly refreshToken: string;
+}
+
+export type OtpVerifyOutcome = OtpVerifyResult | OtpVerifyMfaSetupResult;
 
 // ---------------------------------------------------------------------------
 // Session operations
