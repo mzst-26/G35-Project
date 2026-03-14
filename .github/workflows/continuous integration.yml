@@ -21,5 +21,12 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run lint
+      # - name: Run unit tests
+      #   run: npm run test:unit
+      # - name: Run integration tests
+      #   run: npm run test:integration
+      # - name: Run end-to-end tests
+      #   run: npm run test:e2e
+
 
         
