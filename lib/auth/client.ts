@@ -2,11 +2,15 @@ import { getCsrfToken } from '@/lib/auth/csrf';
 import type {
   AuthErrorPayload,
   LogoutPayload,
+  MfaChallengeResponse,
+  MfaCompleteAdminLoginResponse,
+  MfaEnrollResponse,
+  MfaVerifyResponse,
   RefreshSessionResponse,
   RequestOtpResponse,
   SessionMeResponse,
+  VerifyOtpOutcome,
   VerifyOtpPayload,
-  VerifyOtpResponse,
 } from '@/types/auth';
 
 class AuthApiError extends Error {
@@ -117,10 +121,45 @@ export async function requestOtp(email: string): Promise<RequestOtpResponse> {
   });
 }
 
-export async function verifyOtp(payload: VerifyOtpPayload): Promise<VerifyOtpResponse> {
-  return requestJson<VerifyOtpResponse>('/api/auth/otp/verify', {
+export async function verifyOtp(payload: VerifyOtpPayload): Promise<VerifyOtpOutcome> {
+  return requestJson<VerifyOtpOutcome>('/api/auth/otp/verify', {
     method: 'POST',
     body: payload,
+    retryOnExpired: false,
+  });
+}
+
+export async function mfaEnroll(): Promise<MfaEnrollResponse> {
+  return requestJson<MfaEnrollResponse>('/api/auth/mfa/enroll', {
+    method: 'POST',
+    body: { type: 'totp', friendlyName: 'Authenticator' },
+    includeCsrf: true,
+    retryOnExpired: false,
+  });
+}
+
+export async function mfaChallenge(factorId: string): Promise<MfaChallengeResponse> {
+  return requestJson<MfaChallengeResponse>('/api/auth/mfa/challenge', {
+    method: 'POST',
+    body: { factorId },
+    includeCsrf: true,
+    retryOnExpired: false,
+  });
+}
+
+export async function mfaVerify(factorId: string, challengeId: string, code: string): Promise<MfaVerifyResponse> {
+  return requestJson<MfaVerifyResponse>('/api/auth/mfa/verify', {
+    method: 'POST',
+    body: { factorId, challengeId, code },
+    includeCsrf: true,
+    retryOnExpired: false,
+  });
+}
+
+export async function mfaCompleteAdminLogin(): Promise<MfaCompleteAdminLoginResponse> {
+  return requestJson<MfaCompleteAdminLoginResponse>('/api/auth/mfa/complete-admin-login', {
+    method: 'POST',
+    includeCsrf: true,
     retryOnExpired: false,
   });
 }
