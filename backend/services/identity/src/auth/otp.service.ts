@@ -17,7 +17,6 @@ import type {
   OtpVerifyRequest,
   OtpVerifyOutcome,
   AuthenticatedUser,
-  Session,
 } from "../types/index.js";
 import type {
   OtpRequestedEvent,
@@ -113,7 +112,6 @@ export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyOutco
   let rawRole: string | undefined;
   let sbAccessToken!: string;
   let sbRefreshToken!: string;
-  let sbExpiresIn!: number;
 
   try {
     const supabase = createAnonClient();
@@ -142,7 +140,6 @@ export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyOutco
     rawRole = data.user.app_metadata?.role as string | undefined;
     sbAccessToken = data.session.access_token;
     sbRefreshToken = data.session.refresh_token;
-    sbExpiresIn = data.session.expires_in ?? 900;
   } catch (err) {
     if (err instanceof AuthenticationError) throw err;
     authLogger.error("Unexpected error during OTP verification", { emailHash, err });

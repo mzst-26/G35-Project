@@ -338,7 +338,7 @@ export function buildPlatformSession(params: {
   const session: Session = {
     sessionId,
     userId: params.userId,
-    role: params.role as any,
+    role: params.role as Session['role'],
     createdAt: now,
     expiresAt: new Date((expiresAt + 7 * 24 * 60 * 60 - sbExpiresIn) * 1000).toISOString(),
     lastActiveAt: now,

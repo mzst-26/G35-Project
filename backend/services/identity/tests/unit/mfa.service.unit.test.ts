@@ -17,7 +17,7 @@ const aal2Token = "aal2-access-token";
 
 // Controls per test
 let mockListFactors = { data: { totp: [] as object[] }, error: null };
-let mockEnroll = {
+const mockEnroll = {
   data: {
     id: "factor-uuid-1",
     totp: { uri: "otpauth://...", secret: "BASE32SECRET", qr_code: "data:image/png;base64,abc" },

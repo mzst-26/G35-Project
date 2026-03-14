@@ -295,6 +295,13 @@ export default function RegisterRecruiter() {
         });
 
         if (!response.ok) {
+          captureFrontendMessage('UK company lookup API returned non-2xx', {
+            flow: 'recruiter_registration',
+            endpoint: '/api/reference/uk-companies',
+            action: 'uk_company_lookup',
+            role: 'anonymous',
+            extra: { status: response.status, query: ukCompanySearch.trim().slice(0, 50) },
+          });
           setUkCompanyOptions([]);
           setUkLookupError('Unable to load UK companies right now.');
           return;
@@ -302,8 +309,17 @@ export default function RegisterRecruiter() {
 
         const data = (await response.json()) as { items?: UkCompanyLookupItem[] };
         setUkCompanyOptions(data.items ?? []);
-      } catch {
+      } catch (err) {
         if (!controller.signal.aborted) {
+          const isAbort = err instanceof Error && err.name === 'AbortError';
+          if (!isAbort) {
+            captureFrontendError(err, {
+              flow: 'recruiter_registration',
+              endpoint: '/api/reference/uk-companies',
+              action: 'uk_company_lookup',
+              role: 'anonymous',
+            });
+          }
           setUkCompanyOptions([]);
           setUkLookupError('Unable to load UK companies right now.');
         }
@@ -564,8 +580,7 @@ export default function RegisterRecruiter() {
           endpoint: '/api/auth/recruiter-registration',
           action: 'submit',
           role: 'anonymous',
-          status: response.status,
-          code: payload?.code,
+          extra: { status: response.status, code: payload?.code },
         });
         return;
       }

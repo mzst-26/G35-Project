@@ -63,23 +63,28 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
     setErrorMessage(null);
 
     try {
-      const session = await verifyOtp({
+      const result = await verifyOtp({
         email: email.trim().toLowerCase(),
         token: otpCode.trim(),
       });
 
+      if (result.mfaSetupRequired) {
+        setErrorMessage('Admin accounts must use Admin Access login.');
+        return;
+      }
+
       await refreshUser();
 
-      if (session.user.role === 'admin') {
+      if (result.user.role === 'admin') {
         setErrorMessage('Admin accounts must use Admin Access login.');
         return;
       }
 
       if (onLogin) {
-        onLogin(session.user.role);
+        onLogin(result.user.role);
       }
 
-      router.push(routeForRole(session.user.role));
+      router.push(routeForRole(result.user.role));
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrorMessage(error.message);

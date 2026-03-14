@@ -26,15 +26,26 @@ export function captureFrontendError(
 
 export function captureFrontendMessage(
   message: string,
-  context: { flow: string; endpoint?: string; action?: string; role?: string },
+  context: {
+    flow: string;
+    endpoint?: string;
+    action?: string;
+    role?: string;
+    /** Optional extra data for Sentry context (e.g. status, code). */
+    extra?: Record<string, unknown>;
+  },
 ): void {
   if (typeof window === "undefined") return;
-  window.Sentry?.captureMessage?.(message, {
+  const payload: Record<string, unknown> = {
     tags: {
       flow: context.flow,
       endpoint: context.endpoint ?? "unknown",
       action: context.action ?? "unknown",
       role: context.role ?? "unknown",
     },
-  });
+  };
+  if (context.extra && Object.keys(context.extra).length > 0) {
+    payload.extra = context.extra;
+  }
+  window.Sentry?.captureMessage?.(message, payload);
 }

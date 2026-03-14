@@ -102,5 +102,28 @@ describe('sentry frontend helpers', () => {
       (window as Record<string, unknown>).Sentry = {};
       expect(() => captureFrontendMessage('x', context)).not.toThrow();
     });
+
+    it('includes extra context when provided', () => {
+      const captureMessage = vi.fn();
+      (window as Record<string, unknown>).Sentry = { captureMessage };
+
+      captureFrontendMessage('API failed', {
+        flow: 'recruiter_registration',
+        endpoint: '/api/auth/recruiter-registration',
+        action: 'submit',
+        role: 'anonymous',
+        extra: { status: 400, code: 'VALIDATION_ERROR' },
+      });
+
+      expect(captureMessage).toHaveBeenCalledWith('API failed', {
+        tags: {
+          flow: 'recruiter_registration',
+          endpoint: '/api/auth/recruiter-registration',
+          action: 'submit',
+          role: 'anonymous',
+        },
+        extra: { status: 400, code: 'VALIDATION_ERROR' },
+      });
+    });
   });
 });

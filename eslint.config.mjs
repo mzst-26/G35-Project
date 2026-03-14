@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Compiled output — lint source only
+    "backend/dist/**",
+    "backend/services/identity/dist/**",
   ]),
 ]);
 

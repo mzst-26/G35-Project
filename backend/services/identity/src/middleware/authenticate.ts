@@ -18,6 +18,7 @@ import { validateToken, touchSessionActivity, decodeJwtPayload } from "../auth/s
 import crypto from "node:crypto";
 
 // Extend Express Request with our custom properties.
+/* eslint-disable @typescript-eslint/no-namespace -- Express augmentation requires namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -26,6 +27,7 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 // ---------------------------------------------------------------------------
 // Request ID middleware — must be first in the stack
