@@ -1,10 +1,11 @@
 // MFA routes — all require a valid session cookie.
 //
-//   POST   /api/auth/mfa/enroll              — begin TOTP enrollment
-//   POST   /api/auth/mfa/challenge           — create a challenge for a verified factor
-//   POST   /api/auth/mfa/verify              — verify TOTP code, upgrade session to aal2
-//   DELETE /api/auth/mfa/factors/:factorId   — revoke a factor
-//   GET    /api/auth/mfa/factors             — list enrolled factors
+//   POST   /api/auth/mfa/enroll                — begin TOTP enrollment
+//   POST   /api/auth/mfa/challenge             — create a challenge for a verified factor
+//   POST   /api/auth/mfa/verify                — verify TOTP code, upgrade session to aal2
+//   POST   /api/auth/mfa/complete-admin-login  — finalise admin login after MFA enrollment
+//   DELETE /api/auth/mfa/factors/:factorId     — revoke a factor
+//   GET    /api/auth/mfa/factors               — list enrolled factors
 
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
@@ -14,6 +15,7 @@ import {
   verifyMfaChallenge,
   revokeMfaFactor,
   listMfaFactors,
+  hasVerifiedTotpFactor,
 } from "../auth/mfa.service.js";
 import { grantStepUp } from "../middleware/stepUpMfa.js";
 import {
@@ -24,15 +26,11 @@ import {
   MfaRevokeParamsSchema,
 } from "../security/validators.js";
 import { createRateLimiter } from "../security/index.js";
-
-// Access cookie options (mirrors auth.ts — must stay in sync).
-const ACCESS_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 15 * 60 * 1000,
-  path: "/",
-};
+import { persistSession, buildPlatformSession } from "../auth/session.service.js";
+import { AuthenticationError } from "../errors/index.js";
+import { authLogger } from "../observability/logger.js";
+import { generateCsrfToken, CSRF_COOKIE_NAME } from "../security/csrf.js";
+import { ACCESS_COOKIE_OPTIONS, CSRF_COOKIE_OPTIONS } from "../security/cookies.js";
 
 export const mfaRouter = Router();
 
@@ -120,6 +118,71 @@ mfaRouter.get("/factors", async (req, res, next) => {
     const token = req.cookies?.["sb-access-token"] as string;
     const factors = await listMfaFactors(token);
     res.status(200).json({ factors });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/mfa/complete-admin-login
+// ---------------------------------------------------------------------------
+// Called after a first-time admin completes TOTP enrollment and verification.
+// At this point:
+//   - The sb-access-token cookie holds a temporary Supabase JWT (aal2 after verify).
+//   - No platform session exists yet in auth_sessions.
+//
+// This endpoint creates the platform session and issues the refresh cookie,
+// completing the login that was deferred in /otp/verify.
+
+mfaRouter.post("/complete-admin-login", createRateLimiter("completeAdminLogin"), async (req, res, next) => {
+  try {
+    const user = req.user!;
+
+    if (user.role !== "admin") {
+      throw new AuthenticationError("Only admin accounts use this endpoint.", "ROLE_NOT_RECOGNISED");
+    }
+
+    // Confirm the admin now has a verified TOTP factor before granting a full session.
+    const hasFactor = await hasVerifiedTotpFactor(user.id);
+    if (!hasFactor) {
+      throw new AuthenticationError(
+        "MFA enrollment is not yet complete. Verify your TOTP code first.",
+        "MFA_ENROLLMENT_REQUIRED",
+      );
+    }
+
+    const accessToken = req.cookies?.["sb-access-token"] as string;
+    const { session: platformSession, sessionId, expiresAt } = buildPlatformSession({
+      accessToken,
+      userId: user.id,
+      role: user.role,
+      ipAddress: req.ip,
+      stepUpVerified: true,
+    });
+
+    persistSession(platformSession).catch((err) => {
+      authLogger.warn("complete-admin-login: persistSession failed silently", { sessionId, err });
+    });
+
+    await grantStepUp(user.id);
+
+    res.cookie(CSRF_COOKIE_NAME, generateCsrfToken(), CSRF_COOKIE_OPTIONS);
+
+    authLogger.info("complete-admin-login: platform session created after MFA enrollment", {
+      userId: user.id,
+      sessionId,
+    });
+
+    res.status(200).json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        stepUpVerified: true,
+        expiresAt,
+      },
+      sessionId,
+    });
   } catch (err) {
     next(err);
   }
