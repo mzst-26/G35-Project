@@ -12,7 +12,6 @@ function buildIdentityHeaders(request: NextRequest): Headers {
   const cookie = request.headers.get('cookie');
   const csrfHeader = request.headers.get('x-csrf-token');
   const userAgent = request.headers.get('user-agent');
-  const xForwardedFor = request.headers.get('x-forwarded-for');
   const xRequestId = request.headers.get('x-request-id');
 
   if (contentType) {
@@ -26,9 +25,6 @@ function buildIdentityHeaders(request: NextRequest): Headers {
   }
   if (userAgent) {
     headers.set('user-agent', userAgent);
-  }
-  if (xForwardedFor) {
-    headers.set('x-forwarded-for', xForwardedFor);
   }
   if (xRequestId) {
     headers.set('x-request-id', xRequestId);
@@ -51,7 +47,8 @@ export async function proxyIdentityRequest(
   request: NextRequest,
   endpoint: string,
 ): Promise<NextResponse> {
-  const targetUrl = `${getIdentityServiceUrl()}${endpoint}`;
+  const query = request.nextUrl.search;
+  const targetUrl = `${getIdentityServiceUrl()}${endpoint}${query}`;
   const method = request.method;
   const headers = buildIdentityHeaders(request);
 
@@ -64,6 +61,13 @@ export async function proxyIdentityRequest(
   });
 
   const responseText = await upstreamResponse.text();
+  if (upstreamResponse.status >= 500) {
+    console.error('[identity proxy] upstream 5xx', {
+      endpoint,
+      status: upstreamResponse.status,
+      body: responseText.slice(0, 500),
+    });
+  }
   const nextResponse = new NextResponse(responseText, {
     status: upstreamResponse.status,
   });
