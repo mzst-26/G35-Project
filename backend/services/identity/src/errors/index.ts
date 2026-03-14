@@ -68,6 +68,9 @@ export class AuthenticationError extends BaseAuthError {
       | "SESSION_NOT_FOUND"
       | "SESSION_REVOKED"
       | "ROLE_NOT_RECOGNISED"
+        | "ACCOUNT_PENDING_REVIEW"
+        | "ACCOUNT_REJECTED"
+        | "ACCOUNT_SUSPENDED"
       | "MFA_ENROLLMENT_REQUIRED" = "TOKEN_INVALID",
   ) {
     super(message);
