@@ -1,0 +1,29 @@
+# Applied relative to the Docker build context (backend/).
+# Keeps the build context lean and avoids sending secrets to the daemon.
+
+# Dev dependencies installed locally — reinstalled in the container.
+**/node_modules
+
+# TypeScript compilation output — rebuilt in the container.
+**/dist
+
+# Test infrastructure not needed in production image.
+**/tests
+**/*.test.ts
+**/*.spec.ts
+**/vitest.config.ts
+**/.env*
+
+# Editor and OS noise.
+**/.DS_Store
+**/.idea
+**/.vscode
+**/Thumbs.db
+
+# Version control — no git history needed in the image.
+**/.git
+**/.gitignore
+
+# Docker files themselves.
+**/Dockerfile*
+**/.dockerignore
