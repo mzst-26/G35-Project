@@ -40,6 +40,34 @@ export interface VerifyOtpPayload {
 export interface VerifyOtpResponse {
   user: AuthUser;
   sessionId: string;
+  mfaSetupRequired?: false;
+}
+
+/** Returned when an admin has no TOTP factor enrolled yet. */
+export interface VerifyOtpMfaSetupResponse {
+  mfaSetupRequired: true;
+}
+
+export type VerifyOtpOutcome = VerifyOtpResponse | VerifyOtpMfaSetupResponse;
+
+export interface MfaEnrollResponse {
+  factorId: string;
+  totpUri: string;
+  totpSecret: string;
+}
+
+export interface MfaChallengeResponse {
+  challengeId: string;
+  expiresAt: string;
+}
+
+export interface MfaVerifyResponse {
+  verified: boolean;
+}
+
+export interface MfaCompleteAdminLoginResponse {
+  user: AuthUser;
+  sessionId: string;
 }
 
 export interface SessionMeResponse {
