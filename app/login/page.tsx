@@ -50,7 +50,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
       if (error instanceof AuthApiError) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Unable to request OTP right now. Please try again.');
+        setErrorMessage('Unable to send sign-in code right now. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
       if (error instanceof AuthApiError) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Unable to verify OTP. Please try again.');
+        setErrorMessage('Unable to verify code. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -123,12 +123,12 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
 
       {step === 'verify' && (
         <div className="space-y-2">
-          <Label htmlFor="otp-code">One-Time Passcode</Label>
+          <Label htmlFor="otp-code">Sign-in code</Label>
           <Input
             id="otp-code"
             type="text"
             inputMode="numeric"
-            placeholder="Enter code from your email"
+            placeholder="Enter the code from your email"
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value)}
             required
@@ -142,7 +142,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
         className="w-full bg-blue-600 hover:bg-blue-700"
         disabled={isLoading || (showRequestButton ? !email.trim() : !otpCode.trim())}
       >
-        {isLoading ? 'Please wait...' : showRequestButton ? `Send OTP for ${roleLabel}` : `Verify OTP for ${roleLabel}`}
+        {isLoading ? 'Please wait...' : showRequestButton ? `${roleLabel} Sign In` : 'Verify code'}
         <ArrowRight className="h-4 w-4 ml-2" />
       </Button>
 
