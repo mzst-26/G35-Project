@@ -312,6 +312,45 @@ export async function revokeSession(
 }
 
 // ---------------------------------------------------------------------------
+// Platform session construction
+// ---------------------------------------------------------------------------
+
+export function buildPlatformSession(params: {
+  accessToken: string;
+  userId: string;
+  role: string;
+  ipAddress?: string | null;
+  userAgentHash?: string | null;
+  stepUpVerified?: boolean;
+}): { session: Session; sessionId: string; expiresAt: number } {
+  const jwtPayload = decodeJwtPayload(params.accessToken);
+  const sessionId = typeof jwtPayload["session_id"] === "string"
+    ? jwtPayload["session_id"]
+    : crypto.randomUUID();
+
+  const sbExpiresIn: number = typeof jwtPayload["exp"] === "number"
+    ? jwtPayload["exp"] - Math.floor(Date.now() / 1000)
+    : 900;
+
+  const expiresAt = Math.floor(Date.now() / 1000) + sbExpiresIn;
+  const now = new Date().toISOString();
+
+  const session: Session = {
+    sessionId,
+    userId: params.userId,
+    role: params.role as any,
+    createdAt: now,
+    expiresAt: new Date((expiresAt + 7 * 24 * 60 * 60 - sbExpiresIn) * 1000).toISOString(),
+    lastActiveAt: now,
+    stepUpVerified: params.stepUpVerified ?? false,
+    ipAddress: params.ipAddress ?? null,
+    userAgentHash: params.userAgentHash ?? null,
+  };
+
+  return { session, sessionId, expiresAt };
+}
+
+// ---------------------------------------------------------------------------
 // Session retrieval
 // ---------------------------------------------------------------------------
 
