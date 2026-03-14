@@ -15,11 +15,11 @@ import type {
 
 export default function TradeRegisterPage() { //background wrapper, handles when form is submitted and back button pressed
   const router = useRouter();
+  const [submitted, setSubmitted] = React.useState(false);
 
   const handleSubmitPage = (payload: TradeRegistrationPayload) => { //handles when form is submitted
     console.log("page received payload", payload);
-    // TODO: call registration API here, then redirect on success
-    router.push('/trade/dashboard');
+    setSubmitted(true);
   };
 
   function TradeRegistration({ onSubmit }: { onSubmit?: TradeRegistrationSubmit }) { //the actual trade registration form
@@ -77,9 +77,20 @@ export default function TradeRegisterPage() { //background wrapper, handles when
               <Input id="photos" type="file" accept="image/*" multiple onChange={(e) => setPhotoFiles(e.target.files)} />
             </div>
             <div className="flex justify-end">
-              <Button type="submit">Register Trade</Button>
+              <Button type="submit">Request Trade Access</Button>
             </div>
           </form>
+
+          {submitted && (
+            <div className="mt-4 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">
+              Access request submitted. An admin must approve your account before OTP login is available.
+              <div className="mt-3">
+                <Button type="button" variant="outline" onClick={() => router.push('/login')}>
+                  Back to Login
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
