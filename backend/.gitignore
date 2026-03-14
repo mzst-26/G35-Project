@@ -6,3 +6,10 @@ coverage
 __pycache__
 .pytest_cache
 .venv
+# Temprerarly ignoring all microservices accept identity for development purposes
+# services/*
+services/core-platform/*
+services/communications/*
+services/payments-penalties/*
+services/allocation/*
+
