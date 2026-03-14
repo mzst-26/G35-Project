@@ -5,3 +5,5 @@ export const createLogger = (serviceName: string) =>
     name: serviceName,
     level: process.env.LOG_LEVEL || "info"
   });
+
+export { EMAIL_MAX_LENGTH, EMAIL_REGEX, isValidEmail } from "./email.js";
