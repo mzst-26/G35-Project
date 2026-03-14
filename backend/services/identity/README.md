@@ -7,12 +7,16 @@ Express + TypeScript microservice for authentication, session lifecycle, MFA, an
 - `GET /health` - liveness/readiness check (includes Supabase check)
 - `POST /api/auth/otp/request` - request OTP by email
 - `POST /api/auth/otp/verify` - verify OTP and issue session cookies
+- `POST /api/auth/recruiter-registration` - submit recruiter/company registration request (public, rate-limited)
 - `POST /api/auth/session/refresh` - rotate access/refresh session cookies
 - `POST /api/auth/logout` - revoke current session
 - `POST /api/auth/mfa/challenge` - create step-up MFA challenge
 - `POST /api/auth/mfa/verify` - verify step-up MFA challenge
 - `POST /api/auth/admin/revoke` - admin-only user session revocation
 - `POST /api/auth/admin/users` - admin-only user provisioning
+- `GET /api/auth/admin/registration-requests` - admin-only registration request listing
+- `GET /api/auth/admin/registration-requests/:requestId` - admin-only registration request detail
+- `POST /api/auth/admin/registration-requests/:requestId/decision` - admin-only approve/reject decision (rate-limited)
 - `POST /api/internal/token/verify` - internal token verification (requires `x-internal-secret`)
 
 ## Environment
