@@ -74,6 +74,24 @@ npm run build
 npm run start
 ```
 
+## Production image
+
+Build from repo root with context `backend/`:
+
+```bash
+docker build -f backend/services/identity/Dockerfile -t identity-service:latest backend/
+```
+
+- **Stages:** builder (install, build shared-utils + identity, prune) → runtime (minimal copy, non-root user).
+- **Runtime:** `node:20-alpine`, `dumb-init`, healthcheck on `GET /health`. Set env (e.g. `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) at run time.
+
+**CI/CD** (`.github/workflows/identity-service-image.yml`):
+
+- **Test then build:** identity tests run first; image builds only if tests pass.
+- **Push to `main`:** push to GHCR as `:latest` and `:sha-<short>`.
+- **Push to `dev`:** push as `:dev` and `:dev-<short>`.
+- **Pull requests:** run tests and build only (no push). Concurrency cancels outdated runs.
+
 ## Tests
 
 ```bash

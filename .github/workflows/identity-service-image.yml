@@ -1,0 +1,109 @@
+# Build and push Identity service Docker image.
+# On push to main/dev: run tests, build image, push to GHCR with branch and SHA tags.
+# On PR: run tests and build only (no push).
+
+name: Identity Service Image
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/identity-service-image.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/identity-service-image.yml'
+
+concurrency:
+  group: identity-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/identity-service
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Build workspace
+        run: npm run build -w @infra/shared-utils -w @infra/identity-service
+      - name: Test identity
+        run: npm run test -w @infra/identity-service
+
+  build:
+    name: Build & Push
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      tags: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Docker meta
+        id: meta
+        run: |
+          SHA_FULL=$(git rev-parse HEAD)
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "sha_full=$SHA_FULL" >> $GITHUB_OUTPUT
+          echo "sha_short=$SHA_SHORT" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "tags=$IMAGE:pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tags=$IMAGE:latest,$IMAGE:sha-$SHA_SHORT" >> $GITHUB_OUTPUT
+          else
+            echo "tags=$IMAGE:${{ github.ref_name }},$IMAGE:${{ github.ref_name }}-$SHA_SHORT" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/services/identity/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GIT_SHA=${{ steps.meta.outputs.sha_full }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Summary
+        run: |
+          echo "Image: ${{ steps.meta.outputs.image }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Pushed: ${{ github.event_name != 'pull_request' }}"
+          echo "GIT_SHA: ${{ steps.meta.outputs.sha_full }}"

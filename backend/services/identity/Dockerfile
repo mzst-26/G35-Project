@@ -1,63 +1,53 @@
-# Multi-stage build for the identity microservice.
-# Build context must be the backend/ directory so tsconfig.base.json is included.
-#
-# Usage (from backend/):
-#   docker build -f services/identity/Dockerfile -t identity-service .
+# Identity service — production image
+# Build context: backend/ (from repo root: docker build -f backend/services/identity/Dockerfile -t identity-service backend/)
 
-# Base image pinned to Node 20 LTS slim to keep the layer small.
-FROM node:20-slim AS base
+# -----------------------------------------------------------------------------
+# Builder: install, build, prune (reproducible via package-lock)
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# ---- deps stage: install all dependencies --------------------------------
-FROM base AS deps
-# Copy only manifests first so this layer is cache-friendly.
-COPY package.json ./
-COPY services/identity/package.json ./services/identity/package.json
+# Workspace manifests only first (better layer cache)
+COPY package.json package-lock.json ./
+COPY packages/shared-utils/package.json ./packages/shared-utils/
+COPY services/identity/package.json ./services/identity/
+RUN npm ci --workspace=@infra/shared-utils --workspace=@infra/identity-service --include=dev --ignore-scripts
 
-# Install prod + dev deps (needed for build tooling).
-RUN npm install --workspace=services/identity --include=dev 2>/dev/null || \
-    (cd services/identity && npm install)
-
-# ---- build stage: compile TypeScript ------------------------------------
-FROM deps AS builder
-# GIT_SHA is injected at CI build time for Sentry release tracking.
-ARG GIT_SHA=unknown
-# Pull in the full workspace source.
+# Source and config
 COPY tsconfig.base.json ./
-COPY packages/ ./packages/
+COPY packages/shared-utils/ ./packages/shared-utils/
 COPY services/identity/ ./services/identity/
 
+# Build order: shared-utils then identity (depends on it)
+RUN npm run build -w @infra/shared-utils && npm run build -w @infra/identity-service
+RUN npm prune --omit=dev
+
+# -----------------------------------------------------------------------------
+# Runtime: minimal copy, non-root, healthcheck
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS runtime
+ARG GIT_SHA
+ENV NODE_ENV=production \
+    PORT=4001 \
+    GIT_SHA=${GIT_SHA:-unknown}
+
+RUN apk add --no-cache dumb-init && \
+    addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
+
+# Preserve workspace layout so node_modules symlinks resolve
+COPY --from=builder --chown=app:app /app/package.json /app/package-lock.json /app/
+COPY --from=builder --chown=app:app /app/node_modules /app/node_modules
+COPY --from=builder --chown=app:app /app/packages/shared-utils/package.json /app/packages/shared-utils/
+COPY --from=builder --chown=app:app /app/packages/shared-utils/dist /app/packages/shared-utils/dist
+COPY --from=builder --chown=app:app /app/services/identity/package.json /app/services/identity/
+COPY --from=builder --chown=app:app /app/services/identity/dist /app/services/identity/dist
+
+USER app
 WORKDIR /app/services/identity
-RUN npm run build
-
-# ---- runtime stage: lean production image --------------------------------
-FROM node:20-slim AS runtime
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV PORT=4001
-ENV HEALTHCHECK_PATH=/health
-# GIT_SHA is passed through from the builder for Sentry release identification.
-ARG GIT_SHA=unknown
-ENV GIT_SHA=$GIT_SHA
-
-# Only copy what the compiled service needs at runtime.
-COPY --from=builder /app/services/identity/dist ./dist
-COPY --from=builder /app/services/identity/package.json ./package.json
-
-# Install production dependencies only in the runtime layer.
-RUN npm install --omit=dev
-
-# Non-root user: reduces attack surface if the container is compromised.
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser  --system --uid 1001 identity && \
-    chown -R identity:nodejs /app
-USER identity
-
 EXPOSE 4001
 
-# Healthcheck runs inside the container namespace, so localhost is correct.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "const p=process.env.PORT||4001; const path=process.env.HEALTHCHECK_PATH||'/health'; fetch('http://localhost:'+p+path).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4001)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/index.js"]
