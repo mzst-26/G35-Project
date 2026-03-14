@@ -56,3 +56,4 @@ backend/services/core-platform/*
 backend/services/communications/*
 backend/services/payments-penalties/*
 backend/services/allocation/*
+.cursor/rules/senior-software-engineer.md
