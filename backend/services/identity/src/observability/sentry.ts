@@ -91,6 +91,17 @@ export function addSentryBreadcrumb(breadcrumb: SentryBreadcrumb): void {
 export function captureSentrySecurityEvent(event: SecurityEvent): void {
   Sentry.withScope((scope) => {
     scope.setTag("security_event", event.event);
+    scope.setTag("flow", event.flow ?? "auth");
+    scope.setTag("endpoint", event.endpoint ?? "unknown");
+    if (event.role) {
+      scope.setTag("role", event.role);
+    }
+    if (event.decision) {
+      scope.setTag("decision", event.decision);
+    }
+    if (event.accountStatus) {
+      scope.setTag("account_status", event.accountStatus);
+    }
     scope.setContext("security_event_detail", {
       eventId: event.eventId,
       requestId: event.requestId,
@@ -98,6 +109,22 @@ export function captureSentrySecurityEvent(event: SecurityEvent): void {
       role: event.role,
     });
     Sentry.captureMessage(`Security event: ${event.event}`, "warning");
+  });
+}
+
+export function captureSentryBusinessFailure(
+  message: string,
+  tags: Record<string, string>,
+  extra?: Record<string, unknown>,
+): void {
+  Sentry.withScope((scope) => {
+    for (const [key, value] of Object.entries(tags)) {
+      scope.setTag(key, value);
+    }
+    if (extra) {
+      scope.setContext("business_failure", extra);
+    }
+    Sentry.captureMessage(message, "warning");
   });
 }
 

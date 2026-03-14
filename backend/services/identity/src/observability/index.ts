@@ -8,6 +8,7 @@ export {
   initialiseSentry,
   addSentryBreadcrumb,
   captureSentrySecurityEvent,
+  captureSentryBusinessFailure,
   sentryErrorHandler,
 } from "./sentry.js";
 export { emitSecurityEvent } from "./events.js";
