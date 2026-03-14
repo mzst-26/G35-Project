@@ -8,6 +8,8 @@ import {
   OtpRequestSchema,
   OtpVerifySchema,
   MfaVerifySchema,
+  RecruiterRegistrationSubmitSchema,
+  AdminRegistrationDecisionSchema,
   parseOrThrow,
 } from "../../src/security/validators.js";
 import { ValidationError } from "../../src/errors/index.js";
@@ -137,5 +139,77 @@ describe("parseOrThrow", () => {
       // Both email and token should produce issues.
       expect(ve.issues.length).toBeGreaterThanOrEqual(2);
     }
+  });
+});
+
+describe("RecruiterRegistrationSubmitSchema", () => {
+  const basePayload = {
+    requesterFullName: "Jamie Carter",
+    requesterEmail: "jamie@example.com",
+    requesterPhone: "+447700900123",
+    requesterRoleTitle: "Director",
+    isUkRegistered: false,
+    companyName: "Northline Build Ltd",
+    companyOriginCountry: "Ireland",
+    ukCompanyNumber: "",
+    officeAddressLine1: "10 Fleet Street",
+    officeAddressLine2: "",
+    officeCity: "London",
+    officePostcode: "EC4Y 1AA",
+    companyWebsite: "northlinebuild.co.uk",
+    requestedSeatCount: 25,
+    hasInternalApprover: true,
+    internalApproverFullName: "Alice Thomson",
+    internalApproverEmail: "alice@northlinebuild.co.uk",
+    contractSignerSameAsRequester: false,
+    contractSignerFullName: "Morgan Kerr",
+    contractSignerEmail: "morgan@northlinebuild.co.uk",
+    policiesAcceptedAt: "2026-03-14T18:30:00.000Z",
+    metadata: { source: "web" },
+  };
+
+  it("accepts valid recruiter registration payload", () => {
+    const result = RecruiterRegistrationSubmitSchema.safeParse(basePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("requires internal approver fields when enabled", () => {
+    const result = RecruiterRegistrationSubmitSchema.safeParse({
+      ...basePayload,
+      internalApproverFullName: "",
+      internalApproverEmail: "",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("requires contract signer fields when signer differs from requester", () => {
+    const result = RecruiterRegistrationSubmitSchema.safeParse({
+      ...basePayload,
+      contractSignerFullName: "",
+      contractSignerEmail: "",
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("AdminRegistrationDecisionSchema", () => {
+  it("accepts approve decision with reason", () => {
+    const result = AdminRegistrationDecisionSchema.safeParse({
+      decision: "approve",
+      reason: "Verified legal entity and requester identity.",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects decisions with empty reason", () => {
+    const result = AdminRegistrationDecisionSchema.safeParse({
+      decision: "reject",
+      reason: "",
+    });
+
+    expect(result.success).toBe(false);
   });
 });
