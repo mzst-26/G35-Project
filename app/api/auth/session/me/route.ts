@@ -1,0 +1,17 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+import { proxyIdentityRequest } from '@/lib/auth/proxy';
+
+export async function GET(request: NextRequest) {
+  try {
+    return await proxyIdentityRequest(request, '/api/auth/session/me');
+  } catch {
+    return NextResponse.json(
+      {
+        code: 'IDENTITY_UNAVAILABLE',
+        message: 'Identity service is currently unavailable.',
+      },
+      { status: 502 },
+    );
+  }
+}
