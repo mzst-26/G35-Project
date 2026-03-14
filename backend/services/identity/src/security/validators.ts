@@ -13,6 +13,7 @@
  */
 
 import { z } from "zod";
+import { EMAIL_MAX_LENGTH, EMAIL_REGEX } from "@infra/shared-utils";
 
 // ---------------------------------------------------------------------------
 // Shared field definitions
@@ -20,7 +21,8 @@ import { z } from "zod";
 
 const emailField = z
   .string({ required_error: "Email is required." })
-  .email("Must be a valid email address.")
+  .max(EMAIL_MAX_LENGTH, "Email must be 254 characters or fewer.")
+  .regex(EMAIL_REGEX, "Must be a valid email address.")
   .toLowerCase()
   .trim();
 
@@ -130,6 +132,189 @@ export const MfaRevokeParamsSchema = z.object({
 });
 
 export type MfaRevokeParams = z.infer<typeof MfaRevokeParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Recruiter registration submit — POST /api/auth/recruiter-registration
+// ---------------------------------------------------------------------------
+
+const nonEmptyText = (field: string, max = 120) =>
+  z
+    .string({ required_error: `${field} is required.` })
+    .trim()
+    .min(1, `${field} is required.`)
+    .max(max, `${field} must be ${max} characters or fewer.`);
+
+const optionalText = (max = 200) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Must be ${max} characters or fewer.`)
+    .optional()
+    .or(z.literal(""));
+
+const fullNameField = (field: string, max = 120) =>
+  nonEmptyText(field, max).refine((value) => value.split(/\s+/).filter(Boolean).length >= 2, {
+    message: `${field} must include first and last name.`,
+  });
+
+const phoneField = z
+  .string({ required_error: "Requester phone is required." })
+  .trim()
+  .regex(/^\+[1-9]\d{6,14}$/, "Requester phone must be in international format (for example +447700900123).");
+
+export const RecruiterRegistrationSubmitSchema = z
+  .object({
+    requesterFullName: fullNameField("Requester full name", 120),
+    requesterEmail: emailField,
+    requesterPhone: phoneField,
+    requesterRoleTitle: nonEmptyText("Requester role title", 120),
+    isUkRegistered: z.boolean(),
+    companyName: nonEmptyText("Company name", 160),
+    companyOriginCountry: optionalText(120).transform((value) => (value ? value : undefined)),
+    ukCompanyNumber: optionalText(20).transform((value) => (value ? value : undefined)),
+    officeAddressLine1: nonEmptyText("Office address line 1", 180),
+    officeAddressLine2: optionalText(180).transform((value) => (value ? value : undefined)),
+    officeCity: nonEmptyText("Office city", 120),
+    officePostcode: nonEmptyText("Office postcode", 20),
+    companyWebsite: optionalText(200).transform((value) => (value ? value : undefined)),
+    requestedSeatCount: z
+      .number({ required_error: "Requested seat count is required." })
+      .int("Requested seat count must be an integer.")
+      .min(1, "Requested seat count must be at least 1.")
+      .max(10000, "Requested seat count must be 10000 or fewer."),
+    hasInternalApprover: z.boolean(),
+    internalApproverFullName: optionalText(120)
+      .transform((value) => (value ? value : undefined))
+      .refine((value) => !value || value.split(/\s+/).filter(Boolean).length >= 2, {
+        message: "Internal approver full name must include first and last name.",
+      }),
+    internalApproverEmail: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(EMAIL_MAX_LENGTH, "Email must be 254 characters or fewer.")
+      .refine((v) => v === "" || EMAIL_REGEX.test(v), "Must be a valid email address.")
+      .optional()
+      .or(z.literal("")),
+    contractSignerSameAsRequester: z.boolean(),
+    contractSignerFullName: optionalText(120).transform((value) => (value ? value : undefined)),
+    contractSignerEmail: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(EMAIL_MAX_LENGTH, "Email must be 254 characters or fewer.")
+      .refine((v) => v === "" || EMAIL_REGEX.test(v), "Must be a valid email address.")
+      .optional()
+      .or(z.literal("")),
+    policiesAcceptedAt: z.string().datetime({ message: "Policies accepted timestamp must be a valid ISO date-time." }),
+    metadata: z.record(z.unknown()).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.hasInternalApprover) {
+      if (!value.internalApproverFullName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["internalApproverFullName"],
+          message: "Internal approver full name is required when internal approver is enabled.",
+        });
+      }
+      if (!value.internalApproverEmail || value.internalApproverEmail === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["internalApproverEmail"],
+          message: "Internal approver email is required when internal approver is enabled.",
+        });
+      }
+    }
+
+    if (!value.contractSignerSameAsRequester) {
+      if (!value.contractSignerFullName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["contractSignerFullName"],
+          message: "Contract signer full name is required when signer differs from requester.",
+        });
+      }
+      if (!value.contractSignerEmail || value.contractSignerEmail === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["contractSignerEmail"],
+          message: "Contract signer email is required when signer differs from requester.",
+        });
+      }
+    }
+
+    if (value.isUkRegistered && !value.ukCompanyNumber?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["ukCompanyNumber"],
+        message: "Please select a valid UK company from search results.",
+      });
+    }
+
+    if (!value.isUkRegistered && !value.companyOriginCountry?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyOriginCountry"],
+        message: "Company origin country is required for non-UK companies.",
+      });
+    }
+  });
+
+export type RecruiterRegistrationSubmitInput = z.infer<typeof RecruiterRegistrationSubmitSchema>;
+
+export const UkCompanyLookupQuerySchema = z.object({
+  q: z
+    .string({ required_error: "Query is required." })
+    .trim()
+    .min(2, "Query must be at least 2 characters.")
+    .max(160, "Query must be 160 characters or fewer."),
+});
+
+export type UkCompanyLookupQueryInput = z.infer<typeof UkCompanyLookupQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// Admin registration list/detail/decision
+// ---------------------------------------------------------------------------
+
+export const AdminRegistrationListQuerySchema = z.object({
+  status: z.enum(["pending", "approved", "rejected", "withdrawn"]).optional(),
+  limit: z
+    .string()
+    .regex(/^\d+$/, "limit must be a positive integer.")
+    .transform((value) => Number(value))
+    .pipe(z.number().int().min(1).max(100))
+    .optional(),
+  offset: z
+    .string()
+    .regex(/^\d+$/, "offset must be a non-negative integer.")
+    .transform((value) => Number(value))
+    .pipe(z.number().int().min(0))
+    .optional(),
+});
+
+export const AdminRegistrationRequestIdParamsSchema = z.object({
+  requestId: uuidField("requestId"),
+});
+
+export const AdminRegistrationDecisionSchema = z
+  .object({
+    decision: z.enum(["approve", "reject"]),
+    reason: z.string().trim().min(1, "Reason is required.").max(1000, "Reason must be 1000 characters or fewer."),
+  })
+  .superRefine((value, ctx) => {
+    if (value.decision === "approve" && value.reason.length < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["reason"],
+        message: "Approval reason must be at least 3 characters.",
+      });
+    }
+  });
+
+export type AdminRegistrationListQueryInput = z.infer<typeof AdminRegistrationListQuerySchema>;
+export type AdminRegistrationRequestIdParamsInput = z.infer<typeof AdminRegistrationRequestIdParamsSchema>;
+export type AdminRegistrationDecisionInput = z.infer<typeof AdminRegistrationDecisionSchema>;
 
 // ---------------------------------------------------------------------------
 // Shared helper: parse or throw ValidationError
