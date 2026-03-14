@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 import { AuthApiError, requestOtp, verifyOtp } from '@/lib/auth/client';
+import type { VerifyOtpOutcome } from '@/types/auth';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,12 +49,18 @@ export default function AdminLoginPage() {
     setErrorMessage(null);
 
     try {
-      const session = await verifyOtp({
+      const result: VerifyOtpOutcome = await verifyOtp({
         email: email.trim().toLowerCase(),
         token: otpCode.trim(),
       });
 
-      if (session.user.role !== 'admin') {
+      if (result.mfaSetupRequired) {
+        // Supabase cookie is now set — redirect to one-time MFA enrollment.
+        router.push('/admin/mfa/setup');
+        return;
+      }
+
+      if (result.user.role !== 'admin') {
         setErrorMessage('This account is not an admin account.');
         return;
       }
@@ -85,7 +92,7 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <CardTitle>Admin Login</CardTitle>
-              <CardDescription>Sign in with OTP and MFA-enabled admin account</CardDescription>
+              <CardDescription>Admin Sign In — secured with email code and authenticator app</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -111,12 +118,12 @@ export default function AdminLoginPage() {
 
             {step === 'verify' && (
               <div className="space-y-2">
-                <Label htmlFor="admin-otp">One-Time Passcode</Label>
+                <Label htmlFor="admin-otp">Sign-in code</Label>
                 <Input
                   id="admin-otp"
                   type="text"
                   inputMode="numeric"
-                  placeholder="Enter code from your email"
+                  placeholder="Enter the code from your email"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
                   required
@@ -126,7 +133,7 @@ export default function AdminLoginPage() {
             )}
 
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-              {isLoading ? 'Please wait...' : step === 'request' ? 'Send Admin OTP' : 'Verify Admin OTP'}
+              {isLoading ? 'Please wait...' : step === 'request' ? 'Admin Sign In' : 'Verify code'}
             </Button>
 
             {step === 'verify' && (
