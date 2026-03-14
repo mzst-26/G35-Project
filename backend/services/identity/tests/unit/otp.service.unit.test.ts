@@ -3,7 +3,7 @@
 // Supabase is mocked at the factory level — each test controls mock results
 // via the let variables declared below the mock factory.
 
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { requestOtp, verifyOtp } from "../../src/auth/otp.service.js";
 
 // Minimal Supabase query-builder chain — same pattern used across all unit tests.
@@ -63,6 +63,12 @@ let mockListFactorsResult: {
   error: null,
 };
 
+let mockRecruiterAccountStatus:
+  | { companyId: string; accountStatus: "pending" | "approved" | "rejected" | "suspended"; statusReason: string | null }
+  | null = null;
+
+let mockRecruiterStatusThrows: Error | null = null;
+
 vi.mock("../../src/supabase/index.js", () => ({
   createServiceRoleClient: () => ({
     auth: {
@@ -82,6 +88,13 @@ vi.mock("../../src/supabase/index.js", () => ({
     },
   }),
   createServerClient: () => ({ auth: {} }),
+}));
+
+vi.mock("../../src/auth/companyRegistration.service.js", () => ({
+  getRecruiterAccountStatus: vi.fn().mockImplementation(() => {
+    if (mockRecruiterStatusThrows) return Promise.reject(mockRecruiterStatusThrows);
+    return Promise.resolve(mockRecruiterAccountStatus);
+  }),
 }));
 
 describe("requestOtp", () => {
@@ -111,6 +124,11 @@ describe("verifyOtp", () => {
 
   it("returns authenticated user with recruiter role", async () => {
     mockVerifyResult = makeSession("recruiter");
+    mockRecruiterAccountStatus = {
+      companyId: "company-1",
+      accountStatus: "approved",
+      statusReason: null,
+    };
     const result = await verifyOtp({ email: "hr@example.com", token: "654321" });
     expect(result.user.role).toBe("recruiter");
   });
@@ -149,25 +167,106 @@ describe("verifyOtp — admin MFA enforcement", () => {
     expect(result.accessToken).toBe("access-tok");
   });
 
-  it("throws MFA_ENROLLMENT_REQUIRED when admin has no verified factor", async () => {
+  it("returns mfaSetupRequired when admin has no verified factor", async () => {
     mockVerifyResult = makeSession("admin");
     mockListFactorsResult = {
       data: { factors: [] },
       error: null,
     };
-    await expect(
-      verifyOtp({ email: "admin@example.com", token: "123456" }),
-    ).rejects.toMatchObject({ code: "MFA_ENROLLMENT_REQUIRED" });
+    const result = await verifyOtp({ email: "admin@example.com", token: "123456" });
+    expect(result).toHaveProperty("mfaSetupRequired", true);
+    expect(result).toHaveProperty("accessToken", "access-tok");
   });
 
-  it("throws MFA_ENROLLMENT_REQUIRED when listFactors returns an error", async () => {
+  it("returns mfaSetupRequired when listFactors returns an error", async () => {
     mockVerifyResult = makeSession("admin");
     mockListFactorsResult = {
       data: null,
       error: { message: "service unavailable" },
     };
+    const result = await verifyOtp({ email: "admin@example.com", token: "123456" });
+    expect(result).toHaveProperty("mfaSetupRequired", true);
+  });
+});
+
+describe("recruiter login gating", () => {
+  beforeEach(() => {
+    mockRecruiterStatusThrows = null;
+    mockRecruiterAccountStatus = null;
+  });
+
+  it("throws ACCOUNT_PENDING_REVIEW for recruiter with pending status", async () => {
+    mockVerifyResult = makeSession("recruiter");
+    mockRecruiterAccountStatus = {
+      companyId: "company-1",
+      accountStatus: "pending",
+      statusReason: null,
+    };
+
     await expect(
-      verifyOtp({ email: "admin@example.com", token: "123456" }),
-    ).rejects.toMatchObject({ code: "MFA_ENROLLMENT_REQUIRED" });
+      verifyOtp({ email: "hr@example.com", token: "123456" }),
+    ).rejects.toMatchObject({ code: "ACCOUNT_PENDING_REVIEW" });
+  });
+
+  it("throws ACCOUNT_REJECTED for recruiter with rejected status", async () => {
+    mockVerifyResult = makeSession("recruiter");
+    mockRecruiterAccountStatus = {
+      companyId: "company-1",
+      accountStatus: "rejected",
+      statusReason: "Did not meet requirements",
+    };
+
+    await expect(
+      verifyOtp({ email: "hr@example.com", token: "123456" }),
+    ).rejects.toMatchObject({ code: "ACCOUNT_REJECTED" });
+  });
+
+  it("returns session normally for recruiter with approved status", async () => {
+    mockVerifyResult = makeSession("recruiter");
+    mockRecruiterAccountStatus = {
+      companyId: "company-1",
+      accountStatus: "approved",
+      statusReason: null,
+    };
+
+    const result = await verifyOtp({ email: "hr@example.com", token: "654321" });
+    expect(result.user.role).toBe("recruiter");
+    expect(result.accessToken).toBe("access-tok");
+  });
+
+  it("throws InternalAuthError when getRecruiterAccountStatus throws", async () => {
+    mockVerifyResult = makeSession("recruiter");
+    mockRecruiterStatusThrows = new Error("DB connection failed");
+
+    await expect(
+      verifyOtp({ email: "hr@example.com", token: "123456" }),
+    ).rejects.toMatchObject({ code: "INTERNAL_ERROR" });
+  });
+});
+
+describe("admin MFA setup flow", () => {
+  it("returns mfaSetupRequired when admin has no verified TOTP factor", async () => {
+    mockVerifyResult = makeSession("admin");
+    mockListFactorsResult = {
+      data: { factors: [] },
+      error: null,
+    };
+
+    const result = await verifyOtp({ email: "admin@example.com", token: "123456" });
+    expect(result).toHaveProperty("mfaSetupRequired", true);
+    expect(result).toHaveProperty("accessToken", "access-tok");
+    expect(result).toHaveProperty("refreshToken", "refresh-tok");
+  });
+
+  it("returns normal session when admin has verified TOTP factor", async () => {
+    mockVerifyResult = makeSession("admin");
+    mockListFactorsResult = {
+      data: { factors: [{ factor_type: "totp", status: "verified" }] },
+      error: null,
+    };
+
+    const result = await verifyOtp({ email: "admin@example.com", token: "123456" });
+    expect(result.user.role).toBe("admin");
+    expect(result.accessToken).toBe("access-tok");
   });
 });
