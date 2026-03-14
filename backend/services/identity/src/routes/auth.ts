@@ -12,6 +12,7 @@
 import { Router } from "express";
 import crypto from "node:crypto";
 import { requestOtp, verifyOtp } from "../auth/otp.service.js";
+import { submitRecruiterRegistration } from "../auth/companyRegistration.service.js";
 import { refreshSession, revokeSession } from "../auth/session.service.js";
 import { createRateLimiter } from "../security/index.js";
 import {
@@ -19,41 +20,16 @@ import {
   OtpRequestSchema,
   OtpVerifySchema,
   LogoutSchema,
+  RecruiterRegistrationSubmitSchema,
 } from "../security/validators.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { generateCsrfToken, CSRF_COOKIE_NAME } from "../security/csrf.js";
 import { AuthenticationError } from "../errors/index.js";
-
-// ---------------------------------------------------------------------------
-// Cookie option constants — shared policy for both access and refresh tokens
-// ---------------------------------------------------------------------------
-
-// Access token cookie: 15-minute lifespan, readable only by the server.
-const ACCESS_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 15 * 60 * 1000,
-  path: "/",
-};
-
-// Refresh token cookie: 7-day lifespan, scoped to refresh endpoint only.
-const REFRESH_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: "/api/auth/session/refresh",
-};
-
-// CSRF token cookie: NOT httpOnly — client JS reads this to set the header.
-const CSRF_COOKIE_OPTIONS = {
-  httpOnly: false,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 15 * 60 * 1000,
-  path: "/",
-};
+import {
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
+  CSRF_COOKIE_OPTIONS,
+} from "../security/cookies.js";
 
 // ---------------------------------------------------------------------------
 // Router
@@ -84,6 +60,29 @@ authRouter.post(
 // ---------------------------------------------------------------------------
 
 authRouter.post(
+  "/recruiter-registration",
+  createRateLimiter("recruiterRegistrationSubmit"),
+  async (req, res, next) => {
+    try {
+      const input = parseOrThrow(RecruiterRegistrationSubmitSchema, req.body);
+      const result = await submitRecruiterRegistration(input, {
+        requestId: req.requestId,
+        ipAddress: req.ip,
+        userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
+      });
+
+      res.status(202).json({
+        requestId: result.requestId,
+        status: result.status,
+        deduplicated: result.deduplicated,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+authRouter.post(
   "/otp/verify",
   createRateLimiter("otpVerify"),
   async (req, res, next) => {
@@ -103,6 +102,17 @@ authRouter.post(
         ipAddress: req.ip ?? null,
         userAgentHash,
       });
+
+      // Admin with no TOTP factor enrolled — issue a temporary Supabase-only cookie
+      // so the client can reach the MFA enrollment endpoints, then redirect to setup.
+      // No platform session is created here; that happens via /mfa/complete-admin-login.
+      if (result.mfaSetupRequired) {
+        res.cookie("sb-access-token", result.accessToken, ACCESS_COOKIE_OPTIONS);
+        res.cookie("sb-refresh-token", result.refreshToken, REFRESH_COOKIE_OPTIONS);
+        res.cookie(CSRF_COOKIE_NAME, generateCsrfToken(), CSRF_COOKIE_OPTIONS);
+        res.status(200).json({ mfaSetupRequired: true });
+        return;
+      }
 
       // Set httpOnly session cookies — client JS cannot read these.
       res.cookie("sb-access-token", result.accessToken, ACCESS_COOKIE_OPTIONS);
