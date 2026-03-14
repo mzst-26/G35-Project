@@ -12,10 +12,21 @@ import { z } from "zod";
 import { authenticate } from "../middleware/authenticate.js";
 import { authorise } from "../middleware/authorise.js";
 import { revokeSession } from "../auth/session.service.js";
+import {
+  decideRecruiterRegistration,
+  getRecruiterRegistrationRequest,
+  listRecruiterRegistrationRequests,
+} from "../auth/companyRegistration.service.js";
 import { createServiceRoleClient } from "../supabase/index.js";
+import { createRateLimiter } from "../security/rateLimit.js";
 import { parseOrThrow } from "../security/validators.js";
+import {
+  AdminRegistrationDecisionSchema,
+  AdminRegistrationListQuerySchema,
+  AdminRegistrationRequestIdParamsSchema,
+} from "../security/validators.js";
 import { authLogger } from "../observability/logger.js";
-import { InternalAuthError } from "../errors/index.js";
+import { InternalAuthError, ValidationError } from "../errors/index.js";
 
 export const adminRouter = Router();
 
@@ -82,6 +93,112 @@ adminRouter.post(
         email: data.user.email,
         role,
       });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+adminRouter.get(
+  "/registration-requests",
+  authenticate,
+  authorise("applications:read"),
+  async (req, res, next) => {
+    try {
+      if (req.user?.role !== "admin") {
+        res.status(403).json({ code: "FORBIDDEN", message: "Admin role required." });
+        return;
+      }
+
+      const queryResult = AdminRegistrationListQuerySchema.safeParse(
+        {
+          status: typeof req.query.status === "string" ? req.query.status : undefined,
+          limit: typeof req.query.limit === "string" ? req.query.limit : undefined,
+          offset: typeof req.query.offset === "string" ? req.query.offset : undefined,
+        },
+      );
+
+      if (!queryResult.success) {
+        throw new ValidationError(
+          "Request validation failed.",
+          queryResult.error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
+        );
+      }
+
+      const query = queryResult.data;
+
+      const result = await listRecruiterRegistrationRequests({
+        status: query.status,
+        limit: query.limit ?? 20,
+        offset: query.offset ?? 0,
+      });
+
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+adminRouter.get(
+  "/registration-requests/:requestId",
+  authenticate,
+  authorise("applications:read"),
+  async (req, res, next) => {
+    try {
+      if (req.user?.role !== "admin") {
+        res.status(403).json({ code: "FORBIDDEN", message: "Admin role required." });
+        return;
+      }
+
+      const { requestId } = parseOrThrow(AdminRegistrationRequestIdParamsSchema, req.params);
+      const record = await getRecruiterRegistrationRequest(requestId);
+
+      if (!record) {
+        res.status(404).json({ code: "NOT_FOUND", message: "Registration request not found." });
+        return;
+      }
+
+      res.status(200).json(record);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+adminRouter.post(
+  "/registration-requests/:requestId/decision",
+  createRateLimiter("adminDecision"),
+  authenticate,
+  authorise({ any: ["applications:approve", "applications:reject"] }),
+  async (req, res, next) => {
+    try {
+      if (req.user?.role !== "admin") {
+        res.status(403).json({ code: "FORBIDDEN", message: "Admin role required." });
+        return;
+      }
+
+      const { requestId } = parseOrThrow(AdminRegistrationRequestIdParamsSchema, req.params);
+      const input = parseOrThrow(AdminRegistrationDecisionSchema, req.body);
+
+      const decision = await decideRecruiterRegistration({
+        requestId,
+        decision: input.decision,
+        reason: input.reason,
+        adminUserId: req.user.id,
+      });
+
+      authLogger.info("registration request reviewed", {
+        requestId: req.requestId,
+        actorId: req.user.id,
+        decisionId: decision.id,
+        outcome: decision.status,
+      });
+
+      res.status(200).json(decision);
     } catch (err) {
       next(err);
     }
