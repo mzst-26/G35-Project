@@ -37,6 +37,7 @@ const HIGH_SEVERITY_EVENTS = new Set([
   "auth.security.anomalous_session",
   "auth.mfa.challenge.failed",
   "auth.mfa.stepup.failed",
+  "auth.account.login_gated",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -58,7 +59,15 @@ export function emitSecurityEvent(event: SecurityEvent): void {
     category: "auth",
     message: event.event,
     level: HIGH_SEVERITY_EVENTS.has(event.event) ? "warning" : "info",
-    data: { eventId: event.eventId, requestId: event.requestId },
+    data: {
+      eventId: event.eventId,
+      requestId: event.requestId,
+      flow: event.flow,
+      endpoint: event.endpoint,
+      decision: event.decision,
+      role: event.role,
+      account_status: event.accountStatus,
+    },
   });
 
   // 4. Forward high-severity events to Sentry as explicit captures
