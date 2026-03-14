@@ -67,6 +67,11 @@ const envSchema = z.object({
 
   // Optional log file path for persistent log storage.
   LOG_FILE: z.string().optional(),
+
+  // External company registry lookup.
+  COMPANIES_HOUSE_API_KEY: z.string().optional(),
+  COMPANIES_HOUSE_REST_API_KEY: z.string().optional(),
+  CH_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
