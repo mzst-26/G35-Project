@@ -15,7 +15,7 @@ import type {
   OtpRequest,
   OtpRequestResult,
   OtpVerifyRequest,
-  OtpVerifyResult,
+  OtpVerifyOutcome,
   AuthenticatedUser,
   Session,
 } from "../types/index.js";
@@ -25,10 +25,13 @@ import type {
 } from "../types/audit.types.js";
 import type { UserRole } from "../types/role.types.js";
 import { createAnonClient, createServiceRoleClient } from "../supabase/index.js";
+import { getRecruiterAccountStatus } from "./companyRegistration.service.js";
 import { AuthenticationError, InternalAuthError } from "../errors/index.js";
 import { emitSecurityEvent } from "../observability/events.js";
 import { authLogger } from "../observability/logger.js";
-import { decodeJwtPayload, persistSession } from "./session.service.js";
+import { addSentryBreadcrumb, captureSentryBusinessFailure } from "../observability/sentry.js";
+import { persistSession, buildPlatformSession } from "./session.service.js";
+import { hasVerifiedTotpFactor } from "./mfa.service.js";
 
 const VALID_ROLES = new Set<UserRole>(["admin", "recruiter", "trade"]);
 
@@ -94,11 +97,15 @@ export async function requestOtp(input: OtpRequest): Promise<OtpRequestResult> {
 /**
  * Verifies the OTP and creates a platform session on success.
  *
+ * For admin accounts with no verified TOTP factor, returns `{ mfaSetupRequired: true }`
+ * along with the Supabase tokens so the client can proceed to MFA enrollment.
+ * No platform session is persisted in that case — enrollment must be completed first.
+ *
  * @throws AuthenticationError code OTP_INVALID for wrong/expired OTPs.
  * @throws AuthenticationError code ROLE_NOT_RECOGNISED when role is missing.
  * @throws InternalAuthError for unexpected Supabase failures.
  */
-export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyResult> {
+export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyOutcome> {
   const emailHash = hashEmail(input.email);
 
   let sbUserId!: string;
@@ -155,43 +162,103 @@ export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyResul
   }
   const role = rawRole as UserRole;
 
-  // Admins must have at least one verified TOTP factor before the platform
-  // will grant them a session. Prompt enrollment if no verified factor exists.
-  if (role === "admin") {
+  if (role === "recruiter") {
     try {
-      const adminClient = createServiceRoleClient();
-      const { data: factors, error: mfaError } = await adminClient.auth.admin.mfa.listFactors(
-        { userId: sbUserId },
-      );
-      if (mfaError) {
-        authLogger.warn("Could not verify admin MFA factors", { userId: sbUserId, mfaError });
-        throw new AuthenticationError("MFA verification unavailable. Contact support.", "MFA_ENROLLMENT_REQUIRED");
-      }
-      const hasVerifiedFactor = factors?.factors?.some(
-        (f: { factor_type: string; status: string }) =>
-          f.factor_type === "totp" && f.status === "verified"
-      );
-      if (!hasVerifiedFactor) {
+      const company = await getRecruiterAccountStatus(sbUserId);
+      const accountStatus = company?.accountStatus ?? "pending";
+
+      if (accountStatus !== "approved") {
+        const codeByStatus: Record<string, "ACCOUNT_PENDING_REVIEW" | "ACCOUNT_REJECTED" | "ACCOUNT_SUSPENDED"> = {
+          pending: "ACCOUNT_PENDING_REVIEW",
+          rejected: "ACCOUNT_REJECTED",
+          suspended: "ACCOUNT_SUSPENDED",
+        };
+
+        const messageByStatus: Record<string, string> = {
+          pending: "Your company account is pending admin approval.",
+          rejected: "Your company account has been rejected. Contact support.",
+          suspended: "Your company account is suspended. Contact support.",
+        };
+
+        emitSecurityEvent({
+          eventId: crypto.randomUUID(),
+          requestId: crypto.randomUUID(),
+          occurredAt: new Date().toISOString(),
+          event: "auth.account.login_gated",
+          userId: sbUserId,
+          role,
+          flow: "otp_verify",
+          endpoint: "/api/auth/otp/verify",
+          accountStatus,
+          detail: "Recruiter login denied due to company status",
+        });
+
+        addSentryBreadcrumb({
+          category: "auth",
+          message: "recruiter login gated",
+          level: "warning",
+          data: {
+            flow: "otp_verify",
+            endpoint: "/api/auth/otp/verify",
+            role,
+            account_status: accountStatus,
+            userId: sbUserId,
+          },
+        });
+
+        captureSentryBusinessFailure(
+          "recruiter login denied by account status",
+          {
+            flow: "otp_verify",
+            endpoint: "/api/auth/otp/verify",
+            role,
+            account_status: accountStatus,
+          },
+          {
+            userId: sbUserId,
+          },
+        );
+
         throw new AuthenticationError(
-          "Admin accounts require a verified TOTP MFA factor. Please enroll MFA before signing in.",
-          "MFA_ENROLLMENT_REQUIRED",
+          messageByStatus[accountStatus] ?? messageByStatus.pending,
+          codeByStatus[accountStatus] ?? "ACCOUNT_PENDING_REVIEW",
         );
       }
     } catch (err) {
       if (err instanceof AuthenticationError) throw err;
-      authLogger.error("Unexpected error during admin MFA check", { userId: sbUserId, err });
+      authLogger.error("Unexpected error during recruiter account status check", {
+        userId: sbUserId,
+        err,
+      });
       throw new InternalAuthError(err instanceof Error ? err : undefined);
     }
   }
 
-  const expiresAt = Math.floor(Date.now() / 1000) + sbExpiresIn;
-  const now = new Date().toISOString();
+  // Admins must have at least one verified TOTP factor before the platform
+  // will grant them a session. Prompt enrollment if no verified factor exists.
+  if (role === "admin") {
+    const hasVerifiedFactor = await hasVerifiedTotpFactor(sbUserId);
+    if (!hasVerifiedFactor) {
+      authLogger.info("Admin OTP verified but no TOTP factor enrolled — returning mfaSetupRequired", {
+        userId: sbUserId,
+      });
+      return {
+        mfaSetupRequired: true,
+        accessToken: sbAccessToken,
+        refreshToken: sbRefreshToken,
+      };
+    }
+  }
 
-  // Use the Supabase JWT session_id so our auth_sessions row maps 1:1 with the JWT.
-  const jwtPayload = decodeJwtPayload(sbAccessToken);
-  const sessionId = typeof jwtPayload["session_id"] === "string"
-    ? jwtPayload["session_id"]
-    : crypto.randomUUID();
+  const { session: platformSession, sessionId, expiresAt } = buildPlatformSession({
+    accessToken: sbAccessToken,
+    userId: sbUserId,
+    role,
+    ipAddress: input.ipAddress,
+    userAgentHash: input.userAgentHash,
+  });
+
+  const now = new Date().toISOString();
 
   const user: AuthenticatedUser = {
     id: sbUserId,
@@ -199,18 +266,6 @@ export async function verifyOtp(input: OtpVerifyRequest): Promise<OtpVerifyResul
     role,
     stepUpVerified: false,
     expiresAt,
-  };
-
-  const platformSession: Session = {
-    sessionId,
-    userId: sbUserId,
-    role,
-    createdAt: now,
-    expiresAt: new Date((expiresAt + 7 * 24 * 60 * 60 - sbExpiresIn) * 1000).toISOString(),
-    lastActiveAt: now,
-    stepUpVerified: false,
-    ipAddress: input.ipAddress ?? null,
-    userAgentHash: input.userAgentHash ?? null,
   };
 
   // Persist to DB for revocation + audit — fire-and-forget (non-fatal).
