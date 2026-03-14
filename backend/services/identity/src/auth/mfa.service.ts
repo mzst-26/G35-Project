@@ -20,7 +20,7 @@ import type {
   MfaRevokeResult,
   MfaFactor,
 } from "../types/index.js";
-import { createServerClient } from "../supabase/index.js";
+import { createServerClient, createServiceRoleClient } from "../supabase/index.js";
 import {
   AuthenticationError,
   ConflictError,
@@ -200,4 +200,20 @@ export async function listMfaFactors(accessToken: string): Promise<MfaFactor[]> 
     createdAt: f.created_at,
     updatedAt: f.updated_at,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Shared TOTP factor check
+// ---------------------------------------------------------------------------
+
+export async function hasVerifiedTotpFactor(userId: string): Promise<boolean> {
+  const adminClient = createServiceRoleClient();
+  const { data: factors, error } = await adminClient.auth.admin.mfa.listFactors({ userId });
+  if (error) {
+    authLogger.warn("Could not verify MFA factors", { userId, error });
+    return false;
+  }
+  return (factors?.factors ?? []).some(
+    (f: { factor_type: string; status: string }) => f.factor_type === "totp" && f.status === "verified"
+  );
 }
