@@ -12,6 +12,11 @@ export {
   MfaChallengeSchema,
   MfaVerifySchema,
   MfaRevokeParamsSchema,
+  RecruiterRegistrationSubmitSchema,
+  UkCompanyLookupQuerySchema,
+  AdminRegistrationListQuerySchema,
+  AdminRegistrationRequestIdParamsSchema,
+  AdminRegistrationDecisionSchema,
   parseOrThrow,
 } from "./validators.js";
 
@@ -24,6 +29,11 @@ export type {
   MfaChallengeInput,
   MfaVerifyInput,
   MfaRevokeParams,
+  RecruiterRegistrationSubmitInput,
+  UkCompanyLookupQueryInput,
+  AdminRegistrationListQueryInput,
+  AdminRegistrationRequestIdParamsInput,
+  AdminRegistrationDecisionInput,
 } from "./validators.js";
 
 export { generateCsrfToken, validateCsrfToken, csrfProtection } from "./csrf.js";

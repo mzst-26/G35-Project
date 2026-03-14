@@ -40,6 +40,16 @@ export const RATE_LIMIT_PROFILES = {
   sessionRefresh: { maxRequests: 60, windowSeconds: 60 },
   // General fallback for any auth endpoint not covered above.
   general: { maxRequests: 100, windowSeconds: 60 },
+  // Public recruiter registration intake endpoint.
+  recruiterRegistrationSubmit: { maxRequests: 3, windowSeconds: 900 },
+  // Public UK company lookup endpoint.
+  referenceUkCompanies: { maxRequests: 60, windowSeconds: 60 },
+  // Public countries reference endpoint.
+  referenceCountries: { maxRequests: 60, windowSeconds: 60 },
+  // Admin review mutation endpoint.
+  adminDecision: { maxRequests: 30, windowSeconds: 300 },
+  // Complete-admin-login after MFA enrollment — tight limit, sensitive endpoint.
+  completeAdminLogin: { maxRequests: 5, windowSeconds: 900 },
 } as const;
 
 export type RateLimitProfile = keyof typeof RATE_LIMIT_PROFILES;
