@@ -14,6 +14,7 @@ import { authRouter } from "./routes/auth.js";
 import { mfaRouter } from "./routes/mfa.js";
 import { internalRouter } from "./routes/internal.js";
 import { adminRouter } from "./routes/admin.js";
+import { referenceRouter } from "./routes/reference.js";
 import { requestIdMiddleware } from "./middleware/authenticate.js";
 import { sentryErrorHandler, setupSentryExpressHandler } from "./observability/sentry.js";
 import { globalErrorHandler } from "./middleware/errorHandler.js";
@@ -67,6 +68,7 @@ export const createApp = () => {
   // 6. CSRF protection — exempts OTP and internal server-to-server endpoints.
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/auth/otp/")) return next();
+    if (req.path === "/api/auth/recruiter-registration") return next();
     if (req.path.startsWith("/api/internal/")) return next();
     csrfProtection(req, res, next);
   });
@@ -78,6 +80,7 @@ export const createApp = () => {
   app.use("/api/auth/mfa", mfaRouter);
   // Admin routes — require authenticate + authorise guard inside the router.
   app.use("/api/auth/admin", adminRouter);
+  app.use("/api/reference", referenceRouter);
   // Internal server-to-server endpoints — never expose to the public internet.
   app.use("/api/internal", internalRouter);
 
