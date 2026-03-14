@@ -1,0 +1,39 @@
+# Docker build context is backend/ when building identity service.
+# Reduces context size and avoids sending secrets into the daemon.
+
+# Dependencies — reinstalled in container
+**/node_modules
+
+# Build output — rebuilt in container
+**/dist
+
+# Tests and dev tooling — not needed in production image
+**/tests
+**/*.test.ts
+**/*.spec.ts
+**/vitest.config.ts
+**/__tests__
+**/.env
+**/.env.*
+!.env.example
+
+# Editor and OS
+**/.DS_Store
+**/.idea
+**/.vscode
+**/Thumbs.db
+
+# Version control
+**/.git
+**/.gitignore
+
+# Docker
+**/Dockerfile*
+**/.dockerignore
+
+# Other services — only identity and shared-utils are needed for identity image
+# (Uncomment to shrink context further; then copy only identity + shared-utils in Dockerfile)
+# services/core-platform
+# services/communications
+# services/payments-penalties
+# services/allocation

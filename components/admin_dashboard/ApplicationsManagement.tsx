@@ -15,10 +15,10 @@ import {
 
 export default function ApplicationsManagement(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<ApplicationStatus>("pending");
-  const [activeType, setActiveType] = useState<ApplicationType>("trade");
+  const [activeType, setActiveType] = useState<ApplicationType>("recruiter");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { getApplicationsCount, getFilteredApplications, getApplicationsByType } =
+  const { getApplicationsCount, getFilteredApplications, getApplicationsByType, isLoading, error } =
     useApplications();
 
   const filteredApplications = useMemo(() => {
@@ -51,11 +51,6 @@ export default function ApplicationsManagement(): React.JSX.Element {
   ];
 
   const typeConfig: Array<{ value: ApplicationType; label: string; count: number }> = [
-    {
-      value: "trade",
-      label: "Trade Applications",
-      count: getApplicationsByType("trade").length,
-    },
     {
       value: "recruiter",
       label: "Company Applications",
@@ -125,7 +120,11 @@ export default function ApplicationsManagement(): React.JSX.Element {
         </div>
 
         <div className="p-6">
-          {filteredApplications.length > 0 ? (
+          {isLoading ? (
+            <p className="py-8 text-center text-slate-600">Loading applications...</p>
+          ) : error ? (
+            <p className="py-8 text-center text-red-600">{error}</p>
+          ) : filteredApplications.length > 0 ? (
             <div className="space-y-4">
               {filteredApplications.map((application) => (
                 <Card key={application.id} className="border border-slate-200 p-4">

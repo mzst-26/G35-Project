@@ -14,11 +14,17 @@ export default function ApplicationReviewPage(): React.JSX.Element {
     ? params.applicationId[0]
     : params.applicationId;
 
-  const { applications, getApplicationById, reviewApplication } = useApplications();
+  const {
+    getApplicationById,
+    reviewApplication,
+    isLoading,
+    isMutating,
+    error,
+  } = useApplications();
 
   const application = useMemo(
     () => getApplicationById(applicationId),
-    [applicationId, applications, getApplicationById]
+    [applicationId, getApplicationById]
   );
 
   const [resolution, setResolution] = useState<ApplicationDecision | "">("");
@@ -46,22 +52,22 @@ export default function ApplicationReviewPage(): React.JSX.Element {
 
   const isRejecting = resolution === "rejected";
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-    if (!resolution) return;
-    if (resolution === "rejected" && reason.trim() === "") return;
+    if (!resolution || isMutating) return;
+    if (reason.trim().length < 3) return;
 
-    reviewApplication({
-      applicationId: application.id,
-      resolution,
-      reason:
-        resolution === "approved"
-          ? reason.trim() || "Application approved by admin."
-          : reason.trim(),
-    });
-
-    setSaveMessage("Decision saved successfully.");
+    try {
+      await reviewApplication({
+        applicationId: application.id,
+        resolution,
+        reason,
+      });
+      setSaveMessage("Decision saved successfully.");
+    } catch {
+      setSaveMessage("Unable to save decision. Please retry.");
+    }
   };
 
   return (
@@ -95,15 +101,28 @@ export default function ApplicationReviewPage(): React.JSX.Element {
         <Card className="border border-slate-200 p-6">
           <h2 className="mb-4 text-xl font-semibold text-slate-900">Submitted Survey Details</h2>
 
-          {application.type === "recruiter" && application.recruiterDetails && (
+          {isLoading ? (
+            <p className="text-sm text-slate-700">Loading details...</p>
+          ) : application.type === "recruiter" && application.recruiterDetails ? (
             <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
               <p className="text-slate-700"><strong>Company Name:</strong> {application.recruiterDetails.companyName}</p>
-              <p className="text-slate-700"><strong>Contact Name:</strong> {application.recruiterDetails.contactName}</p>
-              <p className="text-slate-700"><strong>Email:</strong> {application.recruiterDetails.email}</p>
-              <p className="text-slate-700"><strong>Phone:</strong> {application.recruiterDetails.phone}</p>
-              <p className="text-slate-700 md:col-span-2"><strong>Address:</strong> {application.recruiterDetails.addressLine1} {application.recruiterDetails.addressLine2}, {application.recruiterDetails.city}, {application.recruiterDetails.postcode}</p>
+              <p className="text-slate-700"><strong>Requester:</strong> {application.recruiterDetails.requesterFullName}</p>
+              <p className="text-slate-700"><strong>Requester Email:</strong> {application.recruiterDetails.requesterEmail}</p>
+              <p className="text-slate-700"><strong>Requester Phone:</strong> {application.recruiterDetails.requesterPhone}</p>
+              <p className="text-slate-700"><strong>Role Title:</strong> {application.recruiterDetails.requesterRoleTitle}</p>
+              <p className="text-slate-700 md:col-span-2"><strong>Address:</strong> {application.recruiterDetails.officeAddressLine1} {application.recruiterDetails.officeAddressLine2}, {application.recruiterDetails.officeCity}, {application.recruiterDetails.officePostcode}</p>
+              <p className="text-slate-700"><strong>Website:</strong> {application.recruiterDetails.companyWebsite || "Not provided"}</p>
+              <p className="text-slate-700"><strong>Requested Seats:</strong> {application.recruiterDetails.requestedSeatCount}</p>
+              <p className="text-slate-700"><strong>Has Internal Approver:</strong> {application.recruiterDetails.hasInternalApprover ? "Yes" : "No"}</p>
+              {application.recruiterDetails.hasInternalApprover && (
+                <p className="text-slate-700 md:col-span-2"><strong>Internal Approver:</strong> {application.recruiterDetails.internalApproverFullName} ({application.recruiterDetails.internalApproverEmail})</p>
+              )}
+              <p className="text-slate-700"><strong>Contract Signer Same as Requester:</strong> {application.recruiterDetails.contractSignerSameAsRequester ? "Yes" : "No"}</p>
+              {!application.recruiterDetails.contractSignerSameAsRequester && (
+                <p className="text-slate-700 md:col-span-2"><strong>Contract Signer:</strong> {application.recruiterDetails.contractSignerFullName} ({application.recruiterDetails.contractSignerEmail})</p>
+              )}
             </div>
-          )}
+          ) : null}
 
           {application.type === "trade" && application.tradeDetails && (
             <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
@@ -171,7 +190,7 @@ export default function ApplicationReviewPage(): React.JSX.Element {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={6}
-                required={isRejecting}
+                required
                 placeholder={
                   isRejecting
                     ? "Provide reason for disapproval"
@@ -181,6 +200,12 @@ export default function ApplicationReviewPage(): React.JSX.Element {
               />
             </div>
 
+            {error && (
+              <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
             {saveMessage && (
               <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 {saveMessage}
@@ -188,8 +213,12 @@ export default function ApplicationReviewPage(): React.JSX.Element {
             )}
 
             <div className="flex justify-end">
-              <Button type="submit" className="bg-black text-white hover:bg-gray-900">
-                Save Decision
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-gray-900"
+                disabled={isMutating || !resolution || reason.trim().length < 3}
+              >
+                {isMutating ? "Saving..." : "Save Decision"}
               </Button>
             </div>
           </form>

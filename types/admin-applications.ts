@@ -18,13 +18,22 @@ export type ApplicationType = "recruiter" | "trade";
  */
 export interface RecruiterApplicationDetails {
   companyName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  postcode: string;
+  requesterFullName: string;
+  requesterEmail: string;
+  requesterPhone: string;
+  requesterRoleTitle: string;
+  officeAddressLine1: string;
+  officeAddressLine2?: string | null;
+  officeCity: string;
+  officePostcode: string;
+  companyWebsite?: string | null;
+  requestedSeatCount: number;
+  hasInternalApprover: boolean;
+  internalApproverFullName?: string | null;
+  internalApproverEmail?: string | null;
+  contractSignerSameAsRequester: boolean;
+  contractSignerFullName?: string | null;
+  contractSignerEmail?: string | null;
 }
 
 /**
@@ -47,10 +56,13 @@ export interface RegistrationApplication {
   applicantName: string;
   type: ApplicationType;
   submittedAt: string;
+  updatedAt?: string;
   status: ApplicationStatus;
   recruiterDetails?: RecruiterApplicationDetails;
   tradeDetails?: TradeApplicationDetails;
   adminReason?: string;
+  reviewedAt?: string | null;
+  reviewedByAdminUserId?: string | null;
 }
 
 /**
@@ -60,4 +72,31 @@ export interface ApplicationReviewData {
   applicationId: string;
   resolution: ApplicationDecision;
   reason: string;
+}
+
+export interface RecruiterRegistrationApiRecord {
+  id: string;
+  status: ApplicationStatus | "withdrawn";
+  submittedAt: string;
+  updatedAt: string;
+  reviewedAt: string | null;
+  reviewedByAdminUserId: string | null;
+  reviewReason: string | null;
+  requesterFullName: string;
+  requesterEmail: string;
+  requesterPhone: string;
+  requesterRoleTitle: string;
+  companyName: string;
+  officeAddressLine1: string;
+  officeAddressLine2: string | null;
+  officeCity: string;
+  officePostcode: string;
+  companyWebsite: string | null;
+  requestedSeatCount: number;
+  hasInternalApprover: boolean;
+  internalApproverFullName: string | null;
+  internalApproverEmail: string | null;
+  contractSignerSameAsRequester: boolean;
+  contractSignerFullName: string | null;
+  contractSignerEmail: string | null;
 }

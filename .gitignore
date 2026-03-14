@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!backend/services/identity/.env.example
+!backend/services/core-platform/.env.example
+!backend/services/communications/.env.example
+!backend/services/payments-penalties/.env.example
 
 # vercel
 .vercel
@@ -40,3 +45,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 tester_agent_prompt.txt
+
+#sql files
+*.sql
+.sql*
+
+# Temprerarly ignoring all microservices accept identity for development purposes
+# services/*
+backend/services/core-platform/*
+backend/services/communications/*
+backend/services/payments-penalties/*
+backend/services/allocation/*
+.cursor/rules/senior-software-engineer.md
