@@ -49,9 +49,12 @@ export type SecurityEventName =
   | "auth.access.forbidden"
   // Account lifecycle
   | "auth.account.registered"
+  | "auth.account.registration_request_created"
+  | "auth.account.registration_request_reviewed"
   | "auth.account.password_reset_requested"
   | "auth.account.deleted"
   | "auth.account.role_changed"
+  | "auth.account.login_gated"
   // Suspicious activity
   | "auth.security.brute_force_detected"
   | "auth.security.token_replay_detected"
@@ -94,6 +97,11 @@ export interface BaseSecurityEvent {
    * Used for device heuristics without exposing PII.
    */
   readonly userAgentHash?: string;
+  readonly flow?: string;
+  readonly endpoint?: string;
+  readonly decision?: string;
+  readonly accountStatus?: string;
+  readonly detail?: string;
 }
 
 // ---------------------------------------------------------------------------
