@@ -72,6 +72,7 @@ npm run dev:identity
 ```
 
 - Pulls `ghcr.io/mzst-26/identity-service:dev` and starts it with Redis.
+- **Resource limits** mirror Oracle Always Free (identity: 1 OCPU, 1G; redis: 128M). Production has 1 OCPU / 6GB per identity VM. See `backend/docs/oracle-always-free-allocation.md`. On 16GB laptops, reduce identity to 512M.
 - Uses `services/identity/.env.development`; ensure it has valid `SUPABASE_*`, `COOKIE_SECRET`.
 - Stops with `npm run dev:identity:stop`.
 

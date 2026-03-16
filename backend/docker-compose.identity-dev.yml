@@ -1,21 +1,32 @@
-# Identity service from GHCR — matches Oracle deployment (image, env, healthcheck).
+# Identity service from GHCR — matches Oracle deployment (image, env, healthcheck, resources).
 # Run: npm run dev:identity  (pulls latest :dev and starts)
 #
 # Prerequisites: .env.development with valid SUPABASE_*, COOKIE_SECRET, etc.
 # For private GHCR images: docker login ghcr.io -u <user>
-
-version: "3.9"
+#
+# Resource limits mirror Oracle Always Free (identity VM: 1 OCPU, 6GB).
+# See backend/docs/oracle-always-free-allocation.md. Use 512M on 16GB laptops.
 
 services:
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
 
   identity:
     image: ghcr.io/mzst-26/identity-service:dev
     container_name: identity-service-dev
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1"
     env_file:
       - ./services/identity/.env.development
     environment:
