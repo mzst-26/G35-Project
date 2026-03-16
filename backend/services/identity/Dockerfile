@@ -34,13 +34,14 @@ ENV NODE_ENV=production \
 RUN apk add --no-cache dumb-init && \
     addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
 
-# Preserve workspace layout so node_modules symlinks resolve
+# Preserve workspace layout so node_modules resolve (root + identity nested)
 COPY --from=builder --chown=app:app /app/package.json /app/package-lock.json /app/
 COPY --from=builder --chown=app:app /app/node_modules /app/node_modules
 COPY --from=builder --chown=app:app /app/packages/shared-utils/package.json /app/packages/shared-utils/
 COPY --from=builder --chown=app:app /app/packages/shared-utils/dist /app/packages/shared-utils/dist
 COPY --from=builder --chown=app:app /app/services/identity/package.json /app/services/identity/
 COPY --from=builder --chown=app:app /app/services/identity/dist /app/services/identity/dist
+COPY --from=builder --chown=app:app /app/services/identity/node_modules /app/services/identity/node_modules
 
 USER app
 WORKDIR /app/services/identity

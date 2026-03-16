@@ -63,6 +63,32 @@ npm run dev
 
 Suggested local setup:
 
+### Local dev (deployment-parity container)
+
+Run the **same image** as deployed on Oracle (from GHCR `:dev`), so teammates test against the real built artifact:
+
+```bash
+npm run dev:identity
+```
+
+- Pulls `ghcr.io/mzst-26/identity-service:dev` and starts it with Redis.
+- Uses `services/identity/.env.development`; ensure it has valid `SUPABASE_*`, `COOKIE_SECRET`.
+- Stops with `npm run dev:identity:stop`.
+
+**Private GHCR image — teammates must log in once**
+
+1. Create a **Classic** token: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic).
+2. Generate with scope **`read:packages`** only.
+3. Run:
+   ```bash
+   echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+   ```
+4. Then run `npm run dev:identity`.
+
+Classic tokens are needed because the package lives under a profile, not a repo (fine-grained tokens don’t expose Packages). Teammates must be collaborators on the package to pull it.
+
+Suggested local setup:
+
 1. Create `.env` for shared defaults.
 2. Create `.env.development` for local dev-only values.
 3. Keep secrets out of git by using `.env.development.local` on your machine.
