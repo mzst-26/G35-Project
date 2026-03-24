@@ -1,8 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseApiError } from "@infra/shared-errors";
+import { BadRequestError, BaseApiError } from "@infra/shared-errors";
 import { captureSentryException } from "@infra/shared-observability";
 import { ZodError } from "zod";
 import { logger } from "../observability/logger.js";
+
+function isMalformedJsonBody(err: Error): boolean {
+  if (!(err instanceof SyntaxError)) return false;
+  const typed = err as Error & { status?: number; statusCode?: number };
+  const status = typed.status ?? typed.statusCode;
+  return status === 400;
+}
 
 export function globalErrorHandler(
   err: Error,
@@ -10,6 +17,18 @@ export function globalErrorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
+  if (res.headersSent) {
+    logger.error({ err, requestId: req.requestId }, "error_handler_after_headers_sent");
+    return;
+  }
+
+  if (isMalformedJsonBody(err)) {
+    logger.warn({ err, requestId: req.requestId }, "malformed_json_body");
+    const typed = new BadRequestError("Request body is not valid JSON.", "INVALID_JSON", err);
+    res.status(typed.statusCode).json({ error: typed.toJSON() });
+    return;
+  }
+
   if (err instanceof BaseApiError) {
     logger.warn({ err, requestId: req.requestId, statusCode: err.statusCode }, "typed_api_error");
     res.status(err.statusCode).json({ error: err.toJSON() });

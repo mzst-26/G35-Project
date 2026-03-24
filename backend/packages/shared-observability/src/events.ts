@@ -18,6 +18,13 @@ export type SecurityEventMap = {
     userId: string;
     requestId?: string;
   };
+  "job.status.changed": {
+    jobId: string;
+    from: string;
+    to: string;
+    actorId: string;
+    requestId?: string;
+  };
   "calendar.availability.lock_violation": {
     workerId: string;
     availabilityId: string;
