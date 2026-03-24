@@ -53,3 +53,6 @@ jobs:
 
       - name: Build shared packages
         run: npm run build:shared
+
+      - name: Test core-platform service
+        run: npm run test -w @infra/core-platform-service && npm run typecheck -w @infra/core-platform-service
