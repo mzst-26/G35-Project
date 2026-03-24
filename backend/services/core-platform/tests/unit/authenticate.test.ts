@@ -35,7 +35,7 @@ describe("authenticate middleware", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 401 when Authorization header is missing", async () => {
+  it("calls next(UnauthorisedError) when Authorization header is missing", async () => {
     const { authenticate } = await import("../../src/middleware/authenticate.js");
     const req = makeReq();
     const res = makeRes();
@@ -43,8 +43,10 @@ describe("authenticate middleware", () => {
 
     await authenticate(req, res, next);
 
-    expect((res.status as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(1);
+    const [err] = (next as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(err.code).toBe("UNAUTHORISED");
+    expect((res.status as unknown as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
   });
 
   it("returns next(UnauthorisedError) when token is invalid", async () => {

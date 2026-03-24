@@ -10,3 +10,4 @@ process.env.RATE_LIMIT_WINDOW_MS = process.env.RATE_LIMIT_WINDOW_MS ?? "60000";
 process.env.RATE_LIMIT_MAX_READ = process.env.RATE_LIMIT_MAX_READ ?? "100";
 process.env.RATE_LIMIT_MAX_WRITE = process.env.RATE_LIMIT_MAX_WRITE ?? "20";
 process.env.RATE_LIMIT_MAX_ADMIN = process.env.RATE_LIMIT_MAX_ADMIN ?? "10";
+process.env.TRUST_PROXY_HOPS = process.env.TRUST_PROXY_HOPS ?? "0";

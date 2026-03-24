@@ -58,4 +58,30 @@ describe("globalErrorHandler", () => {
       },
     });
   });
+
+  it("returns 400 INVALID_JSON for Express JSON body parse failures", () => {
+    const req = makeReq();
+    const res = makeRes();
+    const next = vi.fn() as unknown as NextFunction;
+    const err = new SyntaxError("Unexpected token");
+    Object.assign(err, { status: 400 });
+    globalErrorHandler(err, req, res, next);
+    expect((res.status as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(400);
+    expect((res.json as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith({
+      error: { code: "INVALID_JSON", message: "Request body is not valid JSON." },
+    });
+  });
+
+  it("does not send a second response when headers were already committed", () => {
+    const req = makeReq();
+    const res = {
+      headersSent: true,
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+    } as unknown as Response;
+    const next = vi.fn() as unknown as NextFunction;
+    globalErrorHandler(new Error("late"), req, res, next);
+    expect((res.status as unknown as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    expect((res.json as unknown as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+  });
 });

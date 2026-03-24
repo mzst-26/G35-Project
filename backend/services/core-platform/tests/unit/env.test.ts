@@ -17,6 +17,7 @@ function setValidEnv(): void {
     RATE_LIMIT_MAX_READ: "100",
     RATE_LIMIT_MAX_WRITE: "20",
     RATE_LIMIT_MAX_ADMIN: "10",
+    TRUST_PROXY_HOPS: "0",
   };
 }
 
@@ -33,17 +34,21 @@ describe("env config", () => {
 
   it("parses valid environment and freezes env object", async () => {
     const mod = await import("../../src/config/env.js");
-    expect(mod.env.PORT).toBe(3001);
-    expect(Object.isFrozen(mod.env)).toBe(true);
+    const env = mod.getEnv();
+    expect(env.PORT).toBe(3001);
+    expect(Object.isFrozen(env)).toBe(true);
   });
 
   it("exits explicitly when required vars are missing", async () => {
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     delete process.env.SUPABASE_URL;
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`EXIT_${code}`);
     }) as never);
 
-    await expect(import("../../src/config/env.js")).rejects.toThrow("EXIT_1");
+    const mod = await import("../../src/config/env.js");
+    expect(() => mod.getEnv()).toThrow("EXIT_1");
     expect(exitSpy).toHaveBeenCalledWith(1);
+    stderrSpy.mockRestore();
   });
 });
