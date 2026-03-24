@@ -14,6 +14,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@infra/shared-db": "file:../../packages/shared-db",
+    "@infra/shared-errors": "file:../../packages/shared-errors",
+    "@infra/shared-validation": "file:../../packages/shared-validation",
     "@infra/shared-utils": "file:../../packages/shared-utils",
     "@sentry/node": "^9.11.0",
     "@sentry/profiling-node": "^9.11.0",
