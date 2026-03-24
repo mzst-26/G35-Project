@@ -46,9 +46,10 @@ yarn-error.log*
 next-env.d.ts
 tester_agent_prompt.txt
 
-#sql files
+#sql files (allow versioned migrations)
 *.sql
 .sql*
+!SQL/migrations/**/*.sql
 
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
