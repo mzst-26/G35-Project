@@ -1,0 +1,12 @@
+process.env.PORT = process.env.PORT ?? "3001";
+process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
+process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? "silent";
+process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? "https://example.supabase.co";
+process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "x".repeat(32);
+process.env.IDENTITY_INTERNAL_URL = process.env.IDENTITY_INTERNAL_URL ?? "http://identity:4001";
+process.env.INTERNAL_SECRET = process.env.INTERNAL_SECRET ?? "y".repeat(32);
+process.env.CORS_ORIGINS = process.env.CORS_ORIGINS ?? "http://localhost:3000";
+process.env.RATE_LIMIT_WINDOW_MS = process.env.RATE_LIMIT_WINDOW_MS ?? "60000";
+process.env.RATE_LIMIT_MAX_READ = process.env.RATE_LIMIT_MAX_READ ?? "100";
+process.env.RATE_LIMIT_MAX_WRITE = process.env.RATE_LIMIT_MAX_WRITE ?? "20";
+process.env.RATE_LIMIT_MAX_ADMIN = process.env.RATE_LIMIT_MAX_ADMIN ?? "10";
