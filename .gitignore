@@ -52,7 +52,6 @@ tester_agent_prompt.txt
 
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
-backend/services/core-platform/*
 backend/services/communications/*
 backend/services/payments-penalties/*
 backend/services/allocation/*
