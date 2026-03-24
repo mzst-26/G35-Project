@@ -7,9 +7,12 @@
     "services/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build:shared && npm run build -w @infra/shared-types -w @infra/shared-utils -w @infra/identity-service",
+    "build:shared": "npm run build -w @infra/shared-errors -w @infra/shared-permissions -w @infra/shared-validation -w @infra/shared-db -w @infra/shared-observability -w @infra/shared-auth",
+    "build:all": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:shared": "npm run test -w @infra/shared-errors -w @infra/shared-permissions -w @infra/shared-validation -w @infra/shared-db -w @infra/shared-observability -w @infra/shared-auth",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "dev:identity": "npm run dev -w @infra/identity-service",
     "dev:identity:container": "docker compose -f docker-compose.identity-dev.yml pull identity && docker compose -f docker-compose.identity-dev.yml up -d",
