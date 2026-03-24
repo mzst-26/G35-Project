@@ -1,0 +1,35 @@
+// Machine-readable error code constants.
+// Clients depend on these strings — never change existing values.
+
+export const ERROR_CODES = {
+  // 400 — Bad Input
+  BAD_REQUEST: "BAD_REQUEST",
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  IDEMPOTENCY_KEY_MISSING: "IDEMPOTENCY_KEY_MISSING",
+  // 401 — Authentication
+  UNAUTHORISED: "UNAUTHORISED",
+  TOKEN_MISSING: "TOKEN_MISSING",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  TOKEN_INVALID: "TOKEN_INVALID",
+  SESSION_REVOKED: "SESSION_REVOKED",
+  // 403 — Authorisation
+  FORBIDDEN: "FORBIDDEN",
+  // 404 — Not Found
+  NOT_FOUND: "NOT_FOUND",
+  // 409 — Conflict / Concurrency
+  CONFLICT: "CONFLICT",
+  STALE_VERSION: "STALE_VERSION",
+  IDEMPOTENCY_CONFLICT: "IDEMPOTENCY_CONFLICT",
+  // 422 — Business Rule Violation
+  UNPROCESSABLE: "UNPROCESSABLE",
+  INVALID_STATUS_TRANSITION: "INVALID_STATUS_TRANSITION",
+  CALENDAR_LOCK_VIOLATION: "CALENDAR_LOCK_VIOLATION",
+  // 429 — Rate Limiting
+  RATE_LIMITED: "RATE_LIMITED",
+  // 500 — Internal
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  // 503 — Downstream
+  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
