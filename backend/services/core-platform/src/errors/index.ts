@@ -18,6 +18,18 @@ export class JobNotFoundError extends BaseApiError {
   }
 }
 
+export class CompanyNotFoundError extends BaseApiError {
+  constructor(id: string) {
+    super("COMPANY_NOT_FOUND", `Company ${id} not found`, 404);
+  }
+}
+
+export class WorkerNotFoundError extends BaseApiError {
+  constructor(id: string) {
+    super("WORKER_NOT_FOUND", `Worker ${id} not found`, 404);
+  }
+}
+
 export class CalendarLockError extends BaseApiError {
   constructor(jobId: string) {
     super(
