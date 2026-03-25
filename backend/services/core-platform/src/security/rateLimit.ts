@@ -5,6 +5,7 @@ import { getEnv } from "../config/env.js";
 let readLimiter: ReturnType<typeof rateLimit> | null = null;
 let writeLimiter: ReturnType<typeof rateLimit> | null = null;
 let adminLimiter: ReturnType<typeof rateLimit> | null = null;
+let authBurstLimiter: ReturnType<typeof rateLimit> | null = null;
 
 /**
  * Creates rate limiters once at app startup (express-rate-limit forbids creating
@@ -31,6 +32,12 @@ export function ensureRateLimitersInitialized(): void {
     standardHeaders: true,
     legacyHeaders: false,
   });
+  authBurstLimiter = rateLimit({
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    max: env.RATE_LIMIT_MAX_AUTH_BURST,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 }
 
 export function readLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
@@ -43,4 +50,15 @@ export function writeLimitMiddleware(req: Request, res: Response, next: NextFunc
 
 export function adminLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
   adminLimiter!(req, res, next);
+}
+
+export function authBurstLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
+  authBurstLimiter!(req, res, next);
+}
+
+export function __resetRateLimitersForTests(): void {
+  readLimiter = null;
+  writeLimiter = null;
+  adminLimiter = null;
+  authBurstLimiter = null;
 }
