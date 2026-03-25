@@ -49,13 +49,27 @@ describe("checkDbHealth", () => {
     expect(result.ok).toBe(true);
   });
 
-  it("returns ok:false on non-PGRST116 error", async () => {
+  it("returns ok:true when probe table is missing (42P01)", async () => {
     const supabaseMod = await import("@supabase/supabase-js");
     const mockMaybeSingle = (supabaseMod as unknown as Record<string, unknown>)
       .__mockMaybeSingle as ReturnType<typeof vi.fn>;
     mockMaybeSingle.mockResolvedValue({
       data: null,
       error: { code: "42P01", message: "Table does not exist" },
+    });
+
+    const { checkDbHealth } = await import("../src/health.js");
+    const result = await checkDbHealth();
+    expect(result.ok).toBe(true);
+  });
+
+  it("returns ok:false on unexpected database error", async () => {
+    const supabaseMod = await import("@supabase/supabase-js");
+    const mockMaybeSingle = (supabaseMod as unknown as Record<string, unknown>)
+      .__mockMaybeSingle as ReturnType<typeof vi.fn>;
+    mockMaybeSingle.mockResolvedValue({
+      data: null,
+      error: { code: "XX000", message: "Internal error" },
     });
 
     const { checkDbHealth } = await import("../src/health.js");
