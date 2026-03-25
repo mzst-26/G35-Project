@@ -82,6 +82,28 @@ describe("verifyToken — success", () => {
       }),
     );
   });
+
+  it("falls back to IDENTITY_INTERNAL_URL when IDENTITY_SERVICE_URL is missing", async () => {
+    delete process.env.IDENTITY_SERVICE_URL;
+    process.env.IDENTITY_INTERNAL_URL = "http://identity-internal:4001";
+
+    mockFetch.mockResolvedValue(
+      makeJsonResponse({
+        valid: true,
+        user: { id: "u1", email: "u@u.com", role: "admin" },
+      }),
+    );
+
+    const { verifyToken } = await import("../src/verify-token.js");
+    await verifyToken("my-token");
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://identity-internal:4001/api/internal/token/verify",
+      expect.any(Object),
+    );
+
+    delete process.env.IDENTITY_INTERNAL_URL;
+  });
 });
 
 describe("verifyToken — 401 from Identity", () => {

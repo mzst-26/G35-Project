@@ -55,12 +55,12 @@ function mapIdentityUser(
 // @throws UnauthorisedError if the token is invalid or the session is revoked.
 // @throws ServiceUnavailableError if Identity is unreachable or returns 5xx.
 export async function verifyToken(token: string): Promise<AuthenticatedUser> {
-  const identityUrl = process.env.IDENTITY_SERVICE_URL;
+  const identityUrl = process.env.IDENTITY_SERVICE_URL ?? process.env.IDENTITY_INTERNAL_URL;
   const internalSecret = process.env.INTERNAL_SECRET;
 
   if (!identityUrl || !internalSecret) {
     throw new ServiceUnavailableError(
-      "Identity service is not configured (IDENTITY_SERVICE_URL / INTERNAL_SECRET missing).",
+      "Identity service is not configured (IDENTITY_SERVICE_URL or IDENTITY_INTERNAL_URL / INTERNAL_SECRET missing).",
     );
   }
 
