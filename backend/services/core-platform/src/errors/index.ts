@@ -17,3 +17,29 @@ export class JobNotFoundError extends BaseApiError {
     super("JOB_NOT_FOUND", `Job ${id} not found`, 404);
   }
 }
+
+export class CalendarLockError extends BaseApiError {
+  constructor(jobId: string) {
+    super(
+      "CALENDAR_LOCK_VIOLATION",
+      `Cannot modify availability: a committed job (${jobId}) starts within 7 days`,
+      422,
+    );
+  }
+}
+
+export class AvailabilityNotFoundError extends BaseApiError {
+  constructor(id: string) {
+    super("AVAILABILITY_NOT_FOUND", `Availability ${id} not found`, 404);
+  }
+}
+
+export class AvailabilityVersionConflictError extends BaseApiError {
+  constructor() {
+    super(
+      "AVAILABILITY_VERSION_CONFLICT",
+      "Availability was modified by another request. Refresh and retry.",
+      409,
+    );
+  }
+}
