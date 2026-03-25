@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { Express } from 'express';
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import {
   generateCsrfToken,
   storeCsrfToken,
@@ -9,11 +9,10 @@ import {
   attachCsrfToken,
   validateCsrfToken,
   tokenStore,
-} from '../src/security/csrf';
+} from '../../src/security/csrf';
 
 describe('CSRF Protection Security Tests', () => {
   let app: Express;
-  const testSessionId = 'test-session-123';
 
   beforeEach(() => {
     tokenStore.clear();
@@ -124,9 +123,8 @@ describe('CSRF Protection Security Tests', () => {
     it('should attach CSRF token to GET /health response', async () => {
       // Note: CSRF_PROTECTION=true must be set in env for this to work
       // For test, we manually enable by calling middleware
-      
-      const token = generateCsrfToken();
-      const res = await request(app)
+
+      await request(app)
         .get('/health')
         .expect(200);
 
@@ -212,7 +210,7 @@ describe('CSRF Protection Security Tests', () => {
         res.status(201).json({ jobId: '123' });
       });
 
-      const res = await request(testApp)
+      await request(testApp)
         .post('/api/v1/jobs')
         .set('x-csrf-token', token)
         .send({ title: 'New Job' })
@@ -270,7 +268,7 @@ describe('CSRF Protection Security Tests', () => {
         res.json({ jobId: req.params.id });
       });
 
-      const res = await request(testApp)
+      await request(testApp)
         .patch('/api/v1/jobs/123')
         .set('x-csrf-token', token)
         .send({ status: 'in_progress' })
@@ -297,7 +295,7 @@ describe('CSRF Protection Security Tests', () => {
         res.json({ jobId: req.params.id });
       });
 
-      const res = await request(testApp)
+      await request(testApp)
         .put('/api/v1/jobs/123')
         .set('x-csrf-token', token)
         .send({ status: 'completed' })
@@ -345,7 +343,7 @@ describe('CSRF Protection Security Tests', () => {
       });
 
       // Should succeed even without token because health endpoints skip validation
-      const res = await request(testApp)
+      await request(testApp)
         .post('/health')
         .send({})
         .expect(200);
@@ -364,7 +362,7 @@ describe('CSRF Protection Security Tests', () => {
       });
 
       // Should succeed without token for admin endpoints
-      const res = await request(testApp)
+      await request(testApp)
         .post('/admin/companies/123/status')
         .send({ status: 'approved' })
         .expect(200);
@@ -390,7 +388,7 @@ describe('CSRF Protection Security Tests', () => {
         res.status(201).json({ jobId: '123' });
       });
 
-      const res = await request(testApp)
+      await request(testApp)
         .post('/api/v1/jobs')
         .send({ title: 'New Job', csrf_token: token })
         .expect(201);
@@ -503,7 +501,7 @@ describe('CSRF Protection Security Tests', () => {
       });
 
       // Should succeed without CSRF token
-      const res = await request(testApp)
+      await request(testApp)
         .post('/api/v1/jobs')
         .send({ title: 'New Job' })
         .expect(201);

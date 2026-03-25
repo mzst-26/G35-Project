@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
-import { logger } from '../observability/logger';
+import { logger } from '../observability/logger.js';
 
 // CSRF protection for stateless REST API.
 // 
@@ -14,19 +14,24 @@ import { logger } from '../observability/logger';
 //   2. Include x-csrf-token header in all POST/PATCH/PUT/DELETE requests
 //   3. Token is passed via response header or cookie
 
-const CSRF_PROTECTION_ENABLED = process.env.CSRF_PROTECTION === 'true';
 const CSRF_TOKEN_LENGTH = 32;
 const CSRF_HEADER_NAME = 'x-csrf-token';
 const CSRF_COOKIE_NAME = '__csrf_token';
 const CSRF_FIELD_NAME = 'csrf_token';
+const CSRF_PROTECTION_ENABLED = (): boolean => process.env.CSRF_PROTECTION === 'true';
 
 interface CsrfSession {
   token: string;
   createdAt: number;
 }
 
+interface UsedCsrfToken {
+  usedAt: number;
+}
+
 // In-memory store for CSRF tokens. In production, use Redis or similar.
 const tokenStore = new Map<string, CsrfSession>();
+const usedTokenStore = new Map<string, UsedCsrfToken>();
 
 // Cleanup expired tokens every 5 minutes
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -37,6 +42,11 @@ setInterval(() => {
     if (now - session.createdAt > TOKEN_TTL_MS) {
       tokenStore.delete(key);
       cleaned++;
+    }
+  }
+  for (const [token, used] of usedTokenStore.entries()) {
+    if (now - used.usedAt > TOKEN_TTL_MS) {
+      usedTokenStore.delete(token);
     }
   }
   if (cleaned > 0) {
@@ -80,7 +90,7 @@ export function attachCsrfToken(
   res: Response,
   next: NextFunction
 ): void {
-  if (!CSRF_PROTECTION_ENABLED) {
+  if (!CSRF_PROTECTION_ENABLED()) {
     return next();
   }
 
@@ -90,7 +100,7 @@ export function attachCsrfToken(
   }
 
   // Key: use session ID from JWT if available, else use connection ID
-  const sessionKey = req.userId || `conn_${req.ip}`;
+  const sessionKey = getSessionKey(req);
   
   const token = generateCsrfToken();
   storeCsrfToken(sessionKey, token);
@@ -116,7 +126,7 @@ export function validateCsrfToken(
   res: Response,
   next: NextFunction
 ): void {
-  if (!CSRF_PROTECTION_ENABLED) {
+  if (!CSRF_PROTECTION_ENABLED()) {
     return next();
   }
 
@@ -135,55 +145,78 @@ export function validateCsrfToken(
     return next();
   }
 
-  const sessionKey = req.userId || `conn_${req.ip}`;
-  const storedToken = getCsrfToken(sessionKey);
-
-  if (!storedToken) {
-    logger.warn(`CSRF: no valid token found for session ${sessionKey}`, {
-      method: req.method,
-      path: req.path,
-      ip: req.ip,
-    });
-    return res.status(403).json({
-      error: 'CSRF token missing or expired',
-      code: 'CSRF_TOKEN_INVALID',
-    });
-  }
-
   // Get token from request: check header first (REST clients), then body (browser clients)
   const incomingToken = 
     req.headers[CSRF_HEADER_NAME] ||
     req.body?.[CSRF_FIELD_NAME];
 
   if (!incomingToken || typeof incomingToken !== 'string') {
-    logger.warn(`CSRF: token not provided in request`, {
+    logger.warn({
       method: req.method,
       path: req.path,
       ip: req.ip,
-    });
-    return res.status(403).json({
+    }, 'CSRF: token not provided in request');
+    res.status(403).json({
       error: 'CSRF token not provided',
       code: 'CSRF_TOKEN_REQUIRED',
     });
+    return;
+  }
+
+  const sessionKey = getSessionKey(req);
+  const storedToken = getCsrfToken(sessionKey);
+
+  if (!storedToken) {
+    logger.warn({
+      method: req.method,
+      path: req.path,
+      ip: req.ip,
+      sessionKey,
+    }, 'CSRF: no valid token found for session');
+    res.status(403).json({
+      error: 'CSRF token missing or expired',
+      code: 'CSRF_TOKEN_REQUIRED',
+    });
+    return;
+  }
+
+  if (usedTokenStore.has(incomingToken)) {
+    logger.warn({
+      method: req.method,
+      path: req.path,
+      ip: req.ip,
+    }, 'CSRF: replayed token rejected');
+    res.status(403).json({
+      error: 'CSRF token missing or expired',
+      code: 'CSRF_TOKEN_REQUIRED',
+    });
+    return;
   }
 
   // Constant-time comparison to prevent timing attacks
   if (!constantTimeEquals(incomingToken, storedToken)) {
-    logger.warn(`CSRF: token mismatch`, {
+    logger.warn({
       method: req.method,
       path: req.path,
       ip: req.ip,
-    });
-    return res.status(403).json({
+    }, 'CSRF: token mismatch');
+    res.status(403).json({
       error: 'CSRF token invalid',
       code: 'CSRF_TOKEN_MISMATCH',
     });
+    return;
   }
 
   // Token is valid; invalidate it to prevent reuse
+  usedTokenStore.set(incomingToken, { usedAt: Date.now() });
   tokenStore.delete(sessionKey);
   
   next();
+}
+
+function getSessionKey(req: Request): string {
+  const maybeUserId = (req as Request & { userId?: string }).userId;
+  return maybeUserId || `conn_${req.ip}`;
 }
 
 // Constant-time string comparison to prevent timing attacks
