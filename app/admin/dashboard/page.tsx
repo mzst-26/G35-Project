@@ -22,6 +22,7 @@ import UsersManagement from "@/components/admin_dashboard/UsersManagement";
 import AdminHome from "@/components/admin_dashboard/AdminHome";
 import AdminSettings from "@/components/admin_dashboard/AdminSettings";
 import ApplicationsManagement from "@/components/admin_dashboard/ApplicationsManagement";
+import { SidebarUserMenu } from "@/components/auth/SidebarUserMenu";
 
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, section: "dashboard" },
@@ -96,7 +97,7 @@ export default function AdminDashboard() {
       </div>
 
       {isMobileSidebarOpen && (
-        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
+        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <Shield className="h-5 w-5 text-white" />
@@ -107,9 +108,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-1">
             {navItems.map((item) => renderNavButton(item, true))}
           </nav>
+
+          <SidebarUserMenu
+            onGoToSettings={() => setActiveSection("settings")}
+            onAfterAction={() => setIsMobileSidebarOpen(false)}
+          />
         </div>
       )}
 
@@ -129,6 +135,8 @@ export default function AdminDashboard() {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => renderNavButton(item))}
         </nav>
+
+        <SidebarUserMenu onGoToSettings={() => setActiveSection("settings")} />
       </div>
 
       <div className="md:ml-64">
