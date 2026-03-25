@@ -48,7 +48,7 @@ BEGIN
     NOW()
   );
 
-  INSERT INTO public.outbox (id, event_type, payload, created_at)
+  INSERT INTO public.outbox (id, event_type, payload, event_key, status, retry_count, next_attempt_at, created_at)
   VALUES (
     gen_random_uuid(),
     'job.status.changed',
@@ -58,8 +58,13 @@ BEGIN
       'toStatus', p_to_status,
       'actorId', p_actor_id
     ),
+    format('job.status.changed:%s:%s', p_job_id::text, v_new.version::text),
+    'pending',
+    0,
+    NOW(),
     NOW()
-  );
+  )
+  ON CONFLICT DO NOTHING;
 
   RETURN json_build_object('ok', true, 'job', row_to_json(v_new));
 END;
