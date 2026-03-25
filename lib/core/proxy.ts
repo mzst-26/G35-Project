@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerEnvConfig } from '@/lib/auth/env-validation';
+import { logger } from '@/lib/utils/logger';
 
 const ALLOWED_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'];
+
+// Track proxy metrics (in production, send to observability service)
+interface ProxyMetrics {
+  totalRequests: number;
+  failedRequests: number;
+  totalLatencyMs: number;
+}
+
+const metrics: ProxyMetrics = { totalRequests: 0, failedRequests: 0, totalLatencyMs: 0 };
+
+export function getProxyMetrics() {
+  return metrics;
+}
 
 interface CoreProxyOptions {
   endpoint: string;
@@ -96,7 +110,7 @@ async function getCoreProxyResponse(
     const responseText = await response.text();
 
     if (response.status >= 500) {
-      console.error('[core proxy] upstream 5xx', {
+      logger.error('Upstream service error', null, {
         endpoint: new URL(targetUrl).pathname,
         status: response.status,
         bodySize: responseText.length,
@@ -128,14 +142,23 @@ export async function proxyCoreRequest(
   options: CoreProxyOptions,
 ): Promise<NextResponse> {
   const requestId = request.headers.get('x-request-id') || `req-${crypto.randomUUID()}`;
+  const startTime = Date.now();
+  const method = options.method || request.method;
+
+  logger.setContext({
+    requestId,
+    route: new URL(request.url).pathname,
+    upstream: options.endpoint,
+    method,
+  });
 
   try {
     // Validate environment
     const config = getServerEnvConfig();
 
     // Validate method
-    const method = options.method || request.method;
     if (!ALLOWED_METHODS.includes(method)) {
+      logger.warn('Invalid method', { method });
       throw new CoreProxyError(
         'Method not allowed',
         405,
@@ -192,6 +215,17 @@ export async function proxyCoreRequest(
       config.corePlatformProxyTimeoutMs,
     );
 
+    const latencyMs = Date.now() - startTime;
+    metrics.totalRequests++;
+    metrics.totalLatencyMs += latencyMs;
+
+    // Log successful proxy
+    logger.info('Proxy request completed', {
+      status: proxyResponse.status,
+      latencyMs,
+      bodySize: proxyResponse.body.length,
+    });
+
     // Build Next response
     const nextResponse = new NextResponse(proxyResponse.body, {
       status: proxyResponse.status,
@@ -204,7 +238,18 @@ export async function proxyCoreRequest(
     nextResponse.headers.set('x-request-id', requestId);
     return nextResponse;
   } catch (error) {
+    const latencyMs = Date.now() - startTime;
+    metrics.totalRequests++;
+    metrics.failedRequests++;
+    metrics.totalLatencyMs += latencyMs;
+
     if (error instanceof CoreProxyError) {
+      logger.warn('Proxy error', {
+        code: error.code,
+        status: error.status,
+        latencyMs,
+      });
+
       const errorBody = JSON.stringify({
         code: error.code,
         message: error.message,
@@ -224,7 +269,7 @@ export async function proxyCoreRequest(
     }
 
     // Unknown error, normalize to 502
-    console.error('[core proxy] unexpected error', { requestId, error });
+    logger.error('Unexpected proxy error', error, { latencyMs });
     const errorBody = JSON.stringify({
       code: 'BAD_GATEWAY',
       message: 'Upstream service unavailable',
