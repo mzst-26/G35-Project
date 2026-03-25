@@ -35,7 +35,9 @@ RUN npm prune --omit=dev
 
 FROM node:20-alpine AS runtime
 ARG GIT_SHA
+ARG CORE_PLATFORM_ENV=production
 ENV NODE_ENV=production \
+  CORE_PLATFORM_ENV=${CORE_PLATFORM_ENV} \
     PORT=3001 \
     GIT_SHA=${GIT_SHA:-unknown}
 

@@ -1,3 +1,4 @@
+import "./env.js";
 import { createServiceRoleClient } from "@infra/shared-db";
 
 // Shared DB factory reads credentials from process.env.
