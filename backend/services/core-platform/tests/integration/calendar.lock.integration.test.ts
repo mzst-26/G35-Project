@@ -19,6 +19,9 @@ vi.mock("@infra/shared-auth", async () => {
 });
 
 describe("calendar lock integration", () => {
+  const now = new Date();
+  const inDays = (days: number) => new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
   beforeEach(() => {
     verifyTokenMock.mockResolvedValue({
       userId: "u1",
@@ -33,7 +36,7 @@ describe("calendar lock integration", () => {
     const calendarRepository = createMockCalendarRepository({
       findAvailabilityById: vi.fn().mockResolvedValue(availability),
       findOverlappingJobs: vi.fn().mockResolvedValue([
-        { id: "job-1", status: JobStatus.FILLED, startAt: new Date("2026-03-04T10:00:00.000Z") },
+        { id: "job-1", status: JobStatus.FILLED, startAt: inDays(3) },
       ]),
     });
 
@@ -53,7 +56,7 @@ describe("calendar lock integration", () => {
     const calendarRepository = createMockCalendarRepository({
       findAvailabilityById: vi.fn().mockResolvedValue(availability),
       findOverlappingJobs: vi.fn().mockResolvedValue([
-        { id: "job-10-days", status: JobStatus.FILLED, startAt: new Date("2026-03-20T10:00:00.000Z") },
+        { id: "job-10-days", status: JobStatus.FILLED, startAt: inDays(10) },
       ]),
       deleteAvailability: vi.fn().mockResolvedValue(undefined),
     });
@@ -73,7 +76,7 @@ describe("calendar lock integration", () => {
     const calendarRepository = createMockCalendarRepository({
       findAvailabilityById: vi.fn().mockResolvedValue(availability),
       findOverlappingJobs: vi.fn().mockResolvedValue([
-        { id: "job-open", status: JobStatus.OPEN, startAt: new Date("2026-03-04T10:00:00.000Z") },
+        { id: "job-open", status: JobStatus.OPEN, startAt: inDays(3) },
       ]),
       deleteAvailability: vi.fn().mockResolvedValue(undefined),
     });
