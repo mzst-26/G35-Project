@@ -50,6 +50,7 @@ tester_agent_prompt.txt
 #sql files (allow versioned migrations)
 *.sql
 .sql*
+!SQL/*.sql
 !SQL/migrations/**/*.sql
 
 # Temprerarly ignoring all microservices accept identity for development purposes
