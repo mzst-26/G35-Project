@@ -44,7 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return new NextResponse(JSON.stringify({
         code: 'CLIENT_VALIDATION_ERROR',
         message: 'Request validation failed',
-        issues: validationResult.error.errors.map((err) => ({
+        issues: validationResult.error.issues.map((err) => ({
           field: err.path.join('.'),
           message: err.message,
         })),
