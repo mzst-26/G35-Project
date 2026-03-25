@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+**/coverage/
 
 # next.js
 /.next/
@@ -46,13 +47,14 @@ yarn-error.log*
 next-env.d.ts
 tester_agent_prompt.txt
 
-#sql files
+#sql files (allow versioned migrations)
 *.sql
 .sql*
+!SQL/*.sql
+!SQL/migrations/**/*.sql
 
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
-backend/services/core-platform/*
 backend/services/communications/*
 backend/services/payments-penalties/*
 backend/services/allocation/*

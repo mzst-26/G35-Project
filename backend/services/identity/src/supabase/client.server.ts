@@ -11,6 +11,10 @@
 //   - createServerClient is stateless — create per request, discard after.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createAnonClient as createSharedAnonClient,
+  createServiceRoleClient as createSharedServiceRoleClient,
+} from "@infra/shared-db";
 import { env } from "../config/env.js";
 import { InternalAuthError } from "../errors/index.js";
 
@@ -33,9 +37,7 @@ const SERVER_AUTH_OPTIONS = {
  * Do NOT use it for privileged operations.
  */
 export function createAnonClient(): SupabaseClient {
-  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-    auth: SERVER_AUTH_OPTIONS,
-  });
+  return createSharedAnonClient();
 }
 
 // ---------------------------------------------------------------------------
@@ -81,8 +83,6 @@ export function createServerClient(accessToken: string): SupabaseClient {
  * of a client that has accumulated user-session state mid-request.
  */
 export function createServiceRoleClient(): SupabaseClient {
-  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: SERVER_AUTH_OPTIONS,
-  });
+  return createSharedServiceRoleClient();
 }
 

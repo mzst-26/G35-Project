@@ -14,6 +14,7 @@
 
 import { z } from "zod";
 import { EMAIL_MAX_LENGTH, EMAIL_REGEX } from "@infra/shared-utils";
+import { uuidV4Schema, phoneSchema, isoDateSchema } from "@infra/shared-validation";
 
 // ---------------------------------------------------------------------------
 // Shared field definitions
@@ -39,7 +40,9 @@ const totpCodeField = z
 const uuidField = (fieldName: string) =>
   z
     .string({ required_error: `${fieldName} is required.` })
-    .uuid(`${fieldName} must be a valid UUID.`);
+    .refine((value) => uuidV4Schema.safeParse(value).success, {
+      message: `${fieldName} must be a valid UUID.`,
+    });
 
 // ---------------------------------------------------------------------------
 // OTP request — POST /api/auth/otp/request
@@ -160,7 +163,12 @@ const fullNameField = (field: string, max = 120) =>
 const phoneField = z
   .string({ required_error: "Requester phone is required." })
   .trim()
-  .regex(/^\+[1-9]\d{6,14}$/, "Requester phone must be in international format (for example +447700900123).");
+  .refine((value) => phoneSchema.safeParse(value).success, {
+    message: "Requester phone must be in international format (for example +447700900123).",
+  })
+  .refine((value) => value.length >= 8, {
+    message: "Requester phone must be in international format (for example +447700900123).",
+  });
 
 export const RecruiterRegistrationSubmitSchema = z
   .object({
@@ -206,7 +214,11 @@ export const RecruiterRegistrationSubmitSchema = z
       .refine((v) => v === "" || EMAIL_REGEX.test(v), "Must be a valid email address.")
       .optional()
       .or(z.literal("")),
-    policiesAcceptedAt: z.string().datetime({ message: "Policies accepted timestamp must be a valid ISO date-time." }),
+    policiesAcceptedAt: z
+      .string()
+      .refine((value) => isoDateSchema.safeParse(value).success, {
+        message: "Policies accepted timestamp must be a valid ISO date-time.",
+      }),
     metadata: z.record(z.unknown()).optional(),
   })
   .superRefine((value, ctx) => {

@@ -1,0 +1,365 @@
+name: Core Platform Service CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/services/core-platform/**'
+      - 'backend/packages/**'
+      - '.github/workflows/core-platform-ci.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/services/core-platform/**'
+      - 'backend/packages/**'
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/core-platform
+
+jobs:
+  # ============================================================================
+  # Lint & Type Check
+  # ============================================================================
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/services/core-platform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: false
+
+      - name: TypeScript type check
+        run: npm run typecheck
+        continue-on-error: false
+
+      - name: ESLint report (JSON for analysis)
+        run: npm run lint -- --format json > eslint-report.json 2>&1 || true
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: backend/services/core-platform/eslint-report.json
+
+  # ============================================================================
+  # Unit & Integration Tests
+  # ============================================================================
+  test:
+    name: Test Suite (Unit/Integration)
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    defaults:
+      run:
+        working-directory: backend/services/core-platform
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: core_platform_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgres://test_user:test_password@localhost:5432/core_platform_test
+      NODE_ENV: test
+      LOG_LEVEL: error
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run database migrations
+        run: npm run db:migrate
+        working-directory: backend/services/core-platform
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage
+        continue-on-error: false
+
+      - name: Run integration tests
+        run: npm run test:integration -- --coverage
+        continue-on-error: false
+
+      - name: Run security tests
+        run: npm run test:security
+        continue-on-error: false
+
+      - name: Run system tests (slow)
+        run: npm run test:system
+        continue-on-error: true
+        timeout-minutes: 10
+
+      - name: Merge coverage reports
+        run: npm run test:coverage:merge
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: core-platform
+          fail_ci_if_error: false
+
+      - name: Check coverage thresholds (critical modules)
+        run: |
+          AUTH_COV=$(jq '.security.auth.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo "0")
+          PAYMENT_COV=$(jq '.services.payment.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo "0")
+          
+          if (( ${AUTH_COV%.*} < 90 )); then
+            echo "❌ Auth module coverage too low: ${AUTH_COV}% (required: 90%)"
+            exit 1
+          fi
+          echo "✅ Coverage thresholds passed"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            backend/services/core-platform/coverage/
+            backend/services/core-platform/test-results.json
+
+  # ============================================================================
+  # Security & Vulnerability Scanning
+  # ============================================================================
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Dependency audit (npm audit)
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: SAST scan (with eslint-plugin-security)
+        run: npm run lint -- --ext .ts --plugin security
+        working-directory: backend/services/core-platform
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./backend/services/core-platform
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug
+
+  # ============================================================================
+  # Build Docker Image
+  # ============================================================================
+  build-image:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/services/core-platform
+          file: ./backend/services/core-platform/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+
+  # ============================================================================
+  # E2E Tests (Optional, for staging/main only)
+  # ============================================================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: build-image
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: backend/services/core-platform
+        env:
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+          STAGING_AUTH_TOKEN: ${{ secrets.STAGING_AUTH_TOKEN }}
+        continue-on-error: true
+
+      - name: Upload E2E results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: backend/services/core-platform/test-results-e2e/
+
+  # ============================================================================
+  # Summary Report
+  # ============================================================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test, security, build-image]
+    if: always()
+
+    steps:
+      - name: Determine result
+        id: result
+        run: |
+          if [ "${{ needs.lint-and-typecheck.result }}" = "failure" ] || \
+             [ "${{ needs.test.result }}" = "failure" ] || \
+             [ "${{ needs.security.result }}" = "failure" ] || \
+             [ "${{ needs.build-image.result }}" = "failure" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report CI Status
+        run: |
+          echo "✅ CI Pipeline completed"
+          echo "Lint & Type Check: ${{ needs.lint-and-typecheck.result }}"
+          echo "Tests: ${{ needs.test.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          echo "Docker Build: ${{ needs.build-image.result }}"
+          echo ""
+          echo "Overall Status: ${{ steps.result.outputs.status }}"
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.result.outputs.status }}';
+            const icon = status === 'passed' ? '✅' : '❌';
+            const message = `${icon} Core Platform CI: ${status.toUpperCase()}
+            
+            - Lint & TypeScript: ${{ needs.lint-and-typecheck.result }}
+            - Tests: ${{ needs.test.result }}
+            - Security: ${{ needs.security.result }}
+            - Build: ${{ needs.build-image.result }}`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });

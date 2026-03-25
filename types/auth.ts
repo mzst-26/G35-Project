@@ -72,6 +72,7 @@ export interface MfaCompleteAdminLoginResponse {
 
 export interface SessionMeResponse {
   user: AuthUser;
+  sessionId?: string;
 }
 
 export interface RefreshSessionResponse {

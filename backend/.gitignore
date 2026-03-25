@@ -1,6 +1,7 @@
 node_modules
 dist
 coverage
+**/coverage/
 .DS_Store
 .env
 __pycache__
@@ -8,7 +9,6 @@ __pycache__
 .venv
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
-services/core-platform/*
 services/communications/*
 services/payments-penalties/*
 services/allocation/*

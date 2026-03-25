@@ -13,7 +13,7 @@ import { Router } from "express";
 import crypto from "node:crypto";
 import { requestOtp, verifyOtp } from "../auth/otp.service.js";
 import { submitRecruiterRegistration } from "../auth/companyRegistration.service.js";
-import { refreshSession, revokeSession } from "../auth/session.service.js";
+import { decodeJwtPayload, refreshSession, revokeSession } from "../auth/session.service.js";
 import { createRateLimiter } from "../security/index.js";
 import {
   parseOrThrow,
@@ -200,8 +200,12 @@ authRouter.get(
   "/session/me",
   authenticate,
   (req, res) => {
+    const accessToken = req.cookies?.["sb-access-token"] as string | undefined;
+    const jwtPayload = accessToken ? decodeJwtPayload(accessToken) : {};
+    const sessionId = typeof jwtPayload["session_id"] === "string" ? jwtPayload["session_id"] : undefined;
+
     // req.user is guaranteed present after authenticate middleware.
-    res.status(200).json({ user: req.user });
+    res.status(200).json({ user: req.user, sessionId });
   },
 );
 

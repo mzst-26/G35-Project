@@ -12,6 +12,7 @@ import { JobRequestPage } from "@/components/chat/JobRequestPage";
 import Support from "@/components/recruiter_dashboard/support";
 import { SettingsSection } from "@/components/trade_dashboard/SettingsSection";
 import { useRouter } from "next/navigation";
+import { SidebarUserMenu } from "@/components/auth/SidebarUserMenu";
 
 
 export default function CompanyDashboard() {
@@ -100,7 +101,7 @@ export default function CompanyDashboard() {
 
       {/* Mobile Sidebar) */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
+        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <span className="text-white">TF</span>
@@ -111,7 +112,7 @@ export default function CompanyDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-1">
               {navItems.map((sideBarActionItem) => (
                 //for every item in the navItem object, we generate a button and change their styling based on if the button is the current slelected page or not
                 <Button
@@ -132,6 +133,11 @@ export default function CompanyDashboard() {
                 </Button>
               ))}
         </nav>
+
+        <SidebarUserMenu
+          onGoToSettings={() => setActiveSection("settings")}
+          onAfterAction={() => setMobileMenuOpen(false)}
+        />
         </div>
       )}
 
@@ -167,6 +173,8 @@ export default function CompanyDashboard() {
               </Button>
             ))}
       </nav>
+
+            <SidebarUserMenu onGoToSettings={() => setActiveSection("settings")} />
 
       </div>
 

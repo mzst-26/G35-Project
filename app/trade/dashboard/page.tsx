@@ -10,6 +10,7 @@ import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
 import Support from "@/components/trade_dashboard/support";
 import Settings from "@/components/trade_dashboard/settings";
+import { SidebarUserMenu } from "@/components/auth/SidebarUserMenu";
 
 
 
@@ -54,7 +55,7 @@ export default function TradeDashboard() {
 
       {/* mobile sidebar */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
+        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <span className="text-white">TF</span>
@@ -65,7 +66,7 @@ export default function TradeDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-1">
               {navItems.map((sideBarActionItem) => (
                 <Button
                   key={sideBarActionItem.label}
@@ -85,6 +86,11 @@ export default function TradeDashboard() {
                 </Button>
               ))}
         </nav>
+
+        <SidebarUserMenu
+          onGoToSettings={() => setActiveSection("settings")}
+          onAfterAction={() => setMobileMenuOpen(false)}
+        />
         </div>
       )}
 
@@ -119,6 +125,8 @@ export default function TradeDashboard() {
               </Button>
             ))}
       </nav>
+
+            <SidebarUserMenu onGoToSettings={() => setActiveSection("settings")} />
 
       </div>
 

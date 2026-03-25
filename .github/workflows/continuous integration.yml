@@ -29,3 +29,30 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  backend-shared-packages:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Test shared packages
+        run: npm run test:shared
+
+      - name: Build shared packages
+        run: npm run build:shared
+
+      - name: Test core-platform service
+        run: npm run test -w @infra/core-platform-service && npm run typecheck -w @infra/core-platform-service

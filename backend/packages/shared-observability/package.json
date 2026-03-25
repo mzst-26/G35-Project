@@ -1,0 +1,39 @@
+{
+  "name": "@infra/shared-observability",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pino": "^9.4.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "peerDependencies": {
+    "@sentry/node": "^9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@sentry/node": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@sentry/node": "^9.11.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.19",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.1"
+  }
+}

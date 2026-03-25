@@ -1,25 +1,21 @@
 // Typed error classes for the identity service.
 // Use instanceof checks in error handlers and tests for reliable branching.
 // HTTP status codes and error codes are co-located with the error type.
+//
+// Implementation note:
+//  - BaseAuthError is rebased on @infra/shared-errors/BaseApiError so the
+//    platform uses one shared error foundation while preserving identity-specific
+//    subclasses and payload shapes.
+
+import { BaseApiError } from "@infra/shared-errors";
 
 // ---------------------------------------------------------------------------
 // Base
 // ---------------------------------------------------------------------------
 
-export abstract class BaseAuthError extends Error {
-  abstract readonly statusCode: number;
-  abstract readonly code: string;
-
-  constructor(message: string) {
-    super(message);
-    this.name = this.constructor.name;
-    // Restore prototype chain broken by TypeScript Error subclassing.
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-
-  // Returns a client-safe JSON shape — no stack trace.
-  toJSON(): { code: string; message: string } {
-    return { code: this.code, message: this.message };
+export abstract class BaseAuthError extends BaseApiError {
+  constructor(message: string, statusCode: number, code: string, cause?: unknown) {
+    super(code, message, statusCode, cause);
   }
 }
 
@@ -29,17 +25,15 @@ export abstract class BaseAuthError extends Error {
 
 // Throws when request input fails Zod validation. HTTP 400.
 export class ValidationError extends BaseAuthError {
-  readonly statusCode = 400 as const;
-  readonly code = "VALIDATION_ERROR" as const;
-
   // Field-level validation issues from Zod.
   readonly issues: ReadonlyArray<{ field: string; message: string }>;
 
   constructor(
     message: string,
     issues: ReadonlyArray<{ field: string; message: string }> = [],
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, 400, "VALIDATION_ERROR", cause);
     this.issues = issues;
   }
 
@@ -54,9 +48,6 @@ export class ValidationError extends BaseAuthError {
 
 // Throws when credentials are missing or the token is expired. HTTP 401.
 export class AuthenticationError extends BaseAuthError {
-  readonly statusCode = 401 as const;
-  readonly code: string;
-
   constructor(
     message: string,
     code:
@@ -72,9 +63,9 @@ export class AuthenticationError extends BaseAuthError {
         | "ACCOUNT_REJECTED"
         | "ACCOUNT_SUSPENDED"
       | "MFA_ENROLLMENT_REQUIRED" = "TOKEN_INVALID",
+    cause?: unknown,
   ) {
-    super(message);
-    this.code = code;
+    super(message, 401, code, cause);
   }
 }
 
@@ -84,13 +75,10 @@ export class AuthenticationError extends BaseAuthError {
 
 // Throws when the user is authenticated but lacks the required permission. HTTP 403.
 export class ForbiddenError extends BaseAuthError {
-  readonly statusCode = 403 as const;
-  readonly code = "FORBIDDEN" as const;
-
   readonly requiredPermission?: string;
 
-  constructor(message: string, requiredPermission?: string) {
-    super(message);
+  constructor(message: string, requiredPermission?: string, cause?: unknown) {
+    super(message, 403, "FORBIDDEN", cause);
     this.requiredPermission = requiredPermission;
   }
 }
@@ -101,14 +89,15 @@ export class ForbiddenError extends BaseAuthError {
 
 // Throws when a step-up MFA challenge is needed. HTTP 403 with challengeUrl hint.
 export class MfaRequiredError extends BaseAuthError {
-  readonly statusCode = 403 as const;
-  readonly code = "MFA_REQUIRED" as const;
-
   // The endpoint the client should redirect to for the MFA challenge.
   readonly challengeUrl: string;
 
   constructor(challengeUrl: string) {
-    super("This action requires multi-factor authentication. Please complete the MFA challenge.");
+    super(
+      "This action requires multi-factor authentication. Please complete the MFA challenge.",
+      403,
+      "MFA_REQUIRED",
+    );
     this.challengeUrl = challengeUrl;
   }
 
@@ -123,8 +112,9 @@ export class MfaRequiredError extends BaseAuthError {
 
 // Throws when the operation conflicts with existing state. HTTP 409.
 export class ConflictError extends BaseAuthError {
-  readonly statusCode = 409 as const;
-  readonly code = "CONFLICT" as const;
+  constructor(message = "The requested operation conflicts with existing state.", cause?: unknown) {
+    super(message, 409, "CONFLICT", cause);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -133,14 +123,11 @@ export class ConflictError extends BaseAuthError {
 
 // Throws when the client exceeds the allowed request rate. HTTP 429.
 export class RateLimitError extends BaseAuthError {
-  readonly statusCode = 429 as const;
-  readonly code = "RATE_LIMITED" as const;
-
   // Unix timestamp (seconds) when the client may retry.
   readonly retryAfter: number;
 
   constructor(retryAfter: number) {
-    super("Too many requests. Please try again later.");
+    super("Too many requests. Please try again later.", 429, "RATE_LIMITED");
     this.retryAfter = retryAfter;
   }
 
@@ -156,13 +143,7 @@ export class RateLimitError extends BaseAuthError {
 // Throws for unexpected errors not safe to surface to clients.
 // Original cause is preserved for Sentry. HTTP 500.
 export class InternalAuthError extends BaseAuthError {
-  readonly statusCode = 500 as const;
-  readonly code = "INTERNAL_ERROR" as const;
-
   constructor(cause?: unknown) {
-    super("An unexpected authentication error occurred. Please try again.");
-    if (cause instanceof Error) {
-      this.cause = cause;
-    }
+    super("An unexpected authentication error occurred. Please try again.", 500, "INTERNAL_ERROR", cause);
   }
 }
