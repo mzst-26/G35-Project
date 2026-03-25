@@ -41,26 +41,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
         working-directory: backend
 
       - name: Run linter
-        run: pnpm lint
+        run: npm run lint
         continue-on-error: false
 
       - name: TypeScript type check
-        run: pnpm typecheck
+        run: npm run typecheck
         continue-on-error: false
 
       - name: ESLint report (JSON for analysis)
-        run: pnpm lint -- --format json > eslint-report.json 2>&1 || true
+        run: npm run lint -- --format json > eslint-report.json 2>&1 || true
 
       - name: Upload lint report
         if: always()
@@ -108,41 +105,38 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
         working-directory: backend
 
       - name: Run database migrations
-        run: pnpm db:migrate
+        run: npm run db:migrate
         working-directory: backend/services/core-platform
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run unit tests
-        run: pnpm test:unit -- --coverage
+        run: npm run test:unit -- --coverage
         continue-on-error: false
 
       - name: Run integration tests
-        run: pnpm test:integration -- --coverage
+        run: npm run test:integration -- --coverage
         continue-on-error: false
 
       - name: Run security tests
-        run: pnpm test:security
+        run: npm run test:security
         continue-on-error: false
 
       - name: Run system tests (slow)
-        run: pnpm test:system
+        run: npm run test:system
         continue-on-error: true
         timeout-minutes: 10
 
       - name: Merge coverage reports
-        run: pnpm test:coverage:merge
+        run: npm run test:coverage:merge
         continue-on-error: true
 
       - name: Upload coverage to Codecov
@@ -188,22 +182,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
         working-directory: backend
 
       - name: Dependency audit (npm audit)
-        run: pnpm audit --audit-level moderate
+        run: npm audit --audit-level moderate
         continue-on-error: true
 
       - name: SAST scan (with eslint-plugin-security)
-        run: pnpm lint -- --ext .ts --plugin security
+        run: npm run lint -- --ext .ts --plugin security
         working-directory: backend/services/core-platform
         continue-on-error: true
 
@@ -297,18 +288,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
         working-directory: backend
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: npm run test:e2e
         working-directory: backend/services/core-platform
         env:
           STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
