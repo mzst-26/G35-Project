@@ -41,25 +41,25 @@ ENV NODE_ENV=production \
 
 RUN addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
 
-COPY --from=builder --chown=node:node /app/package.json /app/package-lock.json /app/
-COPY --from=builder --chown=node:node /app/node_modules /app/node_modules
-COPY --from=builder --chown=node:node /app/packages/shared-auth/package.json /app/packages/shared-auth/
-COPY --from=builder --chown=node:node /app/packages/shared-auth/dist /app/packages/shared-auth/dist
-COPY --from=builder --chown=node:node /app/packages/shared-db/package.json /app/packages/shared-db/
-COPY --from=builder --chown=node:node /app/packages/shared-db/dist /app/packages/shared-db/dist
-COPY --from=builder --chown=node:node /app/packages/shared-errors/package.json /app/packages/shared-errors/
-COPY --from=builder --chown=node:node /app/packages/shared-errors/dist /app/packages/shared-errors/dist
-COPY --from=builder --chown=node:node /app/packages/shared-observability/package.json /app/packages/shared-observability/
-COPY --from=builder --chown=node:node /app/packages/shared-observability/dist /app/packages/shared-observability/dist
-COPY --from=builder --chown=node:node /app/packages/shared-permissions/package.json /app/packages/shared-permissions/
-COPY --from=builder --chown=node:node /app/packages/shared-permissions/dist /app/packages/shared-permissions/dist
-COPY --from=builder --chown=node:node /app/packages/shared-validation/package.json /app/packages/shared-validation/
-COPY --from=builder --chown=node:node /app/packages/shared-validation/dist /app/packages/shared-validation/dist
-COPY --from=builder --chown=node:node /app/services/core-platform/package.json /app/services/core-platform/
-COPY --from=builder --chown=node:node /app/services/core-platform/dist /app/services/core-platform/dist
-COPY --from=builder --chown=node:node /app/services/core-platform/node_modules /app/services/core-platform/node_modules
+COPY --from=builder --chown=app:app /app/package.json /app/package-lock.json /app/
+COPY --from=builder --chown=app:app /app/node_modules /app/node_modules
+COPY --from=builder --chown=app:app /app/packages/shared-auth/package.json /app/packages/shared-auth/
+COPY --from=builder --chown=app:app /app/packages/shared-auth/dist /app/packages/shared-auth/dist
+COPY --from=builder --chown=app:app /app/packages/shared-db/package.json /app/packages/shared-db/
+COPY --from=builder --chown=app:app /app/packages/shared-db/dist /app/packages/shared-db/dist
+COPY --from=builder --chown=app:app /app/packages/shared-errors/package.json /app/packages/shared-errors/
+COPY --from=builder --chown=app:app /app/packages/shared-errors/dist /app/packages/shared-errors/dist
+COPY --from=builder --chown=app:app /app/packages/shared-observability/package.json /app/packages/shared-observability/
+COPY --from=builder --chown=app:app /app/packages/shared-observability/dist /app/packages/shared-observability/dist
+COPY --from=builder --chown=app:app /app/packages/shared-permissions/package.json /app/packages/shared-permissions/
+COPY --from=builder --chown=app:app /app/packages/shared-permissions/dist /app/packages/shared-permissions/dist
+COPY --from=builder --chown=app:app /app/packages/shared-validation/package.json /app/packages/shared-validation/
+COPY --from=builder --chown=app:app /app/packages/shared-validation/dist /app/packages/shared-validation/dist
+COPY --from=builder --chown=app:app /app/services/core-platform/package.json /app/services/core-platform/
+COPY --from=builder --chown=app:app /app/services/core-platform/dist /app/services/core-platform/dist
+COPY --from=builder --chown=app:app /app/services/core-platform/node_modules /app/services/core-platform/node_modules
 
-USER node
+USER app
 WORKDIR /app/services/core-platform
 EXPOSE 3001
 
