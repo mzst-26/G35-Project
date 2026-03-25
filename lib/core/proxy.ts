@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerEnvConfig } from '@/lib/auth/env-validation';
 import { logger } from '@/lib/utils/logger';
+import { sloMonitor } from '@/lib/utils/slo-monitor';
 
 const ALLOWED_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
@@ -85,6 +86,37 @@ function validateUpstreamHost(url: string, allowedBase: string): boolean {
 function rejectPathTraversal(path: string): boolean {
   const dangerous = ['..', '%2e%2e', '\\', '%5c'];
   return dangerous.some((seq) => path.includes(seq));
+}
+
+function getDomainFromEndpoint(endpoint: string): string {
+  const cleaned = endpoint.split('?')[0].replace(/^\/+/, '');
+  const parts = cleaned.split('/').filter(Boolean);
+  return parts[2] || parts[1] || parts[0] || 'unknown';
+}
+
+function evaluateSloAndLog(
+  latencyMs: number,
+  status: number,
+  endpoint: string,
+  timedOut = false,
+  authFailure = false,
+): void {
+  const alerts = sloMonitor.recordObservation({
+    latencyMs,
+    status,
+    timedOut,
+    authFailure,
+    domain: getDomainFromEndpoint(endpoint),
+  });
+
+  if (alerts.length > 0) {
+    logger.warn('SLO alert triggered', {
+      endpoint,
+      status,
+      latencyMs,
+      alerts,
+    });
+  }
 }
 
 async function getCoreProxyResponse(
@@ -218,6 +250,7 @@ export async function proxyCoreRequest(
     const latencyMs = Date.now() - startTime;
     metrics.totalRequests++;
     metrics.totalLatencyMs += latencyMs;
+    evaluateSloAndLog(latencyMs, proxyResponse.status, options.endpoint);
 
     // Log successful proxy
     logger.info('Proxy request completed', {
@@ -244,6 +277,14 @@ export async function proxyCoreRequest(
     metrics.totalLatencyMs += latencyMs;
 
     if (error instanceof CoreProxyError) {
+      evaluateSloAndLog(
+        latencyMs,
+        error.status,
+        options.endpoint,
+        error.code === 'REQUEST_TIMEOUT',
+        error.code === 'UNAUTHORIZED',
+      );
+
       logger.warn('Proxy error', {
         code: error.code,
         status: error.status,
@@ -269,6 +310,7 @@ export async function proxyCoreRequest(
     }
 
     // Unknown error, normalize to 502
+    evaluateSloAndLog(latencyMs, 502, options.endpoint);
     logger.error('Unexpected proxy error', error, { latencyMs });
     const errorBody = JSON.stringify({
       code: 'BAD_GATEWAY',
