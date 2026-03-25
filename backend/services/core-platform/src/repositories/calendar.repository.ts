@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceUnavailableError } from "@infra/shared-errors";
+import { randomUUID } from "node:crypto";
 import { JobStatus } from "../domain/jobs/jobs.types.js";
 import {
   type AuditEntry,
@@ -65,6 +66,10 @@ function endOfDayUtc(date: Date): Date {
   return new Date(`${toDateOnly(date)}T23:59:59.999Z`);
 }
 
+function parseUtcDateOrTimestamp(raw: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00.000Z`) : new Date(raw);
+}
+
 function mapAvailability(row: WorkerAvailabilityRow): WorkerAvailability {
   return {
     id: row.id,
@@ -91,7 +96,7 @@ function mapOverlapJob(row: JobOverlapRow): OverlappingJob | null {
   return {
     id: row.id,
     status: row.status as JobStatus,
-    startAt: new Date(startRaw),
+    startAt: parseUtcDateOrTimestamp(startRaw),
   };
 }
 
@@ -102,9 +107,18 @@ function overlapsRange(row: JobOverlapRow, range: DateRange): boolean {
     return false;
   }
 
-  const jobStart = new Date(startRaw);
-  const jobEnd = new Date(endRaw);
+  const jobStart = parseUtcDateOrTimestamp(startRaw);
+  const jobEnd = parseUtcDateOrTimestamp(endRaw);
   return jobStart <= range.end && jobEnd >= range.start;
+}
+
+type SupabaseErrorLike = { code?: string; message?: string };
+
+function isMissingAuditLogTable(error: SupabaseErrorLike | null | undefined): boolean {
+  return (
+    error?.code === "42P01" ||
+    (error?.message?.includes('relation "audit_log"') ?? false)
+  );
 }
 
 export class SupabaseCalendarRepository implements CalendarRepository {
@@ -248,7 +262,7 @@ export class SupabaseCalendarRepository implements CalendarRepository {
   }
 
   async writeAuditEntry(entry: AuditEntry): Promise<void> {
-    const { error } = await this.client.from("audit_log").insert({
+    const primaryInsert = {
       action: entry.action,
       actor_id: entry.actorId,
       worker_id: entry.workerId,
@@ -256,10 +270,35 @@ export class SupabaseCalendarRepository implements CalendarRepository {
       request_id: entry.requestId ?? null,
       payload: entry.payload,
       created_at: entry.timestamp.toISOString(),
+    };
+
+    const { error } = await this.client.from("audit_log").insert(primaryInsert);
+    if (!error) {
+      return;
+    }
+
+    if (!isMissingAuditLogTable(error as SupabaseErrorLike)) {
+      throw new ServiceUnavailableError("Failed to write calendar audit entry.", error);
+    }
+
+    const fallback = await this.client.from("audit_logs").insert({
+      id: randomUUID(),
+      event_id: randomUUID(),
+      request_id: entry.requestId ?? randomUUID(),
+      event_name: `calendar.availability.${entry.action}`,
+      user_id: entry.actorId,
+      role: null,
+      ip_subnet: null,
+      occurred_at: entry.timestamp.toISOString(),
+      metadata: {
+        workerId: entry.workerId,
+        availabilityId: entry.availabilityId,
+        payload: entry.payload,
+      },
     });
 
-    if (error) {
-      throw new ServiceUnavailableError("Failed to write calendar audit entry.", error);
+    if (fallback.error) {
+      throw new ServiceUnavailableError("Failed to write calendar audit entry.", fallback.error);
     }
   }
 }
