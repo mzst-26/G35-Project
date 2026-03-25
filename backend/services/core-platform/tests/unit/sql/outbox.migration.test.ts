@@ -6,7 +6,7 @@ describe("outbox migration integrity", () => {
   it("contains status and retry count constraints and queue indexes", () => {
     const filePath = path.resolve(
       process.cwd(),
-      "../../../SQL/migrations/core-platform/007_outbox_integrity_constraints.sql",
+      "../../../SQL/schema.sql",
     );
     const sql = readFileSync(filePath, "utf8");
 
