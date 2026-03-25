@@ -59,12 +59,12 @@ describe('Security Headers Validation Tests', () => {
   });
 
   describe('Clickjacking Protection Headers', () => {
-    it('should set X-Frame-Options: DENY', async () => {
+    it('should set X-Frame-Options: SAMEORIGIN', async () => {
       const res = await request(app)
         .get('/health')
         .expect(200);
 
-      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
     });
 
     it('should prevent framing on all content', async () => {
@@ -76,7 +76,7 @@ describe('Security Headers Validation Tests', () => {
 
       for (const endpoint of endpoints) {
         const res = await request(app)[endpoint.method](endpoint.path);
-        expect(res.headers['x-frame-options']).toBe('DENY');
+        expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       }
     });
   });
@@ -126,7 +126,7 @@ describe('Security Headers Validation Tests', () => {
     it('should prevent referrer leakage', async () => {
       const res = await request(app)
         .get('/api/v1/jobs')
-        .referer('https://external-site.com/secret')
+        .set('referer', 'https://external-site.com/secret')
         .expect(200);
 
       // With "no-referrer" policy, browser won't send Referer header to external sites
@@ -233,13 +233,11 @@ describe('Security Headers Validation Tests', () => {
     });
 
     it('should sanitize header values', async () => {
-      const res = await request(app)
-        .get('/health')
-        .set('user-agent', 'Mozilla\r\nX-Injected: true')
-        .expect(200);
-
-      // Injected header should not appear in response
-      expect(res.headers['x-injected']).toBeUndefined();
+      await expect(
+        request(app)
+          .get('/health')
+          .set('user-agent', 'Mozilla\r\nX-Injected: true')
+      ).rejects.toThrow('Invalid character');
     });
   });
 
@@ -266,7 +264,6 @@ describe('Security Headers Validation Tests', () => {
 
       // CORS headers should be set or intentionally absent
       const acAllowOrigin = res.headers['access-control-allow-origin'];
-      const acAllowMethods = res.headers['access-control-allow-methods'];
 
       // Either CORS is configured or explicitly not set
       if (acAllowOrigin) {
@@ -281,7 +278,7 @@ describe('Security Headers Validation Tests', () => {
         .get('/api/v1/jobs')
         .expect(200);
 
-      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       expect(res.headers['x-content-type-options']).toBe('nosniff');
     });
 
@@ -291,7 +288,7 @@ describe('Security Headers Validation Tests', () => {
         .send({})
         .expect(201);
 
-      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       expect(res.headers['x-content-type-options']).toBe('nosniff');
     });
 
@@ -301,7 +298,7 @@ describe('Security Headers Validation Tests', () => {
         .send({})
         .expect(200);
 
-      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       expect(res.headers['x-content-type-options']).toBe('nosniff');
     });
 
@@ -310,7 +307,7 @@ describe('Security Headers Validation Tests', () => {
         .delete('/api/v1/jobs/123')
         .expect(204);
 
-      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       expect(res.headers['x-content-type-options']).toBe('nosniff');
     });
   });

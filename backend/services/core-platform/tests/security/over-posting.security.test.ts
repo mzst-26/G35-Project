@@ -211,7 +211,7 @@ describe('Input Validation & Over-posting Security Tests', () => {
         .expect(400);
 
       expect(res.body.code).toBe('VALIDATION_ERROR');
-      expect(res.body.error).toContain('Invalid UUID');
+      expect(res.body.error).toContain('Invalid uuid');
     });
 
     it('should reject invalid enum value', async () => {
@@ -326,11 +326,9 @@ describe('Input Validation & Over-posting Security Tests', () => {
             system: { flags: ['admin', 'bypass'] },
           },
         })
-        .expect(201); // Nested objects are still rejected by .strict() at top level
+        .expect(400);
 
-      // Actually .strict() only rejects top-level unknown keys
-      // Nested objects would need their own schemas
-      // This test verifies that metadata field is rejected
+      expect(res.body.code).toBe('VALIDATION_ERROR');
     });
 
     it('should reject with 50 copies of known field', async () => {
@@ -420,7 +418,7 @@ describe('Input Validation & Over-posting Security Tests', () => {
       ];
 
       // Schemas where .strict() is optional (but recommended):
-      const optionalStrict = [
+      const _optionalStrict = [
         'ListJobsFiltersSchema', // GET requests with query params
         'AdminListCompaniesFiltersSchema',
       ];
