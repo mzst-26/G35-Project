@@ -30,7 +30,7 @@ describe("calendar ownership", () => {
   });
 
   it("worker A cannot read worker B calendar", async () => {
-    const app = await createApp({ calendarRepository: createMockCalendarRepository() });
+    const { app } = await createApp({ calendarRepository: createMockCalendarRepository() });
 
     const res = await request(app)
       .get(`/api/v1/calendar/${workerB}`)
@@ -40,7 +40,7 @@ describe("calendar ownership", () => {
   });
 
   it("worker A cannot write worker B calendar", async () => {
-    const app = await createApp({ calendarRepository: createMockCalendarRepository() });
+    const { app } = await createApp({ calendarRepository: createMockCalendarRepository() });
 
     const res = await request(app)
       .post(`/api/v1/calendar/${workerB}/availability`)
@@ -58,7 +58,7 @@ describe("calendar ownership", () => {
     });
 
     const availability = buildAvailability({ workerId: workerB });
-    const app = await createApp({
+    const { app } = await createApp({
       calendarRepository: createMockCalendarRepository({
         findAvailabilityForWorker: vi.fn().mockResolvedValue([availability]),
       }),

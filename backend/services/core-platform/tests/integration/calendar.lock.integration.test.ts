@@ -43,7 +43,7 @@ describe("calendar lock integration", () => {
       ]),
     });
 
-    const app = await createApp({ calendarRepository });
+    const { app } = await createApp({ calendarRepository });
 
     const res = await request(app)
       .delete(`/api/v1/calendar/${availability.workerId}/availability/${availability.id}?version=1`)
@@ -64,7 +64,7 @@ describe("calendar lock integration", () => {
       deleteAvailability: vi.fn().mockResolvedValue(undefined),
     });
 
-    const app = await createApp({ calendarRepository });
+    const { app } = await createApp({ calendarRepository });
 
     const res = await request(app)
       .delete(`/api/v1/calendar/${availability.workerId}/availability/${availability.id}?version=1`)
@@ -84,7 +84,7 @@ describe("calendar lock integration", () => {
       deleteAvailability: vi.fn().mockResolvedValue(undefined),
     });
 
-    const app = await createApp({ calendarRepository });
+    const { app } = await createApp({ calendarRepository });
 
     const res = await request(app)
       .delete(`/api/v1/calendar/${availability.workerId}/availability/${availability.id}?version=1`)
@@ -102,7 +102,7 @@ describe("calendar lock integration", () => {
       updateAvailability: vi.fn().mockRejectedValue(new AvailabilityVersionConflictError()),
     });
 
-    const app = await createApp({ calendarRepository });
+    const { app } = await createApp({ calendarRepository });
 
     const res = await request(app)
       .patch(`/api/v1/calendar/${availability.workerId}/availability/${availability.id}`)
@@ -120,7 +120,7 @@ describe("calendar lock integration", () => {
     });
     const idem = createMockIdempotencyRepository();
 
-    const app = await createApp({
+    const { app } = await createApp({
       calendarRepository,
       idempotencyRepository: idem as unknown as IdempotencyRepository,
     });
@@ -163,7 +163,7 @@ describe("calendar lock integration", () => {
       ),
     );
 
-    const app = await createApp({
+    const { app } = await createApp({
       calendarRepository,
       idempotencyRepository: idem as unknown as IdempotencyRepository,
     });

@@ -42,7 +42,7 @@ describe("status.transition.security", () => {
       const jobsRepository = createMockJobsRepository({
         findById: vi.fn().mockResolvedValue(job),
       });
-      const app = await createApp({ jobsRepository, idempotencyRepository: idem });
+      const { app } = await createApp({ jobsRepository, idempotencyRepository: idem });
       const res = await request(app)
         .post(`/api/v1/jobs/${jobId}/status`)
         .set("Authorization", "Bearer t")
@@ -57,7 +57,7 @@ describe("status.transition.security", () => {
     const jobsRepository = createMockJobsRepository({
       findById: vi.fn().mockResolvedValue(job),
     });
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository,
       idempotencyRepository: createMockIdempotencyRepository() as unknown as IdempotencyRepository,
     });
@@ -70,7 +70,7 @@ describe("status.transition.security", () => {
 
   it("returns 401 when unauthenticated (not 422)", async () => {
     verifyTokenMock.mockRejectedValueOnce(new Error("missing"));
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository: createMockJobsRepository(),
       idempotencyRepository: createMockIdempotencyRepository() as unknown as IdempotencyRepository,
     });

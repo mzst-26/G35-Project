@@ -45,7 +45,7 @@ describe("POST /api/v1/jobs", () => {
       create: vi.fn().mockResolvedValue(created),
     });
     const idempotencyRepository = createMockIdempotencyRepository() as unknown as IdempotencyRepository;
-    const app = await createApp({ jobsRepository, idempotencyRepository });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository });
     const res = await request(app)
       .post("/api/v1/jobs")
       .set("Authorization", "Bearer t")
@@ -62,7 +62,7 @@ describe("POST /api/v1/jobs", () => {
     });
     const idem = createMockIdempotencyRepository();
     const idempotencyRepository = idem as unknown as IdempotencyRepository;
-    const app = await createApp({ jobsRepository, idempotencyRepository });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository });
 
     const res1 = await request(app)
       .post("/api/v1/jobs")
@@ -94,7 +94,7 @@ describe("POST /api/v1/jobs", () => {
     });
     const idem = createMockIdempotencyRepository();
     const idempotencyRepository = idem as unknown as IdempotencyRepository;
-    const app = await createApp({ jobsRepository, idempotencyRepository });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository });
 
     vi.mocked(idem.find).mockRejectedValueOnce(
       new ConflictError(
@@ -114,7 +114,7 @@ describe("POST /api/v1/jobs", () => {
   });
 
   it("returns 400 when required field missing", async () => {
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository: createMockJobsRepository(),
       idempotencyRepository: createMockIdempotencyRepository() as unknown as IdempotencyRepository,
     });
@@ -127,7 +127,7 @@ describe("POST /api/v1/jobs", () => {
   });
 
   it("returns 400 when idempotency-key is not a UUID", async () => {
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository: createMockJobsRepository(),
       idempotencyRepository: createMockIdempotencyRepository() as unknown as IdempotencyRepository,
     });
@@ -142,7 +142,7 @@ describe("POST /api/v1/jobs", () => {
 
   it("returns 401 when unauthenticated", async () => {
     verifyTokenMock.mockRejectedValueOnce(new Error("bad"));
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository: createMockJobsRepository(),
       idempotencyRepository: createMockIdempotencyRepository() as unknown as IdempotencyRepository,
     });

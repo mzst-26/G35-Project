@@ -28,7 +28,7 @@ describe("auth burst pre-limiter", () => {
     verifyTokenMock.mockRejectedValue(new Error("invalid"));
 
     const { createApp } = await import("../../src/app.js");
-    const app = await createApp();
+    const { app } = await createApp();
 
     const first = await request(app)
       .get("/api/v1/jobs")

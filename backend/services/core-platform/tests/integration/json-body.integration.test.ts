@@ -4,7 +4,7 @@ import { createApp } from "../../src/app.js";
 
 describe("JSON body parsing", () => {
   it("returns unified error shape for invalid JSON on API routes", async () => {
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await request(app)
       .post("/api/v1/jobs")
       .set("Content-Type", "application/json")

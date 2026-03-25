@@ -15,7 +15,7 @@ describe("bootstrap index", () => {
     const appMock = { listen: listenSpy };
 
     vi.doMock("../../src/config/env.js", () => ({
-      getEnv: () => ({ PORT: 3001 }),
+      getEnv: () => ({ PORT: 3001, SKIP_BACKGROUND_WORKERS: true }),
     }));
     vi.doMock("../../src/observability/sentry.js", () => ({
       initialiseSentry: vi.fn().mockResolvedValue(undefined),
@@ -24,7 +24,7 @@ describe("bootstrap index", () => {
       logger: { info: vi.fn(), error: vi.fn() },
     }));
     vi.doMock("../../src/app.js", () => ({
-      createApp: vi.fn().mockResolvedValue(appMock),
+      createApp: vi.fn().mockResolvedValue({ app: appMock }),
     }));
 
     const onceSpy = vi.spyOn(process, "once").mockImplementation(() => process);

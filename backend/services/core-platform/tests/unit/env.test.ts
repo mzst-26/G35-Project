@@ -4,7 +4,6 @@ const ORIGINAL_ENV = process.env;
 
 function setValidEnv(): void {
   process.env = {
-    ...ORIGINAL_ENV,
     PORT: "3001",
     NODE_ENV: "test",
     LOG_LEVEL: "silent",
@@ -20,7 +19,8 @@ function setValidEnv(): void {
     RATE_LIMIT_MAX_AUTH_BURST: "50",
     CHANGE_FEE_WINDOW_HOURS: "48",
     TRUST_PROXY_HOPS: "0",
-  };
+    SKIP_BACKGROUND_WORKERS: "false",
+  } as any;
 }
 
 describe("env config", () => {

@@ -21,7 +21,7 @@ describe("health endpoint integration", () => {
 
   it("returns 200 with db check when db healthy", async () => {
     checkDbHealthMock.mockResolvedValue({ ok: true, latencyMs: 12 });
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await request(app).get("/health");
     expect(res.status).toBe(200);
     expect(res.body.kind).toBe("ready");
@@ -30,7 +30,7 @@ describe("health endpoint integration", () => {
 
   it("returns 503 degraded when db health fails", async () => {
     checkDbHealthMock.mockResolvedValue({ ok: false, latencyMs: 45 });
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await request(app).get("/health");
     expect(res.status).toBe(503);
     expect(res.body.status).toBe("degraded");
@@ -39,7 +39,7 @@ describe("health endpoint integration", () => {
 
   it("GET /health/live is always 200 without hitting the database", async () => {
     checkDbHealthMock.mockRejectedValue(new Error("should not be called"));
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await request(app).get("/health/live");
     expect(res.status).toBe(200);
     expect(res.body.kind).toBe("live");
@@ -49,7 +49,7 @@ describe("health endpoint integration", () => {
 
   it("GET /health/ready matches /health readiness behaviour", async () => {
     checkDbHealthMock.mockResolvedValue({ ok: true, latencyMs: 1 });
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await request(app).get("/health/ready");
     expect(res.status).toBe(200);
     expect(res.body.kind).toBe("ready");

@@ -41,7 +41,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
       findById: vi.fn().mockResolvedValue(before),
       transitionStatus: vi.fn().mockResolvedValue(after),
     });
-    const app = await createApp({ jobsRepository, idempotencyRepository: idem() });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository: idem() });
     const res = await request(app)
       .post(`/api/v1/jobs/${jobId}/status`)
       .set("Authorization", "Bearer t")
@@ -59,7 +59,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
       transitionStatus: vi.fn().mockResolvedValue(after),
     });
     const idemRepo = createMockIdempotencyRepository();
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository,
       idempotencyRepository: idemRepo as unknown as IdempotencyRepository,
     });
@@ -102,7 +102,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
         "IDEMPOTENCY_CONFLICT",
       ),
     );
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository,
       idempotencyRepository: idemRepo as unknown as IdempotencyRepository,
     });
@@ -122,7 +122,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
     const jobsRepository = createMockJobsRepository({
       findById: vi.fn().mockResolvedValue(job),
     });
-    const app = await createApp({ jobsRepository, idempotencyRepository: idem() });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository: idem() });
     const res = await request(app)
       .post(`/api/v1/jobs/${jobId}/status`)
       .set("Authorization", "Bearer t")
@@ -137,7 +137,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
       findById: vi.fn().mockResolvedValue(job),
       transitionStatus: vi.fn().mockRejectedValue(new JobVersionConflictError()),
     });
-    const app = await createApp({ jobsRepository, idempotencyRepository: idem() });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository: idem() });
     const res = await request(app)
       .post(`/api/v1/jobs/${jobId}/status`)
       .set("Authorization", "Bearer t")
@@ -153,7 +153,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
       role: "trade",
       workerId: "00000000-0000-4000-8000-000000000099",
     });
-    const app = await createApp({
+    const { app } = await createApp({
       jobsRepository: createMockJobsRepository(),
       idempotencyRepository: idem(),
     });
@@ -173,7 +173,7 @@ describe("POST /api/v1/jobs/:id/status", () => {
     const jobsRepository = createMockJobsRepository({
       findById: vi.fn().mockResolvedValue(job),
     });
-    const app = await createApp({ jobsRepository, idempotencyRepository: idem() });
+    const { app } = await createApp({ jobsRepository, idempotencyRepository: idem() });
     const res = await request(app)
       .post(`/api/v1/jobs/${jobId}/status`)
       .set("Authorization", "Bearer t")
