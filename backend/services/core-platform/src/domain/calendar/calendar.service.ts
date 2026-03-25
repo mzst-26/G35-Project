@@ -107,6 +107,14 @@ export class CalendarService {
       timestamp: new Date(),
     });
 
+    if (lockCheckResult.changeFeeCandidate && lockCheckResult.lockingJobId) {
+      securityEvents.emit("calendar.availability.change_fee_candidate", {
+        workerId,
+        jobId: lockCheckResult.lockingJobId,
+        requestId: getRequestId(),
+      });
+    }
+
     if (lockCheckResult.locked) {
       securityEvents.emit("calendar.availability.lock_violation", {
         workerId,
@@ -115,14 +123,6 @@ export class CalendarService {
         requestId: getRequestId(),
       });
       throw new CalendarLockError(lockCheckResult.lockingJobId ?? "unknown");
-    }
-
-    if (lockCheckResult.changeFeeCandidate && lockCheckResult.lockingJobId) {
-      securityEvents.emit("calendar.availability.change_fee_candidate", {
-        workerId,
-        jobId: lockCheckResult.lockingJobId,
-        requestId: getRequestId(),
-      });
     }
 
     const patch: UpdateAvailabilityData = {};
@@ -174,6 +174,14 @@ export class CalendarService {
       timestamp: new Date(),
     });
 
+    if (lockCheckResult.changeFeeCandidate && lockCheckResult.lockingJobId) {
+      securityEvents.emit("calendar.availability.change_fee_candidate", {
+        workerId,
+        jobId: lockCheckResult.lockingJobId,
+        requestId: getRequestId(),
+      });
+    }
+
     if (lockCheckResult.locked) {
       securityEvents.emit("calendar.availability.lock_violation", {
         workerId,
@@ -182,14 +190,6 @@ export class CalendarService {
         requestId: getRequestId(),
       });
       throw new CalendarLockError(lockCheckResult.lockingJobId ?? "unknown");
-    }
-
-    if (lockCheckResult.changeFeeCandidate && lockCheckResult.lockingJobId) {
-      securityEvents.emit("calendar.availability.change_fee_candidate", {
-        workerId,
-        jobId: lockCheckResult.lockingJobId,
-        requestId: getRequestId(),
-      });
     }
 
     await this.calendar.deleteAvailability(availabilityId, version);
