@@ -17,6 +17,8 @@ function setValidEnv(): void {
     RATE_LIMIT_MAX_READ: "100",
     RATE_LIMIT_MAX_WRITE: "20",
     RATE_LIMIT_MAX_ADMIN: "10",
+    RATE_LIMIT_MAX_AUTH_BURST: "50",
+    CHANGE_FEE_WINDOW_HOURS: "48",
     TRUST_PROXY_HOPS: "0",
   };
 }
@@ -36,6 +38,8 @@ describe("env config", () => {
     const mod = await import("../../src/config/env.js");
     const env = mod.getEnv();
     expect(env.PORT).toBe(3001);
+    expect(env.RATE_LIMIT_MAX_AUTH_BURST).toBe(50);
+    expect(env.CHANGE_FEE_WINDOW_HOURS).toBe(48);
     expect(Object.isFrozen(env)).toBe(true);
   });
 
@@ -46,8 +50,7 @@ describe("env config", () => {
       throw new Error(`EXIT_${code}`);
     }) as never);
 
-    const mod = await import("../../src/config/env.js");
-    expect(() => mod.getEnv()).toThrow("EXIT_1");
+    await expect(import("../../src/config/env.js")).rejects.toThrow("EXIT_1");
     expect(exitSpy).toHaveBeenCalledWith(1);
     stderrSpy.mockRestore();
   });
