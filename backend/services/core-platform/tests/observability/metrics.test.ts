@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { metrics, metricsMiddleware, exportPrometheus } from '../src/observability/metrics';
+import { metrics, metricsMiddleware, exportPrometheus } from '../../src/observability/metrics';
 import { Request, Response } from 'express';
 
 describe('Metrics Collection & Observability', () => {
@@ -246,7 +246,7 @@ describe('Metrics Collection & Observability', () => {
       const mockReq = { method: 'GET', path: '/api/v1/jobs' } as Request;
       const mockRes = {
         statusCode: 200,
-        end: vi.fn((cb: () => void) => {
+        end: vi.fn(() => {
           setTimeout(() => {
             metricsMiddleware(mockReq, mockRes, () => {});
 
@@ -352,9 +352,4 @@ describe('Metrics Collection & Observability', () => {
       expect(Object.keys(summary).length).toBeGreaterThan(0);
     });
   });
-
-  // Helper function for test
-  function recordCommandError(eventType: string, success: boolean): void {
-    metrics.recordOutboxEventPublished(eventType, success, 0);
-  }
 });
