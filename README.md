@@ -11,8 +11,6 @@ npm run dev
 # or
 yarn dev
 # or
-pnpm dev
-# or
 bun dev
 ```
 
@@ -43,3 +41,46 @@ Infra saves money for companies and makes money for those who've worked for it i
 Testing deployment: https://group35-test.netlify.app/
  
 Production deployment hosted on Google Cloud Platform: https://group35-p-repo-101930512528.europe-west1.run.app
+
+## Core Integration Contract
+
+The frontend must call core-platform only through Next.js BFF routes under `/app/api/core/**`.
+
+- Browser clients never call core-platform service URLs directly.
+- Every proxied request must carry `x-request-id`; generate one if missing.
+- Write operations must enforce CSRF checks.
+- Upstream host must come from environment allowlist only.
+
+### Canonical Error Envelope
+
+All API errors returned to the browser should follow this shape:
+
+```ts
+type ErrorResponse = {
+	code: string;
+	message: string;
+	issues?: Array<{ field: string; message: string }>;
+	requestId: string;
+	timestamp: string;
+};
+```
+
+Standard status/code mappings include:
+
+- `400 CLIENT_VALIDATION_ERROR`
+- `401 UNAUTHORIZED`
+- `403 FORBIDDEN`
+- `404 NOT_FOUND`
+- `429 TOO_MANY_REQUESTS`
+- `500 INTERNAL_SERVER_ERROR`
+- `502 BAD_GATEWAY`
+- `503 SERVICE_UNAVAILABLE`
+
+## Database Source of Truth
+
+The only canonical SQL files are:
+
+- `SQL/schema.sql`
+- `SQL/policy.sql`
+
+Schema and RLS updates must be applied by updating these two files directly so the repository always has one central schema and one central policy definition.
