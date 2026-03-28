@@ -48,3 +48,18 @@ uvicorn allocation_service.main:app --reload --app-dir src
 
 - Node services: `npm test`
 - Python allocation: `npm run allocation:test`
+
+## Platform Conventions
+
+- Frontend clients call backend domains through Next.js BFF routes, not direct browser-to-service calls.
+- Service APIs should propagate `x-request-id` for traceability across identity, core-platform, and supporting services.
+- Error responses exposed to frontend clients should use a stable envelope with `code`, `message`, `requestId`, and `timestamp`.
+
+## Database SQL Source of Truth
+
+Repository-level SQL is centralized in root `SQL/` and should only use:
+
+- `SQL/schema.sql`
+- `SQL/policy.sql`
+
+Do not keep additional migration SQL files in this repository; update canonical schema and policy files directly.

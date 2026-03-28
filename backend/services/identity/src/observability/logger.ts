@@ -31,7 +31,7 @@ const transports: winston.transport[] = [
 ];
 
 // Optional file transport for local debugging (never in production).
-// Usage: LOG_FILE=./logs/identity.log pnpm dev
+// Usage: LOG_FILE=./logs/identity.log npm run dev
 if (process.env.NODE_ENV !== "production" && process.env.LOG_FILE) {
   transports.push(
     new winston.transports.File({
@@ -80,3 +80,7 @@ export function createRequestLogger(
     ...(userId ? { userId } : {}),
   });
 }
+
+
+
+
