@@ -6,11 +6,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Clock, CheckCircle2, HelpCircle, Banknote, FileText } from "lucide-react";
-import { TradePenaltiesProps, type TradePenalty } from "@/types/trade-dashboard";
+import { type TradePenalty } from "@/types/trade-dashboard";
 import { useTradePenalties } from "@/hooks/useTradePenalties";
 
-export default function Penalties(_props: TradePenaltiesProps) {
-  const [expandedPenaltyId, setExpandedPenaltyId] = useState<number | null>(null);
+export default function Penalties() {
+  const [expandedPenaltyId, setExpandedPenaltyId] = useState<string | number | null>(null);
   const { penalties, stats, isLoading, error } = useTradePenalties();
 
   const getStatusBadge = (status: TradePenalty["status"]) => {

@@ -1,14 +1,5 @@
-// Server-side environment validation for proxy layer.
-// Runs at route handler startup to fail fast on misconfiguration.
-
-const REQUIRED_SERVER_ENVS = [
-  'IDENTITY_SERVICE_URL',
-  'CORE_PLATFORM_SERVICE_URL',
-];
-
-const OPTIONAL_SERVER_ENVS = [
-  'CORE_PLATFORM_PROXY_TIMEOUT_MS',
-];
+const REQUIRED_SERVER_ENVS = ['IDENTITY_SERVICE_URL'] as const;
+const DEFAULT_LOCAL_CORE_PLATFORM_SERVICE_URL = 'http://localhost:3001';
 
 export interface ServerEnvConfig {
   identityServiceUrl: string;
@@ -25,17 +16,25 @@ export class EnvValidationError extends Error {
 }
 
 export function getServerEnvConfig(): ServerEnvConfig {
-  const missing = REQUIRED_SERVER_ENVS.filter((key) => !process.env[key]);
+  const missing: string[] = REQUIRED_SERVER_ENVS.filter((key) => !process.env[key]);
+
+  const corePlatformServiceUrl =
+    process.env.CORE_PLATFORM_SERVICE_URL ||
+    (process.env.NODE_ENV === 'production' ? undefined : DEFAULT_LOCAL_CORE_PLATFORM_SERVICE_URL);
+
+  if (!corePlatformServiceUrl) {
+    missing.push('CORE_PLATFORM_SERVICE_URL');
+  }
 
   if (missing.length > 0) {
-    throw new EnvValidationError(missing);
+    throw new EnvValidationError([...missing]);
   }
 
   return {
     identityServiceUrl: process.env.IDENTITY_SERVICE_URL as string,
-    corePlatformServiceUrl: process.env.CORE_PLATFORM_SERVICE_URL as string,
+    corePlatformServiceUrl: corePlatformServiceUrl as string,
     corePlatformProxyTimeoutMs:
-      parseInt(process.env.CORE_PLATFORM_PROXY_TIMEOUT_MS ?? '10000', 10) || 10000,
+      Number.parseInt(process.env.CORE_PLATFORM_PROXY_TIMEOUT_MS ?? '10000', 10) || 10000,
   };
 }
 
@@ -46,7 +45,6 @@ export function validateServerEnv(): void {
     if (error instanceof EnvValidationError) {
       console.error(`❌ ${error.message}`);
       console.error('Ensure all variables are set in .env.local or deployment config.');
-      throw error;
     }
     throw error;
   }

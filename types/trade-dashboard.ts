@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { JobListItemDto } from '@/types/core-dto-contracts';
 
 export type TradeSectionKey =
   | "dashboard"
@@ -16,10 +17,11 @@ export interface TradeNavItem {
 
 // Job status throughout lifecycle
 export type TradeJobStatus = 'pending' | 'upcoming' | 'completed' | 'rejected';
+export type TradeJobSourceStatus = JobListItemDto['status'];
 
 // Upcoming job card data
 export interface TradeUpcomingJob {
-  id: number;
+  id: string | number;
   title: string;
   company: string;
   location: string;
@@ -27,6 +29,7 @@ export interface TradeUpcomingJob {
   pay: number; // daily rate in GBP
   days: number; // job duration in days
   status: TradeJobStatus;
+  sourceStatus?: TradeJobSourceStatus;
   description?: string; // Job description/details
   actionByHours?: number; // For pending jobs: hours until decision deadline
   completedDate?: string; // For completed jobs: completion date (yyyy-mm-dd)
@@ -66,7 +69,7 @@ export type PenaltyStatus = 'paid' | 'unpaid' | 'disputed';
 
 // Penalty record data
 export interface TradePenalty {
-  id: number;
+  id: string | number;
   reason: string;
   amount: number;
   date: string; // ISO date string (yyyy-mm-dd)
@@ -81,6 +84,33 @@ export interface TradePenaltiesStats {
   paid: number;
   unpaid: number;
   disputed: number;
+}
+
+export function normalizeTradeJobStatus(status: TradeJobStatus | TradeJobSourceStatus): TradeJobStatus {
+  switch (status) {
+    case 'allocated':
+    case 'in_progress':
+      return 'upcoming';
+    case 'completed':
+    case 'closed':
+      return 'completed';
+    case 'cancelled':
+      return 'rejected';
+    case 'draft':
+    case 'open':
+    case 'pending_quote':
+    case 'quoted':
+    case 'pending_payment':
+    case 'paid':
+    case 'allocating':
+      return 'pending';
+    case 'pending':
+    case 'upcoming':
+    case 'rejected':
+      return status;
+    default:
+      return 'pending';
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

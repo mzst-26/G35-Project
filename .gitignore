@@ -53,6 +53,12 @@ tester_agent_prompt.txt
 !SQL/*.sql
 !SQL/migrations/**/*.sql
 
+#database build directory
+supabase/*
+supabase
+*.csv
+
+
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
 backend/services/communications/*

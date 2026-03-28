@@ -10,7 +10,8 @@ import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
 import Support from "@/components/trade_dashboard/support";
 import Settings from "@/components/trade_dashboard/settings";
-import { SidebarUserMenu } from "@/components/auth/SidebarUserMenu";
+import { SidebarProfilePanel } from "@/components/auth/SidebarProfilePanel";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 
 
@@ -25,6 +26,7 @@ export default function TradeDashboard() {
     ];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<TradeSectionKey>('dashboard');
+  const { user } = useAuth();
 
 
 
@@ -55,7 +57,7 @@ export default function TradeDashboard() {
 
       {/* mobile sidebar */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6 flex flex-col">
+        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <span className="text-white">TF</span>
@@ -66,7 +68,7 @@ export default function TradeDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1 flex-1">
+          <nav className="space-y-1">
               {navItems.map((sideBarActionItem) => (
                 <Button
                   key={sideBarActionItem.label}
@@ -87,10 +89,16 @@ export default function TradeDashboard() {
               ))}
         </nav>
 
-        <SidebarUserMenu
-          onGoToSettings={() => setActiveSection("settings")}
-          onAfterAction={() => setMobileMenuOpen(false)}
-        />
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <SidebarProfilePanel
+              userLabel={user?.email}
+              onOpenSettings={() => {
+                setActiveSection('settings');
+                setMobileMenuOpen(false);
+              }}
+              logoutRedirectPath="/login"
+            />
+          </div>
         </div>
       )}
 
@@ -126,7 +134,13 @@ export default function TradeDashboard() {
             ))}
       </nav>
 
-            <SidebarUserMenu onGoToSettings={() => setActiveSection("settings")} />
+        <div className="border-t border-slate-200 p-4">
+          <SidebarProfilePanel
+            userLabel={user?.email}
+            onOpenSettings={() => setActiveSection('settings')}
+            logoutRedirectPath="/login"
+          />
+        </div>
 
       </div>
 

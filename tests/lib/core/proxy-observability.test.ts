@@ -197,6 +197,64 @@ describe('lib/core/proxy.ts - Observability', () => {
         }),
       );
     });
+
+    it('logs invalid inbound request id after context is set', async () => {
+      (global.fetch as MockedFetch).mockResolvedValueOnce(
+        new Response('{}', { status: 200 }),
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+          'x-request-id': 'invalid/request-id',
+        },
+      });
+
+      await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+
+      expect(logger.logger.setContext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestId: expect.stringMatching(/^req-/),
+        }),
+      );
+
+      expect(logger.logger.warn).toHaveBeenCalledWith(
+        'Invalid inbound request ID format',
+        expect.objectContaining({
+          route: '/api/core/jobs',
+        }),
+      );
+    });
+
+    it('logs invalid upstream request id format warning', async () => {
+      (global.fetch as MockedFetch).mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'Database error' }), {
+          status: 500,
+          headers: {
+            'x-request-id': 'invalid/upstream-id',
+          },
+        }),
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+          'x-request-id': 'req-500-test',
+        },
+      });
+
+      await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+
+      expect(logger.logger.warn).toHaveBeenCalledWith(
+        'Invalid upstream request ID format',
+        expect.objectContaining({
+          endpoint: '/api/v1/jobs',
+          status: 500,
+        }),
+      );
+    });
   });
 
   describe('x-request-id propagation', () => {

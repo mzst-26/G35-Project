@@ -16,7 +16,7 @@ The **Core Platform** is the central backend service for the G35 Project marketp
 ### Prerequisites
 
 - **Node.js**: >= 20.x (LTS)
-- **pnpm**: >= 9.x (package manager)
+- **npm**: >= 10.x (package manager)
 - **PostgreSQL**: >= 15
 - **Docker** (optional, for containerization)
 
@@ -27,16 +27,16 @@ The **Core Platform** is the central backend service for the G35 Project marketp
 cd backend/services/core-platform
 
 # Install dependencies
-pnpm install
+npm install
 
-# Create .env file from template
-cp .env.example .env
+# Choose environment profile
+cp .env.local .env
 
 # Run database migrations
-pnpm db:migrate
+npm run db:migrate
 
-# Start development server
-pnpm dev
+# Start with local profile
+npm run dev:local
 
 # Server runs on http://localhost:3001
 ```
@@ -45,35 +45,35 @@ pnpm dev
 
 ```bash
 # Unit tests
-pnpm test:unit
+npm run test:unit
 
 # Integration tests (requires PostgreSQL)
-pnpm test:integration
+npm run test:integration
 
 # Security tests
-pnpm test:security
+npm run test:security
 
 # All tests with coverage
-pnpm test:coverage
+npm run test:coverage
 
 # Watch mode
-pnpm test:watch
+npm run test:watch
 ```
 
 ### Linting & Type Checking
 
 ```bash
 # Run ESLint
-pnpm lint
+npm run lint
 
 # Fix linting issues
-pnpm lint:fix
+npm run lint:fix
 
 # TypeScript type check
-pnpm typecheck
+npm run typecheck
 
 # Format code with Prettier
-pnpm format
+npm run format
 ```
 
 ---
@@ -245,6 +245,25 @@ Comprehensive security audit in `docs/threat-model.md`:
 - ✅ Rate limit enforcement
 - ✅ CSRF protection (optional for browser clients)
 
+### Endpoint Security Baseline
+
+Core controls required on all write and sensitive endpoints:
+
+- Strict request validation with reject-unknown behavior.
+- Authentication and permission checks before business logic.
+- Ownership checks for company and worker scoped resources.
+- Idempotency for write endpoints that can be retried.
+- PII-safe structured logging with `requestId`.
+
+### Frontend BFF Contract
+
+All browser traffic to core-platform goes through Next.js API routes under `/api/core/**`.
+
+- Core-platform receives Bearer tokens forwarded by the BFF.
+- Request IDs are generated/forwarded by the BFF and logged end to end.
+- The BFF maps upstream failures to a stable error envelope (`code`, `message`, `requestId`, `timestamp`).
+- Rate limits align to read/write/admin profiles.
+
 ---
 
 ## Core Business Logic
@@ -287,10 +306,29 @@ Comprehensive security audit in `docs/threat-model.md`:
 
 ### Environment Variables
 
+Core-platform supports 3 runtime profiles using `CORE_PLATFORM_ENV`:
+
+- `local` → loads `.env.local`
+- `development` → loads `.env.development`
+- `production` → loads `.env.production`
+
+Selection order:
+
+1. `.env.<CORE_PLATFORM_ENV>.local`
+2. `.env.<CORE_PLATFORM_ENV>`
+3. `.env.local`
+4. `.env`
+
+If `CORE_PLATFORM_ENV` is not set, it defaults to:
+
+- `production` when `NODE_ENV=production`
+- `development` otherwise
+
 Copy `.env.example` → `.env` and fill in values:
 
 ```bash
 # Core
+CORE_PLATFORM_ENV=development
 NODE_ENV=development
 PORT=3001
 LOG_LEVEL=debug
@@ -299,6 +337,34 @@ LOG_LEVEL=debug
 DATABASE_URL=postgres://user:pass@localhost:5432/core_platform
 
 # Security
+
+## Operational Readiness Checklist
+
+Run this checklist before release:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test:unit`
+- `npm run test:integration`
+- `npm run test:security`
+- `npm run test:coverage`
+
+Validate runtime and safety guarantees:
+
+- Health endpoints respond and dependency checks pass.
+- Sentry is configured and `SENTRY_DSN` is set in target environment.
+- Request IDs appear consistently in logs for API flows.
+- Sensitive fields are redacted in error and access logs.
+- Rate limiting and CSRF protections are active in deployed profile.
+
+## Database Canonical Files
+
+Core-platform now relies on two central SQL sources in the repository root:
+
+- `SQL/schema.sql` for schema and relational structure.
+- `SQL/policy.sql` for RLS and access policies.
+
+Avoid maintaining parallel migration scripts in this repo; keep schema and policy state authoritative in the central files.
 JWT_PUBLIC_KEY=<public-key-from-identity-service>
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 
@@ -307,6 +373,14 @@ SENTRY_DSN=https://...@sentry.io/...
 ```
 
 See `.env.example` for complete reference.
+
+Run commands by profile:
+
+```bash
+npm run dev:local
+npm run dev:development
+npm run dev:production
+```
 
 ### Feature Flags
 
@@ -384,22 +458,22 @@ Tracked events:
 
 ```bash
 # Unit tests only
-pnpm test:unit
+npm run test:unit
 
 # Integration tests (requires DB)
-pnpm test:integration
+npm run test:integration
 
 # Security tests (auth, PII, headers, etc.)
-pnpm test:security
+npm run test:security
 
 # System/E2E tests
-pnpm test:system
+npm run test:system
 
 # Full suite with coverage
-pnpm test:coverage
+npm run test:coverage
 
 # Watch mode during development
-pnpm test:watch
+npm run test:watch
 ```
 
 ---
@@ -446,7 +520,11 @@ File: `.github/workflows/core-platform-ci.yml`
 docker-compose up -d
 
 # Or using Docker image
-docker run -p 3001:3001 -e DATABASE_URL=... ghcr.io/.../core-platform:latest
+docker build -f backend/services/core-platform/Dockerfile \
+   --build-arg CORE_PLATFORM_ENV=development \
+   -t core-platform:dev backend
+
+docker run -p 3001:3001 -e CORE_PLATFORM_ENV=development -e DATABASE_URL=... core-platform:dev
 ```
 
 **Production**:
@@ -504,7 +582,7 @@ HTTP 429 Too Many Requests
 Enable verbose logging:
 
 ```bash
-DEBUG=* LOG_LEVEL=trace pnpm dev
+DEBUG=* LOG_LEVEL=trace npm run dev
 ```
 
 Check Sentry dashboard for recent errors:

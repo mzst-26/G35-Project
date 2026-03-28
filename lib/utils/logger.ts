@@ -20,11 +20,12 @@ export interface LogEntry {
   context?: Omit<LogContext, 'requestId' | 'userId'>;
 }
 
-// Redact sensitive headers and fields
 const SENSITIVE_FIELDS = ['authorization', 'cookie', 'x-csrf-token', 'password', 'token', 'secret'];
 
 export function redactSensitive(obj: unknown): unknown {
-  if (typeof obj !== 'object' || obj === null) return obj;
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
 
   if (Array.isArray(obj)) {
     return obj.map(redactSensitive);
@@ -34,10 +35,14 @@ export function redactSensitive(obj: unknown): unknown {
   for (const key in redacted) {
     if (SENSITIVE_FIELDS.some((field) => key.toLowerCase().includes(field))) {
       redacted[key] = '[REDACTED]';
-    } else if (typeof redacted[key] === 'object') {
+      continue;
+    }
+
+    if (typeof redacted[key] === 'object') {
       redacted[key] = redactSensitive(redacted[key]);
     }
   }
+
   return redacted;
 }
 
@@ -48,8 +53,15 @@ export class Logger {
     this.context = { ...this.context, ...ctx };
   }
 
-  private formatEntry(level: 'debug' | 'info' | 'warn' | 'error', message: string, extra?: unknown): LogEntry {
-    const extraObj = (extra && typeof extra === 'object') ? (extra as Record<string, unknown>) : {};
+  private formatEntry(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    extra?: unknown,
+  ): LogEntry {
+    const extraObj = (extra && typeof extra === 'object')
+      ? (extra as Record<string, unknown>)
+      : {};
+
     return {
       timestamp: new Date().toISOString(),
       level,
@@ -84,8 +96,15 @@ export class Logger {
 
   error(message: string, error?: unknown, extra?: unknown): void {
     const redactedError = error ? redactSensitive(error) : undefined;
-    const extraObj = (extra && typeof extra === 'object') ? (extra as Record<string, unknown>) : {};
-    const entry = this.formatEntry('error', message, { error: redactedError, ...extraObj });
+    const extraObj = (extra && typeof extra === 'object')
+      ? (extra as Record<string, unknown>)
+      : {};
+
+    const entry = this.formatEntry('error', message, {
+      error: redactedError,
+      ...extraObj,
+    });
+
     console.error(JSON.stringify(entry));
   }
 }

@@ -13,8 +13,11 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import type { NavItem, SectionKey } from "@/types/admin-dashboard";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { SidebarProfilePanel } from "@/components/auth/SidebarProfilePanel";
 import AnalyticsManagement from "@/components/admin_dashboard/AnalyticsManagement";
 import AppealsManagement from "@/components/admin_dashboard/AppealsManagement";
 import SupportManagement from "@/components/admin_dashboard/SupportManagement";
@@ -22,7 +25,6 @@ import UsersManagement from "@/components/admin_dashboard/UsersManagement";
 import AdminHome from "@/components/admin_dashboard/AdminHome";
 import AdminSettings from "@/components/admin_dashboard/AdminSettings";
 import ApplicationsManagement from "@/components/admin_dashboard/ApplicationsManagement";
-import { SidebarUserMenu } from "@/components/auth/SidebarUserMenu";
 
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, section: "dashboard" },
@@ -35,8 +37,59 @@ const navItems: NavItem[] = [
 ];
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionKey>("dashboard");
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = params.get("page") as SectionKey | null;
+      if (pageParam && navItems.some((item) => item.section === pageParam)) {
+        setActiveSection(pageParam);
+      }
+    } catch {
+      // Ignore malformed URL query values.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set("page", activeSection);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      router.replace(newUrl);
+    } catch {
+      // Ignore URL update failures and keep local navigation working.
+    }
+  }, [activeSection, router]);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!user || user.role !== "admin") {
+      router.replace("/login/adminLogin");
+    }
+  }, [isLoading, router, user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600">Loading admin session...</p>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600">Redirecting to admin login...</p>
+      </div>
+    );
+  }
 
   const sectionComponentMap: Record<SectionKey, ReactNode> = {
     dashboard: <AdminHome />,
@@ -97,7 +150,7 @@ export default function AdminDashboard() {
       </div>
 
       {isMobileSidebarOpen && (
-        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6 flex flex-col">
+        <div className="md:hidden fixed top-0 left-0 bottom-0 w-72 z-40 bg-white border-r border-slate-200 shadow-xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
               <Shield className="h-5 w-5 text-white" />
@@ -108,14 +161,20 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <nav className="space-y-1 flex-1">
+          <nav className="space-y-1">
             {navItems.map((item) => renderNavButton(item, true))}
           </nav>
 
-          <SidebarUserMenu
-            onGoToSettings={() => setActiveSection("settings")}
-            onAfterAction={() => setIsMobileSidebarOpen(false)}
-          />
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <SidebarProfilePanel
+              userLabel={user.email}
+              onOpenSettings={() => {
+                setActiveSection("settings");
+                setIsMobileSidebarOpen(false);
+              }}
+              logoutRedirectPath="/login"
+            />
+          </div>
         </div>
       )}
 
@@ -136,7 +195,13 @@ export default function AdminDashboard() {
           {navItems.map((item) => renderNavButton(item))}
         </nav>
 
-        <SidebarUserMenu onGoToSettings={() => setActiveSection("settings")} />
+        <div className="border-t border-slate-200 p-4">
+          <SidebarProfilePanel
+            userLabel={user.email}
+            onOpenSettings={() => setActiveSection("settings")}
+            logoutRedirectPath="/login"
+          />
+        </div>
       </div>
 
       <div className="md:ml-64">

@@ -97,6 +97,68 @@ describe('lib/core/proxy.ts', () => {
       expect(requestId).toMatch(/^req-/);
     });
 
+    it('forwards generated request ID to upstream when incoming header is missing', async () => {
+      (global.fetch as MockedFetch).mockImplementationOnce(
+        async (_input: RequestInfo | URL, init?: RequestInit) => {
+          const forwardedRequestId = (init?.headers as Headers).get('x-request-id');
+          return new Response('{}', {
+            status: 200,
+            headers: {
+              'x-request-id': forwardedRequestId || 'missing',
+            },
+          });
+        },
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+        },
+      });
+
+      const response = await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+      const fetchCall = (global.fetch as MockedFetch).mock.calls[0];
+      const fetchOptions = fetchCall[1] as { headers: Headers };
+      const forwardedRequestId = fetchOptions.headers.get('x-request-id');
+
+      expect(forwardedRequestId).toBeDefined();
+      expect(forwardedRequestId).toMatch(/^req-/);
+      expect(response.headers.get('x-request-id')).toBe(forwardedRequestId);
+    });
+
+    it('replaces invalid incoming request ID with generated safe request ID', async () => {
+      (global.fetch as MockedFetch).mockImplementationOnce(
+        async (_input: RequestInfo | URL, init?: RequestInit) => {
+          const forwardedRequestId = (init?.headers as Headers).get('x-request-id');
+          return new Response('{}', {
+            status: 200,
+            headers: {
+              'x-request-id': forwardedRequestId || 'missing',
+            },
+          });
+        },
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+          'x-request-id': 'invalid/request-id',
+        },
+      });
+
+      const response = await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+      const fetchCall = (global.fetch as MockedFetch).mock.calls[0];
+      const fetchOptions = fetchCall[1] as { headers: Headers };
+      const forwardedRequestId = fetchOptions.headers.get('x-request-id');
+
+      expect(forwardedRequestId).toBeDefined();
+      expect(forwardedRequestId).toMatch(/^req-/);
+      expect(forwardedRequestId).not.toContain('/');
+      expect(response.headers.get('x-request-id')).toBe(forwardedRequestId);
+    });
+
     it('includes query parameters in proxied request', async () => {
       (global.fetch as MockedFetch).mockResolvedValueOnce(
         new Response('[]', { status: 200 }),
@@ -116,6 +178,26 @@ describe('lib/core/proxy.ts', () => {
 
       expect(fetchUrl).toContain('status=open');
       expect(fetchUrl).toContain('limit=10');
+    });
+
+    it('decodes encoded access token cookie before forwarding bearer token', async () => {
+      (global.fetch as MockedFetch).mockResolvedValueOnce(
+        new Response('{}', { status: 200 }),
+      );
+
+      const encodedToken = encodeURIComponent('header.payload.signature');
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: `sb-access-token=${encodedToken}`,
+        },
+      });
+
+      await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+
+      const fetchCall = (global.fetch as MockedFetch).mock.calls[0];
+      const fetchOptions = (fetchCall[1] as { headers: Headers });
+      expect(fetchOptions.headers.get('authorization')).toBe('Bearer header.payload.signature');
     });
   });
 
@@ -225,6 +307,54 @@ describe('lib/core/proxy.ts', () => {
     it('normalizes upstream 5xx errors', async () => {
       (global.fetch as MockedFetch).mockResolvedValueOnce(
         new Response(JSON.stringify({ error: 'Database error' }), { status: 500 }),
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+          'x-request-id': 'req-500-test',
+        },
+      });
+
+      const response = await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+
+      expect(response.status).toBe(500);
+      expect(response.headers.get('x-request-id')).toBe('req-500-test');
+    });
+
+    it('prefers upstream request ID in response header when upstream provides it', async () => {
+      (global.fetch as MockedFetch).mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'Database error' }), {
+          status: 500,
+          headers: {
+            'x-request-id': 'core-req-500',
+          },
+        }),
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+        method: 'GET',
+        headers: {
+          cookie: 'sb-access-token=token-xyz',
+          'x-request-id': 'req-500-test',
+        },
+      });
+
+      const response = await proxyCoreRequest(request, { endpoint: '/api/v1/jobs' });
+
+      expect(response.status).toBe(500);
+      expect(response.headers.get('x-request-id')).toBe('core-req-500');
+    });
+
+    it('ignores invalid upstream request ID and keeps proxy request ID', async () => {
+      (global.fetch as MockedFetch).mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'Database error' }), {
+          status: 500,
+          headers: {
+            'x-request-id': 'invalid/upstream-id',
+          },
+        }),
       );
 
       const request = new NextRequest('http://localhost:3000/api/core/jobs', {

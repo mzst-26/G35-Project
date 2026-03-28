@@ -27,7 +27,11 @@ interface CoreProxyResponse {
   status: number;
   body: string;
   contentType: string | null;
+  requestId: string | null;
 }
+
+const REQUEST_ID_MAX_LENGTH = 128;
+const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]+$/;
 
 export class CoreProxyError extends Error {
   status: number;
@@ -44,9 +48,18 @@ export class CoreProxyError extends Error {
 }
 
 function extractBearerToken(request: NextRequest): string | null {
-  const cookies = request.headers.get('cookie') || '';
-  const tokenMatch = cookies.match(/sb-access-token=([^;]+)/);
-  return tokenMatch ? tokenMatch[1] : null;
+  const raw = request.cookies.get('sb-access-token')?.value;
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const decoded = decodeURIComponent(raw).trim();
+    return decoded.length > 0 ? decoded : null;
+  } catch {
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
 }
 
 function buildCoreHeaders(request: NextRequest, bearerToken: string): Headers {
@@ -62,15 +75,55 @@ function buildCoreHeaders(request: NextRequest, bearerToken: string): Headers {
     headers.set('user-agent', userAgent);
   }
 
-  const xRequestId = request.headers.get('x-request-id');
-  if (xRequestId) {
-    headers.set('x-request-id', xRequestId);
-  }
-
   // Add Bearer token for authentication
   headers.set('authorization', `Bearer ${bearerToken}`);
 
   return headers;
+}
+
+function withRequestIdHeader(headers: Headers, requestId: string): Headers {
+  headers.set('x-request-id', requestId);
+  return headers;
+}
+
+function isSafeRequestId(value: string): boolean {
+  if (value.length === 0 || value.length > REQUEST_ID_MAX_LENGTH) {
+    return false;
+  }
+  return REQUEST_ID_PATTERN.test(value);
+}
+
+function normalizeRequestId(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!isSafeRequestId(trimmed)) {
+    return null;
+  }
+
+  return trimmed;
+}
+
+function resolveInboundRequestId(request: NextRequest): {
+  requestId: string;
+  hadInvalidInboundRequestId: boolean;
+} {
+  const rawInboundRequestId = request.headers.get('x-request-id');
+  const normalizedInboundRequestId = normalizeRequestId(rawInboundRequestId);
+
+  if (normalizedInboundRequestId) {
+    return {
+      requestId: normalizedInboundRequestId,
+      hadInvalidInboundRequestId: false,
+    };
+  }
+
+  return {
+    requestId: `req-${crypto.randomUUID()}`,
+    hadInvalidInboundRequestId: Boolean(rawInboundRequestId),
+  };
 }
 
 function validateUpstreamHost(url: string, allowedBase: string): boolean {
@@ -150,10 +203,21 @@ async function getCoreProxyResponse(
     }
 
     const contentType = response.headers.get('content-type');
+    const rawUpstreamRequestId = response.headers.get('x-request-id');
+    const requestId = normalizeRequestId(rawUpstreamRequestId);
+
+    if (rawUpstreamRequestId && !requestId) {
+      logger.warn('Invalid upstream request ID format', {
+        endpoint: new URL(targetUrl).pathname,
+        status: response.status,
+      });
+    }
+
     return {
       status: response.status,
       body: responseText,
       contentType,
+      requestId,
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
@@ -173,7 +237,7 @@ export async function proxyCoreRequest(
   request: NextRequest,
   options: CoreProxyOptions,
 ): Promise<NextResponse> {
-  const requestId = request.headers.get('x-request-id') || `req-${crypto.randomUUID()}`;
+  const { requestId, hadInvalidInboundRequestId } = resolveInboundRequestId(request);
   const startTime = Date.now();
   const method = options.method || request.method;
 
@@ -183,6 +247,12 @@ export async function proxyCoreRequest(
     upstream: options.endpoint,
     method,
   });
+
+  if (hadInvalidInboundRequestId) {
+    logger.warn('Invalid inbound request ID format', {
+      route: new URL(request.url).pathname,
+    });
+  }
 
   try {
     // Validate environment
@@ -235,7 +305,7 @@ export async function proxyCoreRequest(
     }
 
     // Build allowed headers and add Bearer token
-    const headers = buildCoreHeaders(request, bearerToken);
+    const headers = withRequestIdHeader(buildCoreHeaders(request, bearerToken), requestId);
 
     // Proxy request with timeout
     const body = method === 'GET' || method === 'HEAD' ? undefined : await request.text();
@@ -268,7 +338,7 @@ export async function proxyCoreRequest(
       nextResponse.headers.set('content-type', proxyResponse.contentType);
     }
 
-    nextResponse.headers.set('x-request-id', requestId);
+    nextResponse.headers.set('x-request-id', proxyResponse.requestId || requestId);
     return nextResponse;
   } catch (error) {
     const latencyMs = Date.now() - startTime;

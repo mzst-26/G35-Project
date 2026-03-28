@@ -1,9 +1,9 @@
 export type AdminSettings = {
   general: {
-    platformName: string;
-    platformEmail: string;
-    supportEmail: string;
-    timezone: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    adminLevel: string;
   };
   notifications: {
     emailNotifications: boolean;
@@ -29,10 +29,10 @@ export type AdminSettings = {
 
 export const emptyAdminSettings: AdminSettings = {
   general: {
-    platformName: "",
-    platformEmail: "",
-    supportEmail: "",
-    timezone: "",
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    adminLevel: "",
   },
   notifications: {
     emailNotifications: false,

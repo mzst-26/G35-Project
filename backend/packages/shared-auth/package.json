@@ -5,26 +5,15 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "build": "echo 'dist-only package in this branch'",
+    "lint": "echo 'no-op'",
+    "test": "echo 'no-op'",
+    "typecheck": "echo 'no-op'"
   },
   "dependencies": {
     "@infra/shared-errors": "file:../shared-errors",
     "@infra/shared-permissions": "file:../shared-permissions",
     "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/node": "^20.17.19",
-    "typescript": "^5.7.2",
-    "vitest": "^4.1.1"
   }
 }

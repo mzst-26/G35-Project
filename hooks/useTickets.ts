@@ -1,70 +1,36 @@
 /**
  * Custom hook for managing support tickets data
  */
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Ticket, TicketStatus } from "@/types/admin-dashboard";
 
-const sampleTickets: Ticket[] = [
-  {
-    id: "1",
-    userName: "Alex Turner",
-    subject: "Unable to access dashboard",
-    date: "2026-02-04",
-    status: "open",
-  },
-  {
-    id: "2",
-    userName: "Rachel Green",
-    subject: "Payment not processed",
-    date: "2026-02-04",
-    status: "open",
-  },
-  {
-    id: "3",
-    userName: "David Chen",
-    subject: "Profile update issue",
-    date: "2026-02-03",
-    status: "pending",
-  },
-  {
-    id: "4",
-    userName: "Maria Garcia",
-    subject: "Job posting error",
-    date: "2026-02-02",
-    status: "pending",
-  },
-  {
-    id: "5",
-    userName: "James Wilson",
-    subject: "Account verification",
-    date: "2026-01-30",
-    status: "closed",
-  },
-  {
-    id: "6",
-    userName: "Linda Martinez",
-    subject: "Password reset request",
-    date: "2026-01-28",
-    status: "closed",
-  },
-];
+// TODO(communications-service): Replace this empty state with real support ticket
+// data once Communications Service exposes admin ticket APIs.
 
 export const useTickets = () => {
-  const [tickets] = useState<Ticket[]>(sampleTickets);
+  const [tickets] = useState<Ticket[]>([]);
 
-  const getTicketsCount = (status: TicketStatus): number => {
-    return tickets.filter((ticket) => ticket.status === status).length;
-  };
+  const getTicketsCount = useCallback(
+    (status: TicketStatus): number => tickets.filter((ticket) => ticket.status === status).length,
+    [tickets],
+  );
 
-  const getFilteredTickets = (status: TicketStatus): Ticket[] => {
-    return tickets.filter((ticket) => ticket.status === status);
-  };
+  const getFilteredTickets = useCallback(
+    (status: TicketStatus): Ticket[] => tickets.filter((ticket) => ticket.status === status),
+    [tickets],
+  );
 
-  const getTicketById = (id: string): Ticket | undefined => {
-    return tickets.find((ticket) => ticket.id === id);
-  };
+  const getTicketById = useCallback(
+    (id: string): Ticket | undefined => tickets.find((ticket) => ticket.id === id),
+    [tickets],
+  );
+
+  const hasData = useMemo(() => tickets.length > 0, [tickets.length]);
 
   return {
+    isLoading: false,
+    error: null as string | null,
+    hasData,
     tickets,
     getTicketsCount,
     getFilteredTickets,

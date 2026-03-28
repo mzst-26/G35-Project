@@ -1,11 +1,12 @@
 export function useAdminPaymentMethods() {
-  // Placeholder implementations for admin payment methods
+  // TODO(payments-penalties-service): Replace placeholders with real admin
+  // payment method endpoints when Payments & Penalties Service is available.
   const getMethods = () => {
     return [] as Array<{ id: string; provider: string; active: boolean }>;
   };
 
-  const addMethod = (method: { provider: string }) => {
-    // TODO: implement add payment method
+  const addMethod = () => {
+    // TODO(payments-penalties-service): implement add payment method integration.
   };
 
   return { getMethods, addMethod };

@@ -6,18 +6,19 @@ import {
   RecruiterRegistrationApiRecord,
 } from "@/types/admin-applications";
 import { captureFrontendError, captureFrontendMessage } from "@/lib/monitoring/sentry";
+import {
+  HookErrorEnvelope,
+  parseJsonOrThrowEnvelope,
+  toHookApiError,
+} from "@/lib/core/error-envelope";
 
-class ApplicationsApiError extends Error {
-  readonly code: string;
-  readonly status: number;
+const APPLICATIONS_CACHE_TTL_MS = 60_000;
+let applicationsCache: { data: RegistrationApplication[]; updatedAt: number } | null = null;
+let applicationsInflight: Promise<RegistrationApplication[]> | null = null;
+const ENABLE_APPLICATIONS_CACHE = process.env.NODE_ENV !== "test";
 
-  constructor(message: string, code: string, status: number) {
-    super(message);
-    this.name = "ApplicationsApiError";
-    this.code = code;
-    this.status = status;
-  }
-}
+// TODO(identity-service): Keep this flow aligned with Identity service contracts
+// for admin registration review endpoints.
 
 function mapRecruiterRecord(record: RecruiterRegistrationApiRecord): RegistrationApplication {
   return {
@@ -52,12 +53,6 @@ function mapRecruiterRecord(record: RecruiterRegistrationApiRecord): Registratio
   };
 }
 
-async function parseJson<T>(response: Response): Promise<T | null> {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) return null;
-  return (await response.json()) as T;
-}
-
 async function requestApplications<T>(
   path: string,
   init: RequestInit,
@@ -71,44 +66,81 @@ async function requestApplications<T>(
     },
   });
 
-  const body = await parseJson<{ code?: string; message?: string } & T>(response);
-
-  if (!response.ok) {
-    throw new ApplicationsApiError(
-      body?.message ?? "Application request failed.",
-      body?.code ?? "APPLICATIONS_API_ERROR",
-      response.status,
-    );
-  }
-
-  return (body ?? ({} as T)) as T;
+  return parseJsonOrThrowEnvelope<T>(
+    response,
+    "Application request failed.",
+    "APPLICATIONS_API_ERROR",
+  );
 }
 
 export const useApplications = () => {
-  const [applications, setApplications] = useState<RegistrationApplication[]>([]);
+  const [applications, setApplications] = useState<RegistrationApplication[]>(applicationsCache?.data ?? []);
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
 
   const loadApplications = useCallback(async () => {
+    if (
+      ENABLE_APPLICATIONS_CACHE &&
+      applicationsCache &&
+      Date.now() - applicationsCache.updatedAt < APPLICATIONS_CACHE_TTL_MS
+    ) {
+      setApplications(applicationsCache.data);
+      setError(null);
+      setErrorEnvelope(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setErrorEnvelope(null);
     try {
-      const result = await requestApplications<{ items: RecruiterRegistrationApiRecord[] }>(
-        "/api/auth/admin/registration-requests?limit=100&offset=0",
-        { method: "GET" },
-      );
+      if (!applicationsInflight || !ENABLE_APPLICATIONS_CACHE) {
+        applicationsInflight = (async () => {
+          const result = await requestApplications<{ items: RecruiterRegistrationApiRecord[] }>(
+            "/api/auth/admin/registration-requests?limit=100&offset=0",
+            { method: "GET" },
+          );
+          return (result.items ?? []).map(mapRecruiterRecord);
+        })();
+      }
 
-      setApplications((result.items ?? []).map(mapRecruiterRecord));
-    } catch (error) {
-      captureFrontendError(error, {
+      const mapped = await applicationsInflight;
+      if (ENABLE_APPLICATIONS_CACHE) {
+        applicationsCache = { data: mapped, updatedAt: Date.now() };
+      }
+      setApplications(mapped);
+    } catch (caughtError) {
+      const apiError = toHookApiError(
+        caughtError,
+        "Unable to load applications right now.",
+        "APPLICATIONS_LOAD_FAILED",
+      );
+      captureFrontendError(apiError, {
         flow: "admin_registration_review",
         endpoint: "/api/auth/admin/registration-requests",
         action: "list",
         role: "admin",
       });
+      captureFrontendMessage("Admin applications request failed", {
+        flow: "admin_registration_review",
+        endpoint: "/api/auth/admin/registration-requests",
+        action: "list",
+        role: "admin",
+        extra: {
+          code: apiError.envelope.code,
+          requestId: apiError.envelope.requestId,
+          status: apiError.envelope.status,
+        },
+      });
       setError("Unable to load applications right now.");
+      setErrorEnvelope(apiError.envelope);
     } finally {
+      if (ENABLE_APPLICATIONS_CACHE) {
+        applicationsInflight = null;
+      }
       setIsLoading(false);
     }
   }, []);
@@ -149,7 +181,11 @@ export const useApplications = () => {
     setApplications((current) => {
       const mapped = mapRecruiterRecord(result);
       const next = current.filter((app) => app.id !== applicationId);
-      return [mapped, ...next];
+      const updated = [mapped, ...next];
+      if (ENABLE_APPLICATIONS_CACHE) {
+        applicationsCache = { data: updated, updatedAt: Date.now() };
+      }
+      return updated;
     });
   }, []);
 
@@ -160,6 +196,7 @@ export const useApplications = () => {
   }: ApplicationReviewData): Promise<void> => {
     setIsMutating(true);
     setError(null);
+    setErrorEnvelope(null);
     try {
       await requestApplications<RecruiterRegistrationApiRecord>(
         `/api/auth/admin/registration-requests/${applicationId}/decision`,
@@ -179,20 +216,31 @@ export const useApplications = () => {
         },
       );
       await refreshApplication(applicationId);
-    } catch (error) {
+    } catch (caughtError) {
+      const apiError = toHookApiError(
+        caughtError,
+        "Unable to save your decision right now.",
+        "APPLICATION_DECISION_FAILED",
+      );
       captureFrontendMessage("Admin decision request failed", {
         flow: "admin_registration_review",
         endpoint: `/api/auth/admin/registration-requests/${applicationId}/decision`,
         action: "decision",
         role: "admin",
+        extra: {
+          code: apiError.envelope.code,
+          requestId: apiError.envelope.requestId,
+          status: apiError.envelope.status,
+        },
       });
-      captureFrontendError(error, {
+      captureFrontendError(apiError, {
         flow: "admin_registration_review",
         endpoint: `/api/auth/admin/registration-requests/${applicationId}/decision`,
         action: "decision",
         role: "admin",
       });
       setError("Unable to save your decision right now.");
+      setErrorEnvelope(apiError.envelope);
       throw new Error("APPLICATION_DECISION_FAILED");
     } finally {
       setIsMutating(false);
@@ -207,6 +255,7 @@ export const useApplications = () => {
     isLoading,
     isMutating,
     error,
+    errorEnvelope,
     reloadApplications: loadApplications,
     getApplicationsCount,
     getFilteredApplications,

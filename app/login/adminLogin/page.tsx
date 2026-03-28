@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Shield } from 'lucide-react';
 
@@ -12,9 +12,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+function routeForRole(role: 'admin' | 'recruiter' | 'trade') {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'recruiter') return '/company/dashboard/home';
+  return '/trade/dashboard';
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { user, isLoading: authIsLoading, refreshUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -22,6 +28,14 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authIsLoading || !user) {
+      return;
+    }
+
+    router.replace(routeForRole(user.role));
+  }, [authIsLoading, router, user]);
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +45,7 @@ export default function AdminLoginPage() {
     try {
       await requestOtp(email.trim().toLowerCase());
       setStep('verify');
-      setInfoMessage('One-time code sent. Check your admin inbox.');
+      setInfoMessage('One-time code sent. Check your admin inbox. After sign-in, your session lasts up to 30 days before you need to log in again.');
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrorMessage(error.message);
@@ -93,6 +107,9 @@ export default function AdminLoginPage() {
             <div>
               <CardTitle>Admin Login</CardTitle>
               <CardDescription>Admin Sign In — secured with email code and authenticator app</CardDescription>
+              <p className="text-xs text-slate-600 mt-1">
+                Sessions stay active for up to 30 days. You will need to log in again when that window ends.
+              </p>
             </div>
           </div>
         </CardHeader>

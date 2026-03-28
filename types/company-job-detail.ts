@@ -1,8 +1,10 @@
+import type { CompanyPaymentDetailDto, JobDetailDto } from '@/types/core-dto-contracts';
+
 // Status options shown on the job detail page
 export type CompanyJobStatus = 'pending' | 'allocated' | 'in-progress' | 'completed' | 'cancelled';
 
 // Payment status for the cost section
-export type CompanyPaymentStatus = 'unpaid' | 'platform-fee-paid' | 'stripe-hold' | 'released';
+export type CompanyPaymentStatus = CompanyPaymentDetailDto['status'];
 
 // Simple worker info used on the job detail page
 export interface CompanyJobWorker {
@@ -25,6 +27,7 @@ export interface CompanyJobTimelineItem {
 export interface CompanyJobDetail {
   id: string;
   title: string;
+  sourceStatus?: JobDetailDto['status'];
   company: string;
   trade: string;
   status: CompanyJobStatus;

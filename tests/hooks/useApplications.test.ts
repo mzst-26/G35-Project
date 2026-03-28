@@ -137,6 +137,28 @@ describe('useApplications', () => {
     expect(result.current.applications).toHaveLength(0);
   });
 
+  it('exposes requestId in errorEnvelope when loadApplications fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ code: 'UPSTREAM_ERROR', message: 'Gateway failed' }), {
+        status: 502,
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'req-load-failed-123',
+        },
+      }),
+    ));
+
+    const { result } = renderHook(() => useApplications());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.errorEnvelope?.requestId).toBe('req-load-failed-123');
+    expect(result.current.errorEnvelope?.status).toBe(502);
+    expect(result.current.errorEnvelope?.code).toBe('UPSTREAM_ERROR');
+  });
+
   it('sets error state when reviewApplication fails', async () => {
     const record = makeApiRecord();
 

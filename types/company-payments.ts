@@ -1,10 +1,11 @@
+import type {
+  CompanyPaymentDetailDto,
+  CompanyPaymentListItemDto,
+  CompanyPaymentSummaryDto,
+} from '@/types/core-dto-contracts';
+
 // Status values for payments
-export type CompanyPaymentStatus =
-  | 'unpaid'
-  | 'platform-fee-paid'
-  | 'stripe-hold'
-  | 'released'
-  | 'refunded';
+export type CompanyPaymentStatus = CompanyPaymentListItemDto['status'];
 
 // Simple transaction item for the payment detail page
 export interface CompanyPaymentTransaction {
@@ -18,8 +19,8 @@ export interface CompanyPaymentTransaction {
 
 // Light-weight payment info used in the payments list
 export interface CompanyPaymentListItem {
-  id: string;
-  jobId: string;
+  id: CompanyPaymentListItemDto['id'];
+  jobId: CompanyPaymentListItemDto['jobId'];
   jobTitle: string;
   status: CompanyPaymentStatus;
   date: string;
@@ -47,8 +48,10 @@ export interface CompanyPaymentDetail extends CompanyPaymentListItem {
 
 // Summary values for the payment header cards
 export interface CompanyPaymentSummary {
-  totalPaid: number;
-  totalInStripeHold: number;
-  unpaidJobs: number;
-  platformFeesPaid: number;
+  totalPaid: CompanyPaymentSummaryDto['totalPaid'];
+  totalInStripeHold: CompanyPaymentSummaryDto['totalInStripeHold'];
+  unpaidJobs: CompanyPaymentSummaryDto['unpaidJobs'];
+  platformFeesPaid: CompanyPaymentSummaryDto['platformFeesPaid'];
 }
+
+export type CompanyPaymentContractShape = CompanyPaymentDetailDto;

@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { CompanyJob, CompanyJobStats } from '@/types/company-jobs';
-import { listRecentCompanyJobs } from '@/mockservices/companyJobsApi';
+import { coreGetJson } from '@/lib/core/client';
+import { toCompanyJobs } from '@/lib/core/adapters';
+import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
+import { HookErrorEnvelope, toHookApiError } from '@/lib/core/error-envelope';
 
 export function useCompanyJobs() {
   // Store job list data for the dashboard
@@ -10,6 +13,7 @@ export function useCompanyJobs() {
   // Simple loading and error flags
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
 
   useEffect(() => {
     // Load jobs once when the component mounts
@@ -18,16 +22,40 @@ export function useCompanyJobs() {
     const loadJobs = async () => {
       setIsLoading(true);
       setError(null);
+      setErrorEnvelope(null);
 
       try {
-        const data = await listRecentCompanyJobs();
+        const data = await coreGetJson<unknown>(
+          '/api/core/jobs',
+          'Failed to load jobs',
+          'COMPANY_JOBS_LOAD_FAILED',
+          { limit: 20 },
+        );
         if (active) {
-          setJobs(data);
+          setJobs(toCompanyJobs(data));
         }
-      } catch (err) {
+      } catch (caughtError) {
         if (active) {
-          const message = err instanceof Error ? err.message : 'Failed to load jobs';
-          setError(message);
+          const apiError = toHookApiError(caughtError, 'Failed to load jobs', 'COMPANY_JOBS_LOAD_FAILED');
+          captureFrontendError(apiError, {
+            flow: 'recruiter_jobs',
+            endpoint: '/api/core/jobs',
+            action: 'list',
+            role: 'recruiter',
+          });
+          captureFrontendMessage('Recruiter jobs request failed', {
+            flow: 'recruiter_jobs',
+            endpoint: '/api/core/jobs',
+            action: 'list',
+            role: 'recruiter',
+            extra: {
+              code: apiError.envelope.code,
+              requestId: apiError.envelope.requestId,
+              status: apiError.envelope.status,
+            },
+          });
+          setError(apiError.envelope.message);
+          setErrorEnvelope(apiError.envelope);
         }
       } finally {
         if (active) {
@@ -57,5 +85,5 @@ export function useCompanyJobs() {
     );
   }, [jobs]);
 
-  return { jobs, stats, isLoading, error } as const;
+  return { jobs, stats, isLoading, error, errorEnvelope } as const;
 }

@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { CompanyPaymentListItem, CompanyPaymentSummary } from '@/types/company-payments';
-import { listCompanyPayments } from '@/mockservices/companyPaymentsApi';
+import { coreGetJson } from '@/lib/core/client';
+import { toCompanyPayments } from '@/lib/core/adapters';
+import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
+import { HookErrorEnvelope, toHookApiError } from '@/lib/core/error-envelope';
 
 export function useCompanyPayments() {
   // Store the payment list
@@ -10,6 +13,7 @@ export function useCompanyPayments() {
   // Track loading and error
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -17,16 +21,41 @@ export function useCompanyPayments() {
     const loadPayments = async () => {
       setIsLoading(true);
       setError(null);
+      setErrorEnvelope(null);
 
       try {
-        const data = await listCompanyPayments();
+        const payload = await coreGetJson<unknown>(
+          '/api/core/payments',
+          'Failed to load payments',
+          'COMPANY_PAYMENTS_LOAD_FAILED',
+          { limit: 50 },
+        );
+        const data = toCompanyPayments(payload);
         if (active) {
           setPayments(data);
         }
-      } catch (err) {
+      } catch (caughtError) {
         if (active) {
-          const message = err instanceof Error ? err.message : 'Failed to load payments';
-          setError(message);
+          const apiError = toHookApiError(caughtError, 'Failed to load payments', 'COMPANY_PAYMENTS_LOAD_FAILED');
+          captureFrontendError(apiError, {
+            flow: 'recruiter_payments',
+            endpoint: '/api/core/payments',
+            action: 'list',
+            role: 'recruiter',
+          });
+          captureFrontendMessage('Recruiter payments request failed', {
+            flow: 'recruiter_payments',
+            endpoint: '/api/core/payments',
+            action: 'list',
+            role: 'recruiter',
+            extra: {
+              code: apiError.envelope.code,
+              requestId: apiError.envelope.requestId,
+              status: apiError.envelope.status,
+            },
+          });
+          setError(apiError.envelope.message);
+          setErrorEnvelope(apiError.envelope);
         }
       } finally {
         if (active) {
@@ -61,5 +90,5 @@ export function useCompanyPayments() {
     );
   }, [payments]);
 
-  return { payments, summary, isLoading, error } as const;
+  return { payments, summary, isLoading, error, errorEnvelope } as const;
 }
