@@ -10,6 +10,8 @@ import TradeJobs from "@/components/trade_dashboard/jobs";
 import Penalties from "@/components/trade_dashboard/penalties";
 import Support from "@/components/trade_dashboard/support";
 import Settings from "@/components/trade_dashboard/settings";
+import { SidebarProfilePanel } from "@/components/auth/SidebarProfilePanel";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 
 
@@ -24,6 +26,7 @@ export default function TradeDashboard() {
     ];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<TradeSectionKey>('dashboard');
+  const { user } = useAuth();
 
 
 
@@ -85,6 +88,17 @@ export default function TradeDashboard() {
                 </Button>
               ))}
         </nav>
+
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <SidebarProfilePanel
+              userLabel={user?.email}
+              onOpenSettings={() => {
+                setActiveSection('settings');
+                setMobileMenuOpen(false);
+              }}
+              logoutRedirectPath="/login"
+            />
+          </div>
         </div>
       )}
 
@@ -119,6 +133,14 @@ export default function TradeDashboard() {
               </Button>
             ))}
       </nav>
+
+        <div className="border-t border-slate-200 p-4">
+          <SidebarProfilePanel
+            userLabel={user?.email}
+            onOpenSettings={() => setActiveSection('settings')}
+            logoutRedirectPath="/login"
+          />
+        </div>
 
       </div>
 

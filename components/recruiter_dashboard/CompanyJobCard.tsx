@@ -10,6 +10,7 @@ const statusConfig = {
   allocated: { label: 'Allocated', icon: CheckCircle2, badge: 'bg-blue-50 text-blue-700 border-blue-100' },
   'in-progress': { label: 'In Progress', icon: PlayCircle, badge: 'bg-blue-100 text-blue-800 border-blue-200' },
   completed: { label: 'Completed', icon: CheckCircle2, badge: 'bg-slate-100 text-slate-600 border-slate-200' },
+  cancelled: { label: 'Cancelled', icon: Clock, badge: 'bg-red-50 text-red-700 border-red-200' },
 } as const;
 
 // Props for the job card

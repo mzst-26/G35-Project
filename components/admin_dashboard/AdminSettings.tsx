@@ -24,16 +24,18 @@ import { Clock } from "lucide-react";
 import { Users } from "lucide-react";
 
 export default function AdminSettings(): ReactElement {
+  // TODO(core-platform-service): Provide an admin statistics endpoint so General tab
+  // can replace placeholder stats with real values.
   const { settings, isLoading, isSaving, error, saveSuccess, save, actions } =
     useAdminSettings();
 
   // Keep General "read-only" look for now, using "—" if empty.
   const general = useMemo(() => {
     return {
-      platformName: settings.general.platformName || "—",
-      platformEmail: settings.general.platformEmail || "—",
-      supportEmail: settings.general.supportEmail || "—",
-      timezone: settings.general.timezone || "—",
+      fullName: settings.general.fullName || "—",
+      email: settings.general.email || "—",
+      phoneNumber: settings.general.phoneNumber || "—",
+      adminLevel: settings.general.adminLevel || "—",
     };
   }, [settings.general]);
 
@@ -85,53 +87,57 @@ export default function AdminSettings(): ReactElement {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-blue-600" />
-                General Platform Information
+                Admin Profile Information
               </CardTitle>
-              <CardDescription>View platform details and statistics</CardDescription>
+              <CardDescription>Profile data from database (read-only)</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="platform-name">Platform Name</Label>
+                  <Label htmlFor="admin-full-name">Full Name</Label>
                   <Input
-                    id="platform-name"
-                    value={general.platformName}
+                    id="admin-full-name"
+                    value={general.fullName}
                     disabled
                     className="bg-slate-100"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="platform-email">Platform Email</Label>
+                  <Label htmlFor="admin-email">Email</Label>
                   <Input
-                    id="platform-email"
-                    value={general.platformEmail}
+                    id="admin-email"
+                    value={general.email}
                     disabled
                     className="bg-slate-100"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="support-email">Support Email</Label>
+                  <Label htmlFor="admin-phone">Phone Number</Label>
                   <Input
-                    id="support-email"
-                    value={general.supportEmail}
+                    id="admin-phone"
+                    value={general.phoneNumber}
                     disabled
                     className="bg-slate-100"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
+                  <Label htmlFor="admin-level">Admin Level</Label>
                   <Input
-                    id="timezone"
-                    value={general.timezone}
+                    id="admin-level"
+                    value={general.adminLevel}
                     disabled
                     className="bg-slate-100"
                   />
                 </div>
               </div>
+
+              <p className="text-xs text-slate-500">
+                Security policy: admin profile fields are read-only and synchronized from the database.
+              </p>
 
               {/* Skeleton stats (no example numbers) */}
               <div className="pt-4 border-t border-slate-200">

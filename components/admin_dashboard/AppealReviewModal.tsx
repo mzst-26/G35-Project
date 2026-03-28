@@ -28,6 +28,8 @@ export default function AppealReviewModal({
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     const reviewData: AppealReviewData = {
+      // TODO(payments-penalties-service): Wire review decision submission to
+      // appeals endpoint once API contract is finalized.
       appealId: appeal.id,
       title,
       details,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Building2, Wrench, ArrowRight, Shield } from 'lucide-react';
@@ -27,7 +27,7 @@ function routeForRole(role: 'admin' | 'recruiter' | 'trade') {
 
 export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { user, isLoading: authIsLoading, refreshUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -37,6 +37,14 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (authIsLoading || !user) {
+      return;
+    }
+
+    router.replace(routeForRole(user.role));
+  }, [authIsLoading, router, user]);
+
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -45,7 +53,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
     try {
       await requestOtp(email.trim().toLowerCase());
       setStep('verify');
-      setInfoMessage('We sent a one-time code to your email.');
+      setInfoMessage('We sent a one-time code to your email. After sign-in, your session lasts up to 30 days before you need to log in again.');
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrorMessage(error.message);
@@ -176,6 +184,9 @@ export default function LoginScreen({ onLogin }: LoginScreenProps = {}) {
         <CardHeader>
           <CardTitle>Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
+          <p className="text-xs text-slate-600">
+            Sessions stay active for up to 30 days. You will need to log in again when that window ends.
+          </p>
         </CardHeader>
 
         <CardContent>

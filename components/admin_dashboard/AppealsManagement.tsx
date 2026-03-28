@@ -7,11 +7,13 @@ import { useAppeals } from "@/hooks/useAppeals";
 import { Appeal, AppealStatus, TabConfig } from "@/types/admin-dashboard";
 
 export default function AppealsManagement(): React.JSX.Element {
+  // TODO(payments-penalties-service): Wire this screen to the dedicated appeals endpoint
+  // when the service exposes admin appeal workflows.
   const [activeTab, setActiveTab] = useState<AppealStatus>("open");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { getAppealsCount, getFilteredAppeals } = useAppeals();
+  const { getAppealsCount, getFilteredAppeals, isLoading, error } = useAppeals();
 
   const filteredAppeals = getFilteredAppeals(activeTab);
 
@@ -51,7 +53,11 @@ export default function AppealsManagement(): React.JSX.Element {
 
         {/* Tab Content */}
         <div className="p-6">
-          {filteredAppeals.length > 0 ? (
+          {isLoading ? (
+            <p className="text-slate-600 text-center py-8">Loading appeals...</p>
+          ) : error ? (
+            <p className="text-red-600 text-center py-8">{error}</p>
+          ) : filteredAppeals.length > 0 ? (
             <div className="space-y-4">
               {filteredAppeals.map((appeal) => (
                 <Card key={appeal.id} className="p-4 border border-slate-200">
@@ -82,7 +88,7 @@ export default function AppealsManagement(): React.JSX.Element {
             </div>
           ) : (
             <p className="text-slate-600 text-center py-8">
-              No {activeTab} appeals at this time
+              No {activeTab} appeals at this time.
             </p>
           )}
         </div>

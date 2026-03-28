@@ -27,6 +27,8 @@ export default function TicketReviewModal({
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
+    // TODO(communications-service): Wire ticket response submission to support
+    // workflow endpoint once contract is available.
     const reviewData: TicketReviewData = {
       ticketId: ticket.id,
       title,

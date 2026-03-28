@@ -4,20 +4,31 @@ import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
   BarChart3,
-  CheckCircle,
   Clock,
   FileWarning,
   LifeBuoy,
-  MessageSquare,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import { useAppeals } from "@/hooks/useAppeals";
 import { useTickets } from "@/hooks/useTickets";
+import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { useApplications } from "@/hooks/useApplications";
 import type { DashboardMetric } from "@/types/admin-dashboard";
 
 export default function AdminHome(): React.JSX.Element {
-  const { getAppealsCount } = useAppeals();
+  // TODO(payments-penalties-service): Appeals queue metrics should come from a dedicated
+  // appeals endpoint (not inferred from temporary penalties data).
+  // TODO(communications-service): Support queue metrics should come from support tickets API.
+  const { getAppealsCount, isLoading: appealsLoading } = useAppeals();
   const { getTicketsCount } = useTickets();
+  const {
+    getTotalUsersCount,
+    isLoading: usersLoading,
+  } = useAdminUsers();
+  const { getApplicationsCount, isLoading: applicationsLoading } = useApplications();
+
+  const isLoading = usersLoading || applicationsLoading || appealsLoading;
 
   const openAppeals = getAppealsCount("open");
   const pendingAppeals = getAppealsCount("pending");
@@ -27,8 +38,12 @@ export default function AdminHome(): React.JSX.Element {
   const pendingTickets = getTicketsCount("pending");
   const closedTickets = getTicketsCount("closed");
 
+  const totalTradeUsers = getTotalUsersCount("trade");
+  const totalCompanyUsers = getTotalUsersCount("company");
+  const pendingApplications = getApplicationsCount("pending");
+
   const totalQueueItems =
-    openAppeals + pendingAppeals + openTickets + pendingTickets;
+    pendingApplications + openAppeals + pendingAppeals + openTickets + pendingTickets;
   const totalResolvedItems = closedAppeals + closedTickets;
   const totalTrackedItems = totalQueueItems + totalResolvedItems;
 
@@ -53,12 +68,12 @@ export default function AdminHome(): React.JSX.Element {
     {
       label: "Open Support Tickets",
       value: String(openTickets),
-      icon: MessageSquare,
+      icon: LifeBuoy,
     },
     {
-      label: "Resolved Items",
-      value: String(totalResolvedItems),
-      icon: CheckCircle,
+      label: "Pending Applications",
+      value: String(pendingApplications),
+      icon: FileWarning,
     },
     {
       label: "Operational Health",
@@ -69,20 +84,20 @@ export default function AdminHome(): React.JSX.Element {
 
   const activityFeed = [
     {
-      label: "Appeals closed",
-      value: String(closedAppeals),
+      label: "Trade users",
+      value: String(totalTradeUsers),
       time: "Current snapshot",
-      icon: CheckCircle,
+      icon: Users,
     },
     {
-      label: "Tickets closed",
-      value: String(closedTickets),
+      label: "Company users",
+      value: String(totalCompanyUsers),
       time: "Current snapshot",
-      icon: CheckCircle,
+      icon: Users,
     },
     {
-      label: "Pending queue items",
-      value: String(totalQueueItems),
+      label: "Open appeals",
+      value: String(openAppeals),
       time: "Backlog snapshot",
       icon: FileWarning,
     },
@@ -109,6 +124,12 @@ export default function AdminHome(): React.JSX.Element {
           </Button>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          Loading dashboard metrics...
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {metrics.map((metric) => {
@@ -153,11 +174,9 @@ export default function AdminHome(): React.JSX.Element {
             <div className="flex items-center justify-between rounded-md border border-slate-100 px-4 py-3">
               <div className="flex items-center gap-3">
                 <FileWarning className="h-4 w-4 text-slate-700" />
-                <p className="text-sm font-medium text-slate-900">Pending Reviews</p>
+                <p className="text-sm font-medium text-slate-900">Pending Application Reviews</p>
               </div>
-              <span className="text-sm font-semibold text-slate-800">
-                {pendingAppeals + pendingTickets}
-              </span>
+              <span className="text-sm font-semibold text-slate-800">{pendingApplications}</span>
             </div>
           </div>
         </div>

@@ -11,27 +11,33 @@ type UsersView = "overview" | "trade" | "company";
 
 export default function UsersManagement(): React.JSX.Element {
   const [activeView, setActiveView] = useState<UsersView>("overview");
-  const { getActiveUsersCount, getSuspendedUsersCount } = useAdminUsers();
+  const {
+    getActiveUsersCount,
+    getSuspendedUsersCount,
+    getTotalUsersCount,
+    isLoading,
+    error,
+  } = useAdminUsers();
 
   const metrics: DashboardMetric[] = [
     {
       label: "Total Trade Users",
-      value: "1,245",
+      value: String(getTotalUsersCount("trade")),
       icon: Users,
     },
     {
       label: "Total Company Users",
-      value: "892",
+      value: String(getTotalUsersCount("company")),
       icon: Briefcase,
     },
     {
       label: "Active Total Users",
-      value: "582",
+      value: String(getActiveUsersCount()),
       icon: CheckCircle,
     },
     {
       label: "Suspended Users",
-      value: "24",
+      value: String(getSuspendedUsersCount()),
       icon: AlertCircle,
     },
   ];
@@ -60,6 +66,16 @@ export default function UsersManagement(): React.JSX.Element {
         <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
         <p className="text-slate-600">Manage all platform users</p>
       </div>
+      {isLoading && (
+        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          Loading users...
+        </div>
+      )}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;

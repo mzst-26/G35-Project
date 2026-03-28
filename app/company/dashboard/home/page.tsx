@@ -12,6 +12,8 @@ import { JobRequestPage } from "@/components/chat/JobRequestPage";
 import Support from "@/components/recruiter_dashboard/support";
 import { SettingsSection } from "@/components/trade_dashboard/SettingsSection";
 import { useRouter } from "next/navigation";
+import { SidebarProfilePanel } from "@/components/auth/SidebarProfilePanel";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 
 export default function CompanyDashboard() {
@@ -36,6 +38,7 @@ export default function CompanyDashboard() {
   );
 
   const router = useRouter();
+  const { user } = useAuth();
 
   // Initialize active section from URL on mount (deep-link support)
   useEffect(() => {
@@ -132,6 +135,17 @@ export default function CompanyDashboard() {
                 </Button>
               ))}
         </nav>
+
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <SidebarProfilePanel
+              userLabel={user?.email}
+              onOpenSettings={() => {
+                setActiveSection("settings");
+                setMobileMenuOpen(false);
+              }}
+              logoutRedirectPath="/login"
+            />
+          </div>
         </div>
       )}
 
@@ -167,6 +181,14 @@ export default function CompanyDashboard() {
               </Button>
             ))}
       </nav>
+
+        <div className="border-t border-slate-200 p-4">
+          <SidebarProfilePanel
+            userLabel={user?.email}
+            onOpenSettings={() => setActiveSection("settings")}
+            logoutRedirectPath="/login"
+          />
+        </div>
 
       </div>
 

@@ -13,8 +13,11 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import type { NavItem, SectionKey } from "@/types/admin-dashboard";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { SidebarProfilePanel } from "@/components/auth/SidebarProfilePanel";
 import AnalyticsManagement from "@/components/admin_dashboard/AnalyticsManagement";
 import AppealsManagement from "@/components/admin_dashboard/AppealsManagement";
 import SupportManagement from "@/components/admin_dashboard/SupportManagement";
@@ -34,8 +37,59 @@ const navItems: NavItem[] = [
 ];
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionKey>("dashboard");
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = params.get("page") as SectionKey | null;
+      if (pageParam && navItems.some((item) => item.section === pageParam)) {
+        setActiveSection(pageParam);
+      }
+    } catch {
+      // Ignore malformed URL query values.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set("page", activeSection);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      router.replace(newUrl);
+    } catch {
+      // Ignore URL update failures and keep local navigation working.
+    }
+  }, [activeSection, router]);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!user || user.role !== "admin") {
+      router.replace("/login/adminLogin");
+    }
+  }, [isLoading, router, user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600">Loading admin session...</p>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600">Redirecting to admin login...</p>
+      </div>
+    );
+  }
 
   const sectionComponentMap: Record<SectionKey, ReactNode> = {
     dashboard: <AdminHome />,
@@ -110,6 +164,17 @@ export default function AdminDashboard() {
           <nav className="space-y-1">
             {navItems.map((item) => renderNavButton(item, true))}
           </nav>
+
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <SidebarProfilePanel
+              userLabel={user.email}
+              onOpenSettings={() => {
+                setActiveSection("settings");
+                setIsMobileSidebarOpen(false);
+              }}
+              logoutRedirectPath="/login"
+            />
+          </div>
         </div>
       )}
 
@@ -129,6 +194,14 @@ export default function AdminDashboard() {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => renderNavButton(item))}
         </nav>
+
+        <div className="border-t border-slate-200 p-4">
+          <SidebarProfilePanel
+            userLabel={user.email}
+            onOpenSettings={() => setActiveSection("settings")}
+            logoutRedirectPath="/login"
+          />
+        </div>
       </div>
 
       <div className="md:ml-64">

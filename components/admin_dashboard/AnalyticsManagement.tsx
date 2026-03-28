@@ -4,35 +4,39 @@ import { TrendingUp, Users, AlertTriangle, Bug, BarChart3, Clock } from "lucide-
 import { DashboardMetric } from "@/types/admin-dashboard";
 
 export default function AnalyticsManagement(): React.JSX.Element {
+  // TODO(core-platform-service): Provide stable admin analytics aggregate endpoint.
+  // TODO(payments-penalties-service): Provide revenue and payment health metrics.
+  // TODO(allocation-service): Provide matching/fairness and optimization metrics.
+  // TODO(communications-service): Provide support and notification delivery metrics.
   const metrics: DashboardMetric[] = [
     {
       label: "Daily Revenue",
-      value: "$12,450",
+      value: "—",
       icon: TrendingUp,
     },
     {
       label: "Active Users",
-      value: "582",
+      value: "—",
       icon: Users,
     },
     {
       label: "Average Downtime",
-      value: "0.23h",
+      value: "—",
       icon: Clock,
     },
     {
       label: "Bug Log",
-      value: "24",
+      value: "—",
       icon: Bug,
     },
     {
       label: "System Health",
-      value: "98.5%",
+      value: "—",
       icon: BarChart3,
     },
     {
       label: "Critical Issues",
-      value: "2",
+      value: "—",
       icon: AlertTriangle,
     },
   ];
@@ -65,7 +69,9 @@ export default function AnalyticsManagement(): React.JSX.Element {
         })}
       </div>
       <div className="bg-white rounded-lg border border-slate-200 p-6">
-        <p className="text-slate-600">Detailed analytics charts coming soon</p>
+        <p className="text-slate-600">
+          Analytics integration is pending upstream microservice metrics endpoints.
+        </p>
       </div>
     </div>
   );

@@ -7,11 +7,13 @@ import { useTickets } from "@/hooks/useTickets";
 import { Ticket, TicketStatus, TabConfig } from "@/types/admin-dashboard";
 
 export default function SupportManagement(): React.JSX.Element {
+  // TODO(communications-service): Replace empty ticket state with real admin support queue
+  // once Communications Service ticket endpoints are available.
   const [activeTab, setActiveTab] = useState<TicketStatus>("open");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { getTicketsCount, getFilteredTickets } = useTickets();
+  const { getTicketsCount, getFilteredTickets, isLoading, error } = useTickets();
 
   const filteredTickets = getFilteredTickets(activeTab);
 
@@ -51,7 +53,11 @@ export default function SupportManagement(): React.JSX.Element {
 
         {/* Tab Content */}
         <div className="p-6">
-          {filteredTickets.length > 0 ? (
+          {isLoading ? (
+            <p className="text-slate-600 text-center py-8">Loading tickets...</p>
+          ) : error ? (
+            <p className="text-red-600 text-center py-8">{error}</p>
+          ) : filteredTickets.length > 0 ? (
             <div className="space-y-4">
               {filteredTickets.map((ticket) => (
                 <Card key={ticket.id} className="p-4 border border-slate-200">
@@ -82,7 +88,7 @@ export default function SupportManagement(): React.JSX.Element {
             </div>
           ) : (
             <p className="text-slate-600 text-center py-8">
-              No {activeTab} tickets at this time
+              No {activeTab} tickets at this time. Support ticket integration is pending backend endpoints.
             </p>
           )}
         </div>
