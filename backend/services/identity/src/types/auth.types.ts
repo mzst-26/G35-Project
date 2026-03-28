@@ -49,7 +49,7 @@ export interface Session {
   readonly role: UserRole;
   /** ISO-8601 creation timestamp. */
   readonly createdAt: string;
-  /** ISO-8601 expiry timestamp (absolute maximum, 7 days). */
+  /** ISO-8601 expiry timestamp (absolute maximum, 30 days). */
   readonly expiresAt: string;
   /** ISO-8601 of last activity (reset on each authenticated request). */
   readonly lastActiveAt: string;

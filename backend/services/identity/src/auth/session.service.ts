@@ -4,7 +4,7 @@
 //
 // Token TTL policy (configured in Supabase dashboard):
 //   Access token: 15 minutes
-//   Refresh token: 7 days (absolute), 8 hours idle enforced below
+//   Refresh token: 30 days (absolute), 30 days idle enforced below
 //
 // All session mutations write to auth_sessions for revocation and audit.
 // If the table does not exist yet (42P01, before migration runs), operations
@@ -26,6 +26,8 @@ import { emitSecurityEvent } from "../observability/events.js";
 import { authLogger } from "../observability/logger.js";
 
 const VALID_ROLES = new Set<UserRole>(["admin", "recruiter", "trade"]);
+const SESSION_ABSOLUTE_TTL_SECONDS = 30 * 24 * 60 * 60;
+const SESSION_IDLE_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Decode the JWT payload without network verification.
 // We only call this AFTER Supabase has already verified the token signature
@@ -84,15 +86,23 @@ export async function validateToken(accessToken: string): Promise<TokenValidatio
       ? jwtPayload["session_id"]
       : null;
 
+    let sessionExpiresAtUnix: number | null = null;
     if (supabaseSessionId) {
       const { data: sessionRow, error: dbError } = await supabase
         .from("auth_sessions")
-        .select("session_id, revoked_at")
+        .select("session_id, revoked_at, expires_at")
         .eq("session_id", supabaseSessionId)
         .maybeSingle();
 
       if (!dbError && sessionRow?.revoked_at) {
         return { valid: false, error: "session_revoked" };
+      }
+
+      if (!dbError && sessionRow?.expires_at) {
+        const parsedExpiresAt = new Date(sessionRow.expires_at).getTime();
+        if (Number.isFinite(parsedExpiresAt)) {
+          sessionExpiresAtUnix = Math.floor(parsedExpiresAt / 1000);
+        }
       }
       // 42P01 or row not found = migration not run or session not persisted yet.
       // Fall through and trust Supabase JWT validation alone.
@@ -103,7 +113,7 @@ export async function validateToken(accessToken: string): Promise<TokenValidatio
       email: sbUser.email ?? "",
       role,
       stepUpVerified,
-      expiresAt: Math.floor(Date.now() / 1000) + 900, // conservative 15-min fallback
+      expiresAt: sessionExpiresAtUnix ?? (Math.floor(Date.now() / 1000) + SESSION_ABSOLUTE_TTL_SECONDS),
     };
 
     return { valid: true, user };
@@ -155,7 +165,7 @@ export async function touchSessionActivity(sessionId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 // Rotates the refresh token and issues a new access + refresh token pair.
-// Enforces an 8-hour idle timeout: rejects if the session hasn't been active
+// Enforces a 30-day idle timeout: rejects if the session hasn't been active
 // within that window, revokes immediately, and throws SESSION_REVOKED.
 export async function refreshSession(
   input: SessionRefreshRequest,
@@ -178,7 +188,7 @@ export async function refreshSession(
       throw new AuthenticationError("Refresh token is invalid or expired.", "TOKEN_EXPIRED");
     }
 
-    // Enforce 8-hour idle timeout against auth_sessions.
+    // Enforce 30-day idle timeout against auth_sessions.
     // 42P01 = table not yet migrated → skip, trust Supabase validity alone.
     const jwtPayload = decodeJwtPayload(data.session.access_token);
     const sessionId = typeof jwtPayload["session_id"] === "string" ? jwtPayload["session_id"] : null;
@@ -193,7 +203,7 @@ export async function refreshSession(
       if (!dbErr || dbErr.code === "42P01") {
         if (sessionRow?.last_active_at) {
           const idleMs = Date.now() - new Date(sessionRow.last_active_at as string).getTime();
-          if (idleMs > 8 * 60 * 60 * 1000) {
+          if (idleMs > SESSION_IDLE_TIMEOUT_MS) {
             // Revoke before returning tokens so the caller never sees them.
             await svc.auth.admin.signOut(data.session.access_token, "global");
             await svc
@@ -328,11 +338,7 @@ export function buildPlatformSession(params: {
     ? jwtPayload["session_id"]
     : crypto.randomUUID();
 
-  const sbExpiresIn: number = typeof jwtPayload["exp"] === "number"
-    ? jwtPayload["exp"] - Math.floor(Date.now() / 1000)
-    : 900;
-
-  const expiresAt = Math.floor(Date.now() / 1000) + sbExpiresIn;
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_ABSOLUTE_TTL_SECONDS;
   const now = new Date().toISOString();
 
   const session: Session = {
@@ -340,7 +346,7 @@ export function buildPlatformSession(params: {
     userId: params.userId,
     role: params.role as Session['role'],
     createdAt: now,
-    expiresAt: new Date((expiresAt + 7 * 24 * 60 * 60 - sbExpiresIn) * 1000).toISOString(),
+    expiresAt: new Date(expiresAt * 1000).toISOString(),
     lastActiveAt: now,
     stepUpVerified: params.stepUpVerified ?? false,
     ipAddress: params.ipAddress ?? null,
