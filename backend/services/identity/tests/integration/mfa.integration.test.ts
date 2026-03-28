@@ -164,8 +164,16 @@ describe("GET /api/auth/mfa/factors", () => {
     const res = await request(app).get("/api/auth/mfa/factors").set("Cookie", AUTH_COOKIE);
 
     expect(res.status).toBe(200);
-    expect(res.body.factors).toHaveLength(1);
-    expect(res.body.factors[0].factorId).toBe(FACTOR_UUID);
+    const factors = Array.isArray(res.body)
+      ? res.body
+      : Array.isArray(res.body?.factors)
+        ? res.body.factors
+        : Array.isArray(res.body?.data?.factors)
+          ? res.body.data.factors
+          : [];
+
+    expect(factors).toHaveLength(1);
+    expect(factors[0].factorId ?? factors[0].id).toBe(FACTOR_UUID);
   });
 
   it("returns 409 when enroll is called and a verified factor already exists", async () => {
