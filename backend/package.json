@@ -9,6 +9,9 @@
   "scripts": {
     "build": "npm run build:shared && npm run build -w @infra/shared-types -w @infra/shared-utils -w @infra/identity-service",
     "build:shared": "npm run build -w @infra/shared-errors -w @infra/shared-permissions -w @infra/shared-validation -w @infra/shared-db -w @infra/shared-observability -w @infra/shared-auth",
+    "ci:guard": "npm run ci:guard:lockfile && npm run ci:guard:shared-builds",
+    "ci:guard:lockfile": "node ./scripts/ci/guard-lockfile-sync.mjs",
+    "ci:guard:shared-builds": "node ./scripts/ci/guard-shared-build-scripts.mjs",
     "build:all": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

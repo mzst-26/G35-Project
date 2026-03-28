@@ -46,6 +46,8 @@ jobs:
           echo "NPM: $(npm -v)"
           node -e 'const lock = require("./package-lock.json"); console.log(`lockfileVersion=${lock.lockfileVersion}`);'
           grep -nE '"(@esbuild/linux-x64|esbuild)"' package-lock.json | head -n 5 || true
+      - name: CI guards (lockfile and shared builds)
+        run: npm run ci:guard
       - name: Install
         run: npm ci
       - name: Build shared packages
