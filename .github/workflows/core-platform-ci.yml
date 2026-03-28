@@ -44,6 +44,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: CI guards (lockfile and shared builds)
+        run: npm run ci:guard
+        working-directory: backend
+
       - name: Install dependencies
         run: npm ci
         working-directory: backend
@@ -107,6 +111,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
+
+      - name: CI guards (lockfile and shared builds)
+        run: npm run ci:guard
+        working-directory: backend
 
       - name: Install dependencies
         run: npm ci
@@ -185,6 +193,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: CI guards (lockfile and shared builds)
+        run: npm run ci:guard
+        working-directory: backend
+
       - name: Install dependencies
         run: npm ci
         working-directory: backend
@@ -246,9 +258,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend/services/core-platform
+          context: ./backend
           file: ./backend/services/core-platform/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -290,6 +302,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
+
+      - name: CI guards (lockfile and shared builds)
+        run: npm run ci:guard
+        working-directory: backend
 
       - name: Install dependencies
         run: npm ci

@@ -104,6 +104,7 @@ jobs:
         with:
           context: ./backend
           file: ./backend/services/identity/Dockerfile
+          platforms: linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
