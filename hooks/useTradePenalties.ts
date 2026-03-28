@@ -1,82 +1,85 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { TradePenalty, TradePenaltiesStats } from '@/types/trade-dashboard';
 import { coreGetJson } from '@/lib/core/client';
 import { toTradePenalties } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
-import { HookErrorEnvelope, toHookApiError } from '@/lib/core/error-envelope';
+import { toHookApiError } from '@/lib/core/error-envelope';
+import { usePaginatedData } from '@/lib/data/pagination';
 
-export function useTradePenalties() {
-  // Store penalties list data
-  const [penalties, setPenalties] = useState<TradePenalty[]>([]);
-  // Simple loading and error flags
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
+export interface UseTradePenaltiesOptions {
+  pageSize?: 25 | 50 | 100;
+  pageNumber?: number;
+}
 
-  useEffect(() => {
-    // Load penalties once when the hook mounts
-    let active = true;
+export function useTradePenalties(options?: UseTradePenaltiesOptions) {
+  const pageSize = options?.pageSize ?? 25;
 
-    const loadPenalties = async () => {
-      setIsLoading(true);
-      setError(null);
-      setErrorEnvelope(null);
-
+  const {
+    items: penalties,
+    currentPage,
+    total,
+    isLoading,
+    error,
+    goToPage,
+    setPageSize,
+    refresh,
+    hasNextPage,
+  } = usePaginatedData<TradePenalty>(
+    async (limit, offset) => {
       try {
         const payload = await coreGetJson<unknown>(
           '/api/core/penalties',
           'Failed to load penalties',
           'TRADE_PENALTIES_LOAD_FAILED',
-          { limit: 50 },
+          { limit, offset },
         );
-        const data = toTradePenalties(payload);
-        if (active) {
-          setPenalties(data);
+
+        // Handle response that includes meta
+        if (payload && typeof payload === 'object' && 'data' in payload && 'meta' in payload) {
+          const typedData = payload as { data: unknown[]; meta: { total: number; limit: number; offset: number } };
+          return {
+            data: toTradePenalties(typedData.data),
+            meta: typedData.meta,
+          };
         }
+
+        // Fallback: assume payload is array
+        return {
+          data: toTradePenalties(Array.isArray(payload) ? payload : []),
+          meta: { total: Array.isArray(payload) ? payload.length : 0, limit, offset },
+        };
       } catch (caughtError) {
-        if (active) {
-          const apiError = toHookApiError(
-            caughtError,
-            'Failed to load penalties',
-            'TRADE_PENALTIES_LOAD_FAILED',
-          );
-          captureFrontendError(apiError, {
-            flow: 'trade_penalties',
-            endpoint: '/api/core/penalties',
-            action: 'list',
-            role: 'trade',
-          });
-          captureFrontendMessage('Trade penalties request failed', {
-            flow: 'trade_penalties',
-            endpoint: '/api/core/penalties',
-            action: 'list',
-            role: 'trade',
-            extra: {
-              code: apiError.envelope.code,
-              requestId: apiError.envelope.requestId,
-              status: apiError.envelope.status,
-            },
-          });
-          setError(apiError.envelope.message);
-          setErrorEnvelope(apiError.envelope);
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
+        const apiError = toHookApiError(
+          caughtError,
+          'Failed to load penalties',
+          'TRADE_PENALTIES_LOAD_FAILED',
+        );
+        captureFrontendError(apiError, {
+          flow: 'trade_penalties',
+          endpoint: '/api/core/penalties',
+          action: 'list',
+          role: 'trade',
+        });
+        captureFrontendMessage('Trade penalties request failed', {
+          flow: 'trade_penalties',
+          endpoint: '/api/core/penalties',
+          action: 'list',
+          role: 'trade',
+          extra: {
+            code: apiError.envelope.code,
+            requestId: apiError.envelope.requestId,
+            status: apiError.envelope.status,
+          },
+        });
+        throw caughtError;
       }
-    };
+    },
+    pageSize,
+  );
 
-    loadPenalties();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Calculate statistics
+  // Calculate statistics from all loaded penalties
   const stats = useMemo<TradePenaltiesStats>(() => {
     return penalties.reduce(
       (acc, penalty) => {
@@ -90,5 +93,17 @@ export function useTradePenalties() {
     );
   }, [penalties]);
 
-  return { penalties, stats, isLoading, error, errorEnvelope, setPenalties } as const;
+  return {
+    penalties,
+    stats,
+    isLoading,
+    error,
+    total,
+    currentPage,
+    pageSize,
+    hasNextPage,
+    goToPage,
+    setPageSize,
+    refresh,
+  } as const;
 }

@@ -1,75 +1,79 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { CompanyPaymentListItem, CompanyPaymentSummary } from '@/types/company-payments';
 import { coreGetJson } from '@/lib/core/client';
 import { toCompanyPayments } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
-import { HookErrorEnvelope, toHookApiError } from '@/lib/core/error-envelope';
+import { toHookApiError } from '@/lib/core/error-envelope';
+import { usePaginatedData } from '@/lib/data/pagination';
 
-export function useCompanyPayments() {
-  // Store the payment list
-  const [payments, setPayments] = useState<CompanyPaymentListItem[]>([]);
-  // Track loading and error
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
+export interface UseCompanyPaymentsOptions {
+  pageSize?: 25 | 50 | 100;
+  pageNumber?: number;
+}
 
-  useEffect(() => {
-    let active = true;
+export function useCompanyPayments(options?: UseCompanyPaymentsOptions) {
+  const pageSize = options?.pageSize ?? 25;
 
-    const loadPayments = async () => {
-      setIsLoading(true);
-      setError(null);
-      setErrorEnvelope(null);
-
+  const {
+    items: payments,
+    currentPage,
+    total,
+    isLoading,
+    error,
+    goToPage,
+    setPageSize,
+    refresh,
+    hasNextPage,
+  } = usePaginatedData<CompanyPaymentListItem>(
+    async (limit, offset) => {
       try {
         const payload = await coreGetJson<unknown>(
           '/api/core/payments',
           'Failed to load payments',
           'COMPANY_PAYMENTS_LOAD_FAILED',
-          { limit: 50 },
+          { limit, offset },
         );
-        const data = toCompanyPayments(payload);
-        if (active) {
-          setPayments(data);
+
+        // Handle response that includes meta
+        if (payload && typeof payload === 'object' && 'data' in payload && 'meta' in payload) {
+          const typedData = payload as { data: unknown[]; meta: { total: number; limit: number; offset: number } };
+          return {
+            data: toCompanyPayments(typedData.data),
+            meta: typedData.meta,
+          };
         }
+
+        // Fallback: assume payload is array
+        return {
+          data: toCompanyPayments(Array.isArray(payload) ? payload : []),
+          meta: { total: Array.isArray(payload) ? payload.length : 0, limit, offset },
+        };
       } catch (caughtError) {
-        if (active) {
-          const apiError = toHookApiError(caughtError, 'Failed to load payments', 'COMPANY_PAYMENTS_LOAD_FAILED');
-          captureFrontendError(apiError, {
-            flow: 'recruiter_payments',
-            endpoint: '/api/core/payments',
-            action: 'list',
-            role: 'recruiter',
-          });
-          captureFrontendMessage('Recruiter payments request failed', {
-            flow: 'recruiter_payments',
-            endpoint: '/api/core/payments',
-            action: 'list',
-            role: 'recruiter',
-            extra: {
-              code: apiError.envelope.code,
-              requestId: apiError.envelope.requestId,
-              status: apiError.envelope.status,
-            },
-          });
-          setError(apiError.envelope.message);
-          setErrorEnvelope(apiError.envelope);
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
+        const apiError = toHookApiError(caughtError, 'Failed to load payments', 'COMPANY_PAYMENTS_LOAD_FAILED');
+        captureFrontendError(apiError, {
+          flow: 'recruiter_payments',
+          endpoint: '/api/core/payments',
+          action: 'list',
+          role: 'recruiter',
+        });
+        captureFrontendMessage('Recruiter payments request failed', {
+          flow: 'recruiter_payments',
+          endpoint: '/api/core/payments',
+          action: 'list',
+          role: 'recruiter',
+          extra: {
+            code: apiError.envelope.code,
+            requestId: apiError.envelope.requestId,
+            status: apiError.envelope.status,
+          },
+        });
+        throw caughtError;
       }
-    };
-
-    loadPayments();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    },
+    pageSize,
+  );
 
   const summary = useMemo<CompanyPaymentSummary>(() => {
     return payments.reduce(
@@ -90,5 +94,18 @@ export function useCompanyPayments() {
     );
   }, [payments]);
 
-  return { payments, summary, isLoading, error, errorEnvelope } as const;
+  return {
+    payments,
+    summary,
+    isLoading,
+    error,
+    total,
+    currentPage,
+    pageSize,
+    hasNextPage,
+    goToPage,
+    setPageSize,
+    refresh,
+  } as const;
 }
+
