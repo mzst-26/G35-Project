@@ -272,7 +272,7 @@ export default function CompanyDashboard() {
                 <Support />
               )}
               {activeSection === 'settings' && (
-                <SettingsSection companyId="company_123" />
+                <SettingsSection />
               )}
             </>
           

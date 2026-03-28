@@ -10,7 +10,7 @@ import {
   SmsNotifications,
 } from '@/types/company-settings';
 import { coreGetJson, corePatchJson } from '@/lib/core/client';
-import { toCompanyProfile } from '@/lib/core/adapters';
+import { toTradeProfile } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
 import { toHookApiError } from '@/lib/core/error-envelope';
 
@@ -45,34 +45,14 @@ const INITIAL_NOTIFICATIONS: NotificationPreferences = {
   updatedAt: '',
 };
 
-const COMPANY_SETTINGS_UNAVAILABLE_MESSAGE =
-  'Company settings are not fully connected yet. TODO: expose recruiter companyId in Identity session and add company settings endpoints for notifications/payment methods.';
+const TRADE_SETTINGS_UNAVAILABLE_MESSAGE =
+  'Trade settings are not fully connected yet. TODO: expose worker contact fields from Identity service and add trade notifications/payment method endpoints.';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function extractFirstCompanyId(payload: unknown): string | null {
-  if (!isRecord(payload)) {
-    return null;
-  }
-
-  const data = payload.data;
-  if (!Array.isArray(data) || data.length === 0) {
-    return null;
-  }
-
-  const first = data[0];
-  if (!isRecord(first)) {
-    return null;
-  }
-
-  return typeof first.companyId === 'string' && first.companyId.length > 0
-    ? first.companyId
-    : null;
-}
-
-export function useCompanySettings() {
+export function useTradeSettings() {
   const [state, setState] = useState<CompanySettingsState>({
     profile: INITIAL_PROFILE,
     notifications: INITIAL_NOTIFICATIONS,
@@ -81,41 +61,25 @@ export function useCompanySettings() {
     error: null,
   });
 
-  const companyIdRef = useRef<string | null>(null);
+  const workerIdRef = useRef<string | null>(null);
   const profileSnapshotRef = useRef<CompanyProfile>(INITIAL_PROFILE);
 
   const setFeatureUnavailableError = useCallback((action: string) => {
     setState((prev) => ({
       ...prev,
       isLoading: false,
-      error: COMPANY_SETTINGS_UNAVAILABLE_MESSAGE,
+      error: TRADE_SETTINGS_UNAVAILABLE_MESSAGE,
     }));
 
-    captureFrontendMessage('Company settings integration gap', {
-      flow: 'company_settings',
+    captureFrontendMessage('Trade settings integration gap', {
+      flow: 'trade_settings',
       endpoint: 'pending-integrations',
       action,
-      role: 'recruiter',
+      role: 'trade',
       extra: {
         reason: 'unimplemented_microservice_dependency',
       },
     });
-  }, []);
-
-  const resolveCompanyId = useCallback(async (companyIdHint: string): Promise<string | null> => {
-    if (companyIdHint) {
-      return companyIdHint;
-    }
-
-    // TODO: use recruiter.companyId from Identity session once exposed in /api/auth/session/me.
-    const jobsPayload = await coreGetJson<unknown>(
-      '/api/core/jobs',
-      'Failed to resolve company context',
-      'COMPANY_SETTINGS_COMPANY_RESOLUTION_FAILED',
-      { limit: 1 },
-    );
-
-    return extractFirstCompanyId(jobsPayload);
   }, []);
 
   const updateProfileField = useCallback(
@@ -170,9 +134,9 @@ export function useCompanySettings() {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const companyId = companyIdRef.current;
-      if (!companyId) {
-        setFeatureUnavailableError('save_profile_missing_company_id');
+      const workerId = workerIdRef.current;
+      if (!workerId) {
+        setFeatureUnavailableError('save_profile_missing_worker_id');
         return;
       }
 
@@ -182,34 +146,34 @@ export function useCompanySettings() {
         state.profile.email !== snapshot.email ||
         state.profile.phone !== snapshot.phone;
 
-      // TODO: update contact name/email/phone via Identity + Communications service once available.
+      // TODO: update contact name/email/phone via Identity service once worker contact fields are exposed.
       if (unsupportedFieldChanged) {
         setFeatureUnavailableError('save_profile_unsupported_fields');
         return;
       }
 
       const payload = await corePatchJson<unknown, {
-        company_name: string;
+        bio: string;
+        qualifications: string | null;
         address_line1: string;
         address_line2: string;
         city: string;
-        postcode: string;
       }>(
-        `/api/core/companies/${companyId}`,
+        `/api/core/workers/${workerId}`,
         {
-          company_name: state.profile.companyName,
+          bio: state.profile.companyName,
+          qualifications: null,
           address_line1: state.profile.addressLine1,
           address_line2: state.profile.addressLine2 || '',
           city: state.profile.city,
-          postcode: state.profile.postcode,
         },
-        'Failed to save company profile',
-        'COMPANY_SETTINGS_SAVE_PROFILE_FAILED',
+        'Failed to save worker profile',
+        'TRADE_SETTINGS_SAVE_PROFILE_FAILED',
       );
 
-      const mappedProfile = toCompanyProfile(payload);
+      const mappedProfile = toTradeProfile(payload);
       if (!mappedProfile) {
-        throw new Error('Core profile payload is invalid');
+        throw new Error('Core worker payload is invalid');
       }
 
       const nextProfile: CompanyProfile = {
@@ -229,22 +193,22 @@ export function useCompanySettings() {
     } catch (caughtError) {
       const apiError = toHookApiError(
         caughtError,
-        'Failed to save company profile',
-        'COMPANY_SETTINGS_SAVE_PROFILE_FAILED',
+        'Failed to save worker profile',
+        'TRADE_SETTINGS_SAVE_PROFILE_FAILED',
       );
 
       captureFrontendError(apiError, {
-        flow: 'company_settings',
-        endpoint: '/api/core/companies/:id',
+        flow: 'trade_settings',
+        endpoint: '/api/core/workers/:id',
         action: 'save_profile',
-        role: 'recruiter',
+        role: 'trade',
       });
 
-      captureFrontendMessage('Company profile save failed', {
-        flow: 'company_settings',
-        endpoint: '/api/core/companies/:id',
+      captureFrontendMessage('Trade profile save failed', {
+        flow: 'trade_settings',
+        endpoint: '/api/core/workers/:id',
         action: 'save_profile',
-        role: 'recruiter',
+        role: 'trade',
         extra: {
           code: apiError.envelope.code,
           requestId: apiError.envelope.requestId,
@@ -261,59 +225,58 @@ export function useCompanySettings() {
   }, [setFeatureUnavailableError, state.profile]);
 
   const saveNotifications = useCallback(async () => {
-    // TODO: connect to Communications service notification preferences API.
+    // TODO: connect to Communications service notification preferences API for workers.
     setFeatureUnavailableError('save_notifications_not_implemented');
   }, [setFeatureUnavailableError]);
 
   const addPaymentMethod = useCallback(async (paymentData: Omit<PaymentMethod, 'id' | 'createdAt' | 'updatedAt'>) => {
     void paymentData;
-    // TODO: connect to Payments service card vaulting + default method endpoints.
+    // TODO: connect to Payments service card vaulting + default method endpoints for workers.
     setFeatureUnavailableError('add_payment_method_not_implemented');
   }, [setFeatureUnavailableError]);
 
   const deletePaymentMethod = useCallback(async (paymentMethodId: string) => {
     void paymentMethodId;
-    // TODO: connect to Payments service card management endpoints.
+    // TODO: connect to Payments service card management endpoints for workers.
     setFeatureUnavailableError('delete_payment_method_not_implemented');
   }, [setFeatureUnavailableError]);
 
   const setDefaultPaymentMethod = useCallback(async (paymentMethodId: string) => {
     void paymentMethodId;
-    // TODO: connect to Payments service default payment method endpoint.
+    // TODO: connect to Payments service default payment method endpoint for workers.
     setFeatureUnavailableError('set_default_payment_method_not_implemented');
   }, [setFeatureUnavailableError]);
 
-  const loadSettings = useCallback(async (companyIdHint: string) => {
+  const loadSettings = useCallback(async (workerIdHint: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const companyId = await resolveCompanyId(companyIdHint);
-      if (!companyId) {
-        setFeatureUnavailableError('load_settings_company_id_missing');
+      if (!workerIdHint) {
+        setFeatureUnavailableError('load_settings_worker_id_missing');
         return;
       }
 
       const profilePayload = await coreGetJson<unknown>(
-        `/api/core/companies/${companyId}`,
-        'Failed to load company profile',
-        'COMPANY_SETTINGS_LOAD_PROFILE_FAILED',
+        `/api/core/workers/${workerIdHint}`,
+        'Failed to load worker profile',
+        'TRADE_SETTINGS_LOAD_PROFILE_FAILED',
       );
-      const profile = toCompanyProfile(profilePayload);
+      const profile = toTradeProfile(profilePayload);
 
       if (!profile) {
-        throw new Error('Core company profile payload is invalid');
+        throw new Error('Core worker profile payload is invalid');
       }
 
-      companyIdRef.current = companyId;
+      workerIdRef.current = workerIdHint;
       profileSnapshotRef.current = profile;
 
-      // TODO: replace these placeholders with Communications + Payments service data once integrated.
+      // TODO: replace these placeholders with Communications + Payments service data once integrated for workers.
       setState((prev) => ({
         ...prev,
         profile,
         notifications: {
           ...INITIAL_NOTIFICATIONS,
-          companyId,
+          companyId: workerIdHint,
         },
         paymentMethods: [],
         isLoading: false,
@@ -322,22 +285,22 @@ export function useCompanySettings() {
     } catch (caughtError) {
       const apiError = toHookApiError(
         caughtError,
-        'Failed to load company settings',
-        'COMPANY_SETTINGS_LOAD_FAILED',
+        'Failed to load trade settings',
+        'TRADE_SETTINGS_LOAD_FAILED',
       );
 
       captureFrontendError(apiError, {
-        flow: 'company_settings',
-        endpoint: '/api/core/companies/:id',
+        flow: 'trade_settings',
+        endpoint: '/api/core/workers/:id',
         action: 'load_settings',
-        role: 'recruiter',
+        role: 'trade',
       });
 
-      captureFrontendMessage('Company settings load failed', {
-        flow: 'company_settings',
-        endpoint: '/api/core/companies/:id',
+      captureFrontendMessage('Trade settings load failed', {
+        flow: 'trade_settings',
+        endpoint: '/api/core/workers/:id',
         action: 'load_settings',
-        role: 'recruiter',
+        role: 'trade',
         extra: {
           code: apiError.envelope.code,
           requestId: apiError.envelope.requestId,
@@ -351,26 +314,18 @@ export function useCompanySettings() {
         error: apiError.envelope.message,
       }));
     }
-  }, [resolveCompanyId, setFeatureUnavailableError]);
+  }, [setFeatureUnavailableError]);
 
   return {
-    profile: state.profile,
-    notifications: state.notifications,
-    paymentMethods: state.paymentMethods,
-    isLoading: state.isLoading,
-    error: state.error,
-
+    ...state,
     updateProfileField,
     saveProfile,
-
     toggleEmailNotification,
     toggleSmsNotification,
     saveNotifications,
-
     addPaymentMethod,
     deletePaymentMethod,
     setDefaultPaymentMethod,
-
     loadSettings,
   };
 }

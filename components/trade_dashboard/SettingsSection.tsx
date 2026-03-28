@@ -8,7 +8,7 @@ import { NotificationsTab } from '@/components/settings/NotificationsTab';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 interface SettingsSectionProps {
-  companyId: string;
+  companyId?: string;
 }
 
 /**
@@ -18,8 +18,7 @@ interface SettingsSectionProps {
  * Used as a section within the company dashboard
  *
  */
-export function SettingsSection({ companyId }: SettingsSectionProps) {
-  // Import all state and handlers from custom hook
+export function SettingsSection({ companyId = '' }: SettingsSectionProps) {
   const {
     profile,
     notifications,
@@ -36,12 +35,10 @@ export function SettingsSection({ companyId }: SettingsSectionProps) {
     loadSettings,
   } = useCompanySettings();
 
-  // Load settings on component mount
   useEffect(() => {
     loadSettings(companyId);
   }, [companyId, loadSettings]);
 
-  // Display error if one occurred
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -86,8 +83,7 @@ export function SettingsSection({ companyId }: SettingsSectionProps) {
             onSetDefault={setDefaultPaymentMethod}
             onDelete={deletePaymentMethod}
             onAddNew={() => {
-              // TODO: Open payment modal or navigate to payment form
-              console.log('Open payment modal');
+              // TODO: connect Add Card UX to Payments service once card vaulting endpoints are available.
             }}
           />
         </TabsContent>

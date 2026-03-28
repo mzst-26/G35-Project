@@ -12,7 +12,7 @@ interface Props {
 export default function TicketView({ ticketId }: Props) {
   const router = useRouter();
 
-  // Placeholder view until backend is implemented
+  // TODO: fetch ticket details from Communications service by ticketId.
   return (
     <Card className="p-6">
       <h1 className="text-xl font-bold">Ticket {ticketId}</h1>

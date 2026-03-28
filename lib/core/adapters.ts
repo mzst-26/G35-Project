@@ -3,6 +3,7 @@ import type { CompanyJob, CompanyJobStatus } from '@/types/company-jobs';
 import { normalizeCompanyJobStatus } from '@/types/company-jobs';
 import type { CompanyJobDetail, CompanyJobTimelineItem } from '@/types/company-job-detail';
 import type { CompanyPaymentDetail, CompanyPaymentListItem } from '@/types/company-payments';
+import type { CompanyProfile } from '@/types/company-settings';
 import type { TradePenalty, TradeUpcomingJob } from '@/types/trade-dashboard';
 import { normalizeTradeJobStatus } from '@/types/trade-dashboard';
 
@@ -206,6 +207,52 @@ export function toCompanyPaymentDetail(payload: unknown): CompanyPaymentDetail |
           description: asString(source.pendingStripeHold.description, ''),
         }
       : undefined,
+  };
+}
+
+export function toCompanyProfile(payload: unknown): CompanyProfile | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const source = isRecord(payload.data) ? payload.data : payload;
+
+  return {
+    id: asString(source.id, ''),
+    companyName: asString(source.companyName, ''),
+    // TODO: map from Identity profile once contact fields are exposed to frontend APIs.
+    contactName: '',
+    email: '',
+    phone: '',
+    addressLine1: asString(source.addressLine1, ''),
+    addressLine2: asString(source.addressLine2, ''),
+    city: asString(source.city, ''),
+    postcode: asString(source.postcode, ''),
+    createdAt: asString(source.createdAt, ''),
+    updatedAt: asString(source.updatedAt, ''),
+  };
+}
+
+export function toTradeProfile(payload: unknown): CompanyProfile | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const source = isRecord(payload.data) ? payload.data : payload;
+
+  return {
+    id: asString(source.id, ''),
+    companyName: asString(source.bio, ''),
+    // TODO: map from Identity profile once contact fields are exposed to frontend APIs.
+    contactName: '',
+    email: '',
+    phone: '',
+    addressLine1: asString(source.addressLine1, ''),
+    addressLine2: asString(source.addressLine2, ''),
+    city: asString(source.city, ''),
+    postcode: '',
+    createdAt: asString(source.createdAt, ''),
+    updatedAt: asString(source.updatedAt, ''),
   };
 }
 
