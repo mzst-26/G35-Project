@@ -1,11 +1,12 @@
 export function useAdminNotifications() {
-  // Placeholder implementations for admin notifications
+  // TODO(communications-service): Replace placeholders with real admin notification
+  // endpoints once Communications Service is available.
   const getNotifications = () => {
     return [] as Array<{ id: string; message: string; read: boolean }>;
   };
 
-  const markRead = (id: string) => {
-    // TODO: implement mark-as-read
+  const markRead = () => {
+    // TODO(communications-service): implement mark-as-read endpoint integration.
   };
 
   return { getNotifications, markRead };

@@ -3,7 +3,35 @@
 import { useState, useCallback } from 'react';
 import { Message } from '@/types/chat';
 import { JobParameters } from '@/types/job';
-import { parseJobParameters } from '@/mockservices/jobParser';
+import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
+import { parseJsonOrThrowEnvelope, toHookApiError } from '@/lib/core/error-envelope';
+
+interface ChatParseResponse {
+  params: JobParameters;
+  response: string;
+}
+
+async function requestChatParse(
+  content: string,
+  currentParams: JobParameters,
+): Promise<ChatParseResponse> {
+  const response = await fetch('/api/core/chat/parse', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: content,
+      currentParams,
+    }),
+  });
+
+  return parseJsonOrThrowEnvelope<ChatParseResponse>(
+    response,
+    'Unable to process your message right now.',
+    'JOB_CHAT_PARSE_FAILED',
+  );
+}
 
 /**
  * Custom hook to manage job chat state and logic
@@ -24,7 +52,7 @@ export function useJobChat() {
   const [inputValue, setInputValue] = useState('');
 
   const sendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       if (!content.trim()) return;
 
       // Add user message
@@ -39,11 +67,8 @@ export function useJobChat() {
       setInputValue('');
       setIsTyping(true);
 
-      // Simulate AI response with delay
-      // TODO: Replace with actual API call to services/jobChatApi.ts
-      setTimeout(() => {
-        const { params, response } = parseJobParameters(content, jobParams);
-        
+      try {
+        const { params, response } = await requestChatParse(content, jobParams);
         setJobParams(params);
 
         const assistantMessage: Message = {
@@ -54,8 +79,43 @@ export function useJobChat() {
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
+      } catch (caughtError) {
+        const apiError = toHookApiError(
+          caughtError,
+          'Unable to process your message right now.',
+          'JOB_CHAT_PARSE_FAILED',
+        );
+
+        captureFrontendError(apiError, {
+          flow: 'job_chat',
+          endpoint: '/api/core/chat/parse',
+          action: 'parse',
+          role: 'recruiter',
+        });
+
+        captureFrontendMessage('Job chat parse request failed', {
+          flow: 'job_chat',
+          endpoint: '/api/core/chat/parse',
+          action: 'parse',
+          role: 'recruiter',
+          extra: {
+            code: apiError.envelope.code,
+            requestId: apiError.envelope.requestId,
+            status: apiError.envelope.status,
+          },
+        });
+
+        const fallbackAssistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: 'I could not process that message right now. Please try again in a moment.',
+          timestamp: new Date().toISOString(),
+        };
+
+        setMessages((prev) => [...prev, fallbackAssistantMessage]);
+      } finally {
         setIsTyping(false);
-      }, 1000);
+      }
     },
     [jobParams]
   );
