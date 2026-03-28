@@ -35,7 +35,6 @@ yarn-error.log*
 .env*
 !.env.example
 !backend/services/identity/.env.example
-!backend/services/core-platform/.env.example
 !backend/services/communications/.env.example
 !backend/services/payments-penalties/.env.example
 
