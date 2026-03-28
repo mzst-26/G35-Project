@@ -47,7 +47,7 @@ jobs:
           node -e 'const lock = require("./package-lock.json"); console.log(`lockfileVersion=${lock.lockfileVersion}`);'
           grep -nE '"(@esbuild/linux-x64|esbuild)"' package-lock.json | head -n 5 || true
       - name: Install
-        run: npm ci --include=optional
+        run: npm i
       - name: Build workspace
         run: npm run build -w @infra/shared-utils -w @infra/identity-service
       - name: Test identity
