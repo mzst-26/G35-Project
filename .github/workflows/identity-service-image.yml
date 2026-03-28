@@ -44,8 +44,8 @@ jobs:
           echo "Workflow SHA: $(git rev-parse HEAD)"
           echo "Node: $(node -v)"
           echo "NPM: $(npm -v)"
-          echo "lockfileVersion=$(node -p \"require('./package-lock.json').lockfileVersion\")"
-          grep -n '"@esbuild/linux-x64"\|"esbuild"' package-lock.json | head -n 5 || true
+          node -e 'const lock = require("./package-lock.json"); console.log(`lockfileVersion=${lock.lockfileVersion}`);'
+          grep -nE '"(@esbuild/linux-x64|esbuild)"' package-lock.json | head -n 5 || true
       - name: Install
         run: npm ci --include=optional
       - name: Build workspace
