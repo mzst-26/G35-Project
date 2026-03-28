@@ -50,6 +50,11 @@ tester_agent_prompt.txt
 *.sql
 .sql*
 
+#database build directory
+supabase/*
+supabase
+
+
 # Temprerarly ignoring all microservices accept identity for development purposes
 # services/*
 backend/services/core-platform/*
