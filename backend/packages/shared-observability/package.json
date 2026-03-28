@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "echo 'dist-only package in this branch'",
+    "build": "tsc -p tsconfig.json",
     "lint": "echo 'no-op'",
     "test": "echo 'no-op'",
     "typecheck": "echo 'no-op'"
