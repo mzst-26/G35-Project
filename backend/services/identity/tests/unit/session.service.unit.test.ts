@@ -329,9 +329,9 @@ describe("refreshSession — token rotation", () => {
   });
 });
 
-describe("refreshSession — idle session timeout (8h enforcement)", () => {
-  it("throws SESSION_REVOKED when session last_active_at exceeds 8 hours", async () => {
-    const nineHoursAgo = new Date(Date.now() - 9 * 60 * 60 * 1000).toISOString();
+describe("refreshSession — idle session timeout (30-day enforcement)", () => {
+  it("throws SESSION_REVOKED when session last_active_at exceeds 30 days", async () => {
+    const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
     mockRefreshSessionResult = {
       data: {
         session: {
@@ -343,7 +343,7 @@ describe("refreshSession — idle session timeout (8h enforcement)", () => {
       },
       error: null,
     };
-    mockMaybeSingleResult = { data: { last_active_at: nineHoursAgo }, error: null };
+    mockMaybeSingleResult = { data: { last_active_at: thirtyOneDaysAgo }, error: null };
 
     await expect(refreshSession({ refreshToken: "idle-refresh-token" })).rejects.toMatchObject({
       code: "SESSION_REVOKED",
@@ -352,8 +352,8 @@ describe("refreshSession — idle session timeout (8h enforcement)", () => {
     expect(adminSignOutMock).toHaveBeenCalled();
   });
 
-  it("allows refresh when session was active within the last 8 hours", async () => {
-    const sevenHoursAgo = new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString();
+  it("allows refresh when session was active within the last 30 days", async () => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     mockRefreshSessionResult = {
       data: {
         session: {
@@ -365,7 +365,7 @@ describe("refreshSession — idle session timeout (8h enforcement)", () => {
       },
       error: null,
     };
-    mockMaybeSingleResult = { data: { last_active_at: sevenHoursAgo }, error: null };
+    mockMaybeSingleResult = { data: { last_active_at: sevenDaysAgo }, error: null };
 
     const result = await refreshSession({ refreshToken: "active-refresh-token" });
     expect(result.refreshToken).toBe("new-refresh-token");

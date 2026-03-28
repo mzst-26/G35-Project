@@ -220,8 +220,8 @@ describe("POST /api/auth/session/logout", () => {
 });
 
 describe("POST /api/auth/session/refresh — idle session enforcement", () => {
-  it("returns 401 SESSION_REVOKED when the session has been idle for more than 8 hours", async () => {
-    const nineHoursAgo = new Date(Date.now() - 9 * 60 * 60 * 1000).toISOString();
+  it("returns 401 SESSION_REVOKED when the session has been idle for more than 30 days", async () => {
+    const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
     // The access_token must be a decodable JWT so session_id can be extracted.
     mockRefreshSessionResult = {
       data: {
@@ -234,7 +234,7 @@ describe("POST /api/auth/session/refresh — idle session enforcement", () => {
       },
       error: null,
     };
-    mockSessionRowResult = { data: { last_active_at: nineHoursAgo }, error: null };
+    mockSessionRowResult = { data: { last_active_at: thirtyOneDaysAgo }, error: null };
 
     const app = createApp();
     const res = await request(app)
