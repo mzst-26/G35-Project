@@ -14,6 +14,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/core-platform
 
+permissions:
+  contents: read
+
 jobs:
   # ============================================================================
   # Prepare Shared Package Artifacts
@@ -45,17 +48,21 @@ jobs:
         run: npm run build:shared
         working-directory: backend
 
+      - name: Pack shared dist artifact
+        run: |
+          tar -czf backend-shared-dist.tgz \
+            backend/packages/shared-auth/dist \
+            backend/packages/shared-db/dist \
+            backend/packages/shared-errors/dist \
+            backend/packages/shared-observability/dist \
+            backend/packages/shared-permissions/dist \
+            backend/packages/shared-validation/dist
+
       - name: Upload shared package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: backend-shared-dist
-          path: |
-            backend/packages/shared-auth/dist
-            backend/packages/shared-db/dist
-            backend/packages/shared-errors/dist
-            backend/packages/shared-observability/dist
-            backend/packages/shared-permissions/dist
-            backend/packages/shared-validation/dist
+          path: backend-shared-dist.tgz
 
   # ============================================================================
   # Lint & Type Check
@@ -88,6 +95,9 @@ jobs:
         with:
           name: backend-shared-dist
           path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Run linter
         run: npm run lint
@@ -162,6 +172,9 @@ jobs:
         with:
           name: backend-shared-dist
           path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Run database migrations
         run: npm run db:migrate
@@ -245,6 +258,9 @@ jobs:
         with:
           name: backend-shared-dist
           path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Dependency audit (npm audit)
         run: npm audit --audit-level moderate
@@ -358,6 +374,9 @@ jobs:
           name: backend-shared-dist
           path: .
 
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
+
       - name: Run E2E tests
         run: npm run test:e2e
         working-directory: backend/services/core-platform
@@ -381,6 +400,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, test, security, build-image]
     if: always()
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Determine result
@@ -406,7 +429,8 @@ jobs:
           echo "Overall Status: ${{ steps.result.outputs.status }}"
 
       - name: Comment on PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
