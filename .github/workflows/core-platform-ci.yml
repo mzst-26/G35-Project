@@ -1,14 +1,6 @@
 name: Core Platform Service CI
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - 'backend/services/core-platform/**'
-      - 'backend/packages/**'
-      - '.github/workflows/core-platform-ci.yml'
   pull_request:
     branches:
       - main
