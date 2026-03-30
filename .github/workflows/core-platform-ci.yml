@@ -104,7 +104,13 @@ jobs:
             ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
-          tar -xzf "$TAR_FILE"
+          tar -xzf "$TAR_FILE" -C "${{ github.workspace }}"
+
+      - name: Verify shared package dist restore
+        run: |
+          test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run linter
         run: npm run lint
@@ -188,7 +194,13 @@ jobs:
             ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
-          tar -xzf "$TAR_FILE"
+          tar -xzf "$TAR_FILE" -C "${{ github.workspace }}"
+
+      - name: Verify shared package dist restore
+        run: |
+          test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run database migrations
         run: npm run db:migrate
@@ -281,7 +293,13 @@ jobs:
             ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
-          tar -xzf "$TAR_FILE"
+          tar -xzf "$TAR_FILE" -C "${{ github.workspace }}"
+
+      - name: Verify shared package dist restore
+        run: |
+          test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Dependency audit (npm audit)
         run: npm audit --audit-level moderate
@@ -403,7 +421,13 @@ jobs:
             ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
-          tar -xzf "$TAR_FILE"
+          tar -xzf "$TAR_FILE" -C "${{ github.workspace }}"
+
+      - name: Verify shared package dist restore
+        run: |
+          test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
+          test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run E2E tests
         run: npm run test:e2e
