@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { metrics, metricsMiddleware, exportPrometheus } from '../../src/observability/metrics';
+import { metrics, metricsMiddleware, exportPrometheus } from '../../src/observability/metrics.js';
 import { Request, Response } from 'express';
 
 describe('Metrics Collection & Observability', () => {
@@ -242,28 +242,20 @@ describe('Metrics Collection & Observability', () => {
   });
 
   describe('Metrics Middleware', () => {
-    it('should record request durations', (done) => {
+    it('should record request durations', async () => {
       const mockReq = { method: 'GET', path: '/api/v1/jobs' } as Request;
       const mockRes = {
         statusCode: 200,
-        end: vi.fn(() => {
-          setTimeout(() => {
-            metricsMiddleware(mockReq, mockRes, () => {});
-
-            // Need to trigger the wrapped end function
-            const wrappedEnd = (mockRes.end as any).bind(mockRes);
-            wrappedEnd();
-
-            setTimeout(() => {
-              const summary = metrics.getSummary();
-              expect(summary['http.request.duration_ms']).toBeGreaterThanOrEqual(0);
-              done();
-            }, 10);
-          }, 5);
-        }),
+        end: vi.fn(),
       } as unknown as Response;
 
       metricsMiddleware(mockReq, mockRes, () => {});
+
+      // Trigger wrapped end callback recorded by middleware.
+      mockRes.end();
+
+      const summary = metrics.getSummary();
+      expect(summary['http.request.duration_ms']).toBeGreaterThanOrEqual(0);
     });
   });
 

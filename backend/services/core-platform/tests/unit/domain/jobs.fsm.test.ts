@@ -11,7 +11,7 @@ import { JobStatus } from "../../../src/domain/jobs/jobs.types.js";
 
 describe("jobs.fsm", () => {
   it("allows every transition defined in the FSM map", () => {
-    const pairs: { from: JobStatus; to: JobStatus }[] = [
+    const pairs: Array<[JobStatus, JobStatus]> = [
       [JobStatus.DRAFT, JobStatus.OPEN],
       [JobStatus.OPEN, JobStatus.FILLED],
       [JobStatus.OPEN, JobStatus.CANCELLED],

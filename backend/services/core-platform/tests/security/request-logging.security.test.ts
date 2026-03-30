@@ -7,9 +7,10 @@ import {
   redactObject,
   redactValue,
   verifyNoPiiInLog,
+  type PiiDetectionResult,
   PII_FIELDS,
-} from '../../src/middleware/request-logging';
-import { logger } from '../../src/observability/logger';
+} from '../../src/middleware/request-logging.js';
+import { logger } from '../../src/observability/logger.js';
 
 describe('Request Logging & PII Filtering Security Tests', () => {
   beforeEach(() => {
@@ -447,18 +448,18 @@ describe('Request Logging & PII Filtering Security Tests', () => {
   describe('PII Verification Utility', () => {
     it('should detect email addresses in logs', () => {
       const logMessage = 'User john.doe@example.com attempted login';
-      const result = verifyNoPiiInLog(logMessage);
+      const result: PiiDetectionResult = verifyNoPiiInLog(logMessage);
 
       expect(result.hasPii).toBe(true);
-      expect(result.findings.some(f => f.pattern === 'email')).toBe(true);
+      expect(result.findings.some((f) => f.pattern === 'email')).toBe(true);
     });
 
     it('should detect phone numbers in logs', () => {
       const logMessage = 'Contact support at 555-123-4567';
-      const result = verifyNoPiiInLog(logMessage);
+      const result: PiiDetectionResult = verifyNoPiiInLog(logMessage);
 
       expect(result.hasPii).toBe(true);
-      expect(result.findings.some(f => f.pattern === 'phone')).toBe(true);
+      expect(result.findings.some((f) => f.pattern === 'phone')).toBe(true);
     });
 
     it('should detect multiple PII patterns', () => {

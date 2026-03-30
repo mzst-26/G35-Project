@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ForbiddenError } from "@infra/shared-errors";
+import { UserRole } from "@infra/shared-permissions";
 import { CompanyService } from "../../../src/domain/company/company.service.js";
 import { CompanyNotFoundError } from "../../../src/errors/index.js";
 import { buildCompany, createMockCompanyRepository } from "../../helpers/mockPhase57.js";
@@ -15,7 +16,7 @@ describe("CompanyService", () => {
     const result = await service.getCompany(company.id, {
       userId: "u1",
       email: "rec@example.com",
-      role: "recruiter",
+      role: UserRole.RECRUITER,
       companyId: company.id,
     });
 
@@ -33,7 +34,7 @@ describe("CompanyService", () => {
       service.getCompany(company.id, {
         userId: "u1",
         email: "rec@example.com",
-        role: "recruiter",
+        role: UserRole.RECRUITER,
         companyId: "00000000-0000-4000-8000-000000000999",
       }),
     ).rejects.toBeInstanceOf(ForbiddenError);
@@ -53,7 +54,7 @@ describe("CompanyService", () => {
         {
           userId: "u1",
           email: "rec@example.com",
-          role: "recruiter",
+          role: UserRole.RECRUITER,
           companyId: company.id,
         },
       ),
@@ -70,7 +71,7 @@ describe("CompanyService", () => {
       service.getCompany("00000000-0000-4000-8000-000000000501", {
         userId: "u1",
         email: "admin@example.com",
-        role: "admin",
+        role: UserRole.ADMIN,
       }),
     ).rejects.toBeInstanceOf(CompanyNotFoundError);
   });

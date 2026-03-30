@@ -1,5 +1,6 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { UserRole } from "@infra/shared-permissions";
 import { createApp } from "../../src/app.js";
 
 vi.mock("@infra/shared-auth", () => ({
@@ -21,7 +22,7 @@ describe("docs routes", () => {
     vi.mocked(verifyToken).mockResolvedValue({
       userId: "dev-user-id",
       email: "dev@example.com",
-      role: "developer",
+      role: "developer" as unknown as UserRole,
     });
 
     const { app } = await createApp({ startWorkers: false });
@@ -36,7 +37,7 @@ describe("docs routes", () => {
     vi.mocked(verifyToken).mockResolvedValue({
       userId: "dev-user-id",
       email: "dev@example.com",
-      role: "developer",
+      role: "developer" as unknown as UserRole,
     });
 
     const { app } = await createApp({ startWorkers: false });
@@ -53,7 +54,7 @@ describe("docs routes", () => {
     vi.mocked(verifyToken).mockResolvedValue({
       userId: "dev-user-id",
       email: "dev@example.com",
-      role: "developer",
+      role: "developer" as unknown as UserRole,
     });
 
     const { app } = await createApp({ startWorkers: false });
@@ -67,7 +68,7 @@ describe("docs routes", () => {
     vi.mocked(verifyToken).mockResolvedValue({
       userId: "dev-user-id",
       email: "dev@example.com",
-      role: "developer",
+      role: "developer" as unknown as UserRole,
     });
 
     const { app } = await createApp({ startWorkers: false });
@@ -81,7 +82,7 @@ describe("docs routes", () => {
     vi.mocked(verifyToken).mockResolvedValue({
       userId: "admin-user-id",
       email: "admin@example.com",
-      role: "admin",
+      role: UserRole.ADMIN,
     });
 
     const { app } = await createApp({ startWorkers: false });

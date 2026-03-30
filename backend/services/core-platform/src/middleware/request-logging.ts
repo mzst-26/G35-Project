@@ -33,6 +33,7 @@ const SSN_PATTERN = /\b\d{3}-\d{2}-\d{4}\b/g;
 const CREDIT_CARD_PATTERN = /\b(?:\d[ -]*?){13,16}\b/g;
 
 type PiiPattern = "email" | "phone" | "ssn" | "creditCard";
+export type PiiDetectionResult = { hasPii: boolean; findings: Array<{ pattern: PiiPattern; value: string }> };
 
 function isSensitiveField(fieldName: string): boolean {
 	return PII_FIELDS.includes(fieldName.toLowerCase());
@@ -70,13 +71,13 @@ export function redactValue(value: unknown, fieldName: string): unknown {
 	return value;
 }
 
-export function redactObject(input: unknown, maxDepth = 8, currentDepth = 0): unknown {
+export function redactObject<T>(input: T, maxDepth = 8, currentDepth = 0): T {
 	if (input === null || input === undefined) {
 		return input;
 	}
 
 	if (currentDepth >= maxDepth) {
-		return "[REDACTED:max-depth]";
+		return "[REDACTED:max-depth]" as T;
 	}
 
 	if (Array.isArray(input)) {
@@ -85,11 +86,11 @@ export function redactObject(input: unknown, maxDepth = 8, currentDepth = 0): un
 				return replacePiiPatterns(item);
 			}
 			return redactObject(item, maxDepth, currentDepth + 1);
-		});
+		}) as T;
 	}
 
 	if (typeof input === "string") {
-		return replacePiiPatterns(input);
+		return replacePiiPatterns(input) as T;
 	}
 
 	if (typeof input !== "object") {
@@ -104,10 +105,10 @@ export function redactObject(input: unknown, maxDepth = 8, currentDepth = 0): un
 		}
 		result[key] = redactValue(value, key);
 	}
-	return result;
+	return result as T;
 }
 
-export function verifyNoPiiInLog(message: string): { hasPii: boolean; findings: Array<{ pattern: PiiPattern; value: string }> } {
+export function verifyNoPiiInLog(message: string): PiiDetectionResult {
 	const findings: Array<{ pattern: PiiPattern; value: string }> = [];
 
 	const findMatches = (pattern: RegExp, type: PiiPattern): void => {

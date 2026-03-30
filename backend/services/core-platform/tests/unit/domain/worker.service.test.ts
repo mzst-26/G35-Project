@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ForbiddenError } from "@infra/shared-errors";
+import { UserRole } from "@infra/shared-permissions";
 import { WorkerService } from "../../../src/domain/worker/worker.service.js";
 import { WorkerNotFoundError } from "../../../src/errors/index.js";
 import { buildWorker, createMockWorkerRepository } from "../../helpers/mockPhase57.js";
@@ -15,7 +16,7 @@ describe("WorkerService", () => {
     const result = await service.getWorker(worker.id, {
       userId: "u1",
       email: "worker@example.com",
-      role: "trade",
+      role: UserRole.TRADE,
       workerId: worker.id,
     });
 
@@ -36,7 +37,7 @@ describe("WorkerService", () => {
         {
           userId: "u1",
           email: "worker@example.com",
-          role: "trade",
+          role: UserRole.TRADE,
           workerId: "00000000-0000-4000-8000-000000000999",
         },
       ),
@@ -57,7 +58,7 @@ describe("WorkerService", () => {
         {
           userId: "u1",
           email: "worker@example.com",
-          role: "trade",
+          role: UserRole.TRADE,
           workerId: worker.id,
         },
       ),
@@ -74,7 +75,7 @@ describe("WorkerService", () => {
       service.getWorker("00000000-0000-4000-8000-000000000701", {
         userId: "u1",
         email: "admin@example.com",
-        role: "admin",
+        role: UserRole.ADMIN,
       }),
     ).rejects.toBeInstanceOf(WorkerNotFoundError);
   });

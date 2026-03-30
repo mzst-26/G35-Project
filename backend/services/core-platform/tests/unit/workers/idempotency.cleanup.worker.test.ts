@@ -1,9 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { startIdempotencyCleanupWorker } from "../../../src/workers/idempotency.cleanup.worker";
-
-type CleanupAdminService = {
-  cleanupExpiredIdempotency: (batchSize: number, actor: { userId: string; role: string }) => Promise<{ deleted: number }>;
-};
+import { startIdempotencyCleanupWorker } from "../../../src/workers/idempotency.cleanup.worker.js";
 
 describe("idempotency cleanup worker", () => {
   beforeEach(() => {
@@ -16,7 +12,9 @@ describe("idempotency cleanup worker", () => {
 
   it("cleans up expired idempotency keys at configured interval", async () => {
     const cleanupMock = vi.fn().mockResolvedValue({ deleted: 150 });
-    const adminServiceMock: CleanupAdminService = { cleanupExpiredIdempotency: cleanupMock };
+    const adminServiceMock = { cleanupExpiredIdempotency: cleanupMock } as unknown as Parameters<
+      typeof startIdempotencyCleanupWorker
+    >[0];
 
     const stop = startIdempotencyCleanupWorker(adminServiceMock, 3600000);
 
@@ -39,7 +37,9 @@ describe("idempotency cleanup worker", () => {
 
   it("uses 6 hour default interval", async () => {
     const cleanupMock = vi.fn().mockResolvedValue({ deleted: 100 });
-    const adminServiceMock: CleanupAdminService = { cleanupExpiredIdempotency: cleanupMock };
+    const adminServiceMock = { cleanupExpiredIdempotency: cleanupMock } as unknown as Parameters<
+      typeof startIdempotencyCleanupWorker
+    >[0];
 
     const stop = startIdempotencyCleanupWorker(adminServiceMock);
 
@@ -54,7 +54,9 @@ describe("idempotency cleanup worker", () => {
   it("handles cleanup errors gracefully", async () => {
     const error = new Error("cleanup failed");
     const cleanupMock = vi.fn().mockRejectedValue(error);
-    const adminServiceMock: CleanupAdminService = { cleanupExpiredIdempotency: cleanupMock };
+    const adminServiceMock = { cleanupExpiredIdempotency: cleanupMock } as unknown as Parameters<
+      typeof startIdempotencyCleanupWorker
+    >[0];
 
     const stop = startIdempotencyCleanupWorker(adminServiceMock, 1000);
 

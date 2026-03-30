@@ -49,10 +49,13 @@ describe('Security Headers Validation Tests', () => {
         { method: 'get', path: '/health' },
         { method: 'get', path: '/api/v1/jobs' },
         { method: 'post', path: '/api/v1/jobs' },
-      ];
+      ] as const;
 
       for (const endpoint of endpoints) {
-        const res = await request(app)[endpoint.method](endpoint.path);
+        const agent = request(app);
+        const res = endpoint.method === 'get'
+          ? await agent.get(endpoint.path)
+          : await agent.post(endpoint.path);
         expect(res.headers['x-content-type-options']).toBe('nosniff');
       }
     });
@@ -72,10 +75,13 @@ describe('Security Headers Validation Tests', () => {
         { method: 'get', path: '/health' },
         { method: 'get', path: '/api/v1/jobs' },
         { method: 'patch', path: '/api/v1/workers/123' },
-      ];
+      ] as const;
 
       for (const endpoint of endpoints) {
-        const res = await request(app)[endpoint.method](endpoint.path);
+        const agent = request(app);
+        const res = endpoint.method === 'patch'
+          ? await agent.patch(endpoint.path)
+          : await agent.get(endpoint.path);
         expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
       }
     });

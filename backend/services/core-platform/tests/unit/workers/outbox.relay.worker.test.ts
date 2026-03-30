@@ -1,14 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { startOutboxRelayWorker } from "../../../src/workers/outbox.relay.worker";
-
-type RelayAdminService = {
-  relayOutbox: (limit: number, actor: { userId: string; role: string }) => Promise<{
-    processed: number;
-    delivered: number;
-    retried: number;
-    deadLettered: number;
-  }>;
-};
+import { startOutboxRelayWorker } from "../../../src/workers/outbox.relay.worker.js";
 
 describe("outbox relay worker", () => {
   beforeEach(() => {
@@ -26,7 +17,9 @@ describe("outbox relay worker", () => {
       retried: 1,
       deadLettered: 1,
     });
-    const adminServiceMock: RelayAdminService = { relayOutbox: relayOutboxMock };
+    const adminServiceMock = { relayOutbox: relayOutboxMock } as unknown as Parameters<
+      typeof startOutboxRelayWorker
+    >[0];
 
     const stop = startOutboxRelayWorker(adminServiceMock, 5000);
 
@@ -50,7 +43,9 @@ describe("outbox relay worker", () => {
   it("handles relay errors gracefully", async () => {
     const error = new Error("relay failed");
     const relayOutboxMock = vi.fn().mockRejectedValue(error);
-    const adminServiceMock: RelayAdminService = { relayOutbox: relayOutboxMock };
+    const adminServiceMock = { relayOutbox: relayOutboxMock } as unknown as Parameters<
+      typeof startOutboxRelayWorker
+    >[0];
 
     const stop = startOutboxRelayWorker(adminServiceMock, 1000);
 

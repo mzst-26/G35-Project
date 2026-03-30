@@ -17,8 +17,9 @@ import {
   sentryContextMiddleware,
   startTransaction,
   ALERT_RULES,
+  type AlertRule,
   SentryContext,
-} from '../../src/observability/sentry-integration';
+} from '../../src/observability/sentry-integration.js';
 import { Request, Response } from 'express';
 
 vi.mock('@sentry/node', () => ({
@@ -30,6 +31,16 @@ vi.mock('@sentry/node', () => ({
   clearTags: vi.fn(),
   startTransaction: vi.fn(),
 }));
+
+const sentryApi = Sentry as unknown as {
+  setUser: ReturnType<typeof vi.fn>;
+  setTags: ReturnType<typeof vi.fn>;
+  setContext: ReturnType<typeof vi.fn>;
+  captureMessage: ReturnType<typeof vi.fn>;
+  captureException: ReturnType<typeof vi.fn>;
+  clearTags: ReturnType<typeof vi.fn>;
+  startTransaction: ReturnType<typeof vi.fn>;
+};
 
 describe('Sentry Integration & Error Tracking', () => {
   beforeEach(() => {
@@ -48,7 +59,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setUser).toHaveBeenCalledWith(
+      expect(sentryApi.setUser).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'user-123',
           email: 'user@example.com',
@@ -68,7 +79,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: 'user-123',
           job_id: 'job-456',
@@ -88,7 +99,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           from_status: 'open',
           to_status: 'in_progress',
@@ -105,7 +116,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           admin_id: 'admin-123',
           action: 'suspend_company',
@@ -123,7 +134,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setContext).toHaveBeenCalledWith(
+      expect(sentryApi.setContext).toHaveBeenCalledWith(
         'business_context',
         expect.objectContaining({
           idempotency_key: 'idemp-key-123',
@@ -136,8 +147,8 @@ describe('Sentry Integration & Error Tracking', () => {
     it('should clear context on clearSentryContext()', () => {
       clearSentryContext();
 
-      expect(Sentry.setUser).toHaveBeenCalledWith(null);
-      expect(Sentry.clearTags).toHaveBeenCalled();
+      expect(sentryApi.setUser).toHaveBeenCalledWith(null);
+      expect(sentryApi.clearTags).toHaveBeenCalled();
     });
   });
 
@@ -151,7 +162,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureValidationError('title', 'required_field_missing', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Validation error'),
         'warning'
       );
@@ -164,7 +175,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureAuthError('token_expired', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Authentication error'),
         'warning'
       );
@@ -178,7 +189,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureAuthzError('ADMIN_WRITE', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Authorization denied'),
         'warning'
       );
@@ -191,7 +202,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureOptimisticLockFailure(context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         'Optimistic lock conflict detected',
         'info'
       );
@@ -204,7 +215,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureOptimisticLockFailure(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           retryable: true,
         })
@@ -218,7 +229,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureIdempotencyViolation('key-123', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Idempotency'),
         'info'
       );
@@ -231,7 +242,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureStateMachineViolation('open', 'completed', 'skipped_in_progress', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Invalid state transition: open → completed'),
         'warning'
       );
@@ -244,7 +255,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureCalendarLockViolation('worker-123', 'job-456', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         'Calendar availability locked within 7-day window',
         'info'
       );
@@ -257,7 +268,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureAdminOverride('admin-123', 'verify_worker', 'worker-456', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining('Admin override'),
         'info'
       );
@@ -283,7 +294,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureOutboxEventFailure('JobCreated', 'network_timeout', 2, context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           retryable: true,
         })
@@ -297,7 +308,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureOutboxEventFailure('JobCreated', 'network_timeout', 3, context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           retryable: false,
         })
@@ -315,7 +326,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureException(error, context);
 
-      expect(Sentry.captureException).toHaveBeenCalledWith(error);
+      expect(sentryApi.captureException).toHaveBeenCalledWith(error);
     });
 
     it('should capture generic business error', () => {
@@ -325,7 +336,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureBusinessError('Something went wrong', context, 'error');
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         'Something went wrong',
         'error'
       );
@@ -338,7 +349,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       captureBusinessError('Warning event', context, 'warning');
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         'Warning event',
         'warning'
       );
@@ -391,14 +402,14 @@ describe('Sentry Integration & Error Tracking', () => {
 
       sentryContextMiddleware(mockReq, mockRes, next);
 
-      expect(Sentry.setTags).toHaveBeenCalled();
+      expect(sentryApi.setTags).toHaveBeenCalled();
       expect(next).toHaveBeenCalled();
     });
   });
 
   describe('Transaction Instrumentation', () => {
     it('should start transaction with name and operation', () => {
-      vi.spyOn(Sentry, 'startTransaction').mockReturnValue({
+      sentryApi.startTransaction.mockReturnValue({
         setStatus: vi.fn(),
       } as any);
 
@@ -407,7 +418,7 @@ describe('Sentry Integration & Error Tracking', () => {
         op: 'http.server',
       });
 
-      expect(Sentry.startTransaction).toHaveBeenCalledWith(
+      expect(sentryApi.startTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'POST /api/v1/jobs',
           op: 'http.server',
@@ -416,7 +427,7 @@ describe('Sentry Integration & Error Tracking', () => {
     });
 
     it('should include tags in transaction', () => {
-      vi.spyOn(Sentry, 'startTransaction').mockReturnValue({
+      sentryApi.startTransaction.mockReturnValue({
         setStatus: vi.fn(),
       } as any);
 
@@ -429,7 +440,7 @@ describe('Sentry Integration & Error Tracking', () => {
         },
       });
 
-      expect(Sentry.startTransaction).toHaveBeenCalledWith(
+      expect(sentryApi.startTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
           tags: {
             job_id: 'job-123',
@@ -442,7 +453,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
   describe('Alert Rules Registry', () => {
     it('should define critical alert for high error rate', () => {
-      const highErrorRateRule = ALERT_RULES.find(rule => rule.name === 'HighErrorRate');
+      const highErrorRateRule = ALERT_RULES.find((rule: AlertRule) => rule.name === 'HighErrorRate');
       expect(highErrorRateRule).toBeDefined();
       expect(highErrorRateRule?.severity).toBe('high');
       expect(highErrorRateRule?.threshold).toBe(1); // 1% error rate
@@ -451,7 +462,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
     it('should define alert for job creation failures', () => {
       const jobCreationFailuresRule = ALERT_RULES.find(
-        rule => rule.name === 'JobCreationFailures'
+        (rule: AlertRule) => rule.name === 'JobCreationFailures'
       );
       expect(jobCreationFailuresRule).toBeDefined();
       expect(jobCreationFailuresRule?.severity).toBe('high');
@@ -459,7 +470,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
     it('should define critical alert for outbox event failures', () => {
       const outboxFailureRule = ALERT_RULES.find(
-        rule => rule.name === 'OutboxEventFailures'
+        (rule: AlertRule) => rule.name === 'OutboxEventFailures'
       );
       expect(outboxFailureRule).toBeDefined();
       expect(outboxFailureRule?.severity).toBe('critical');
@@ -467,7 +478,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
     it('should define alert for optimistic lock conflicts', () => {
       const lockConflictRule = ALERT_RULES.find(
-        rule => rule.name === 'OptimisticLockConflicts'
+        (rule: AlertRule) => rule.name === 'OptimisticLockConflicts'
       );
       expect(lockConflictRule).toBeDefined();
       expect(lockConflictRule?.severity).toBe('medium');
@@ -475,7 +486,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
     it('should define alert for calendar lock violations', () => {
       const calendarLockRule = ALERT_RULES.find(
-        rule => rule.name === 'CalendarLockViolations'
+        (rule: AlertRule) => rule.name === 'CalendarLockViolations'
       );
       expect(calendarLockRule).toBeDefined();
       expect(calendarLockRule?.threshold).toBe(20); // 20 violations
@@ -484,7 +495,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
     it('should define alert for database pool exhaustion', () => {
       const poolExhaustionRule = ALERT_RULES.find(
-        rule => rule.name === 'DatabasePoolExhaustion'
+        (rule: AlertRule) => rule.name === 'DatabasePoolExhaustion'
       );
       expect(poolExhaustionRule).toBeDefined();
       expect(poolExhaustionRule?.severity).toBe('high');
@@ -501,7 +512,7 @@ describe('Sentry Integration & Error Tracking', () => {
       const context: SentryContext = { errorCode: 'AUTH_ERROR' };
       captureAuthError('token_expired', context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.anything(),
         'warning'
       );
@@ -511,7 +522,7 @@ describe('Sentry Integration & Error Tracking', () => {
       const context: SentryContext = { eventType: 'JobCreated' };
       captureOutboxEventFailure('JobCreated', 'permanent_error', 5, context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.anything(),
         'error'
       );
@@ -521,7 +532,7 @@ describe('Sentry Integration & Error Tracking', () => {
       const context: SentryContext = { jobId: 'job-123' };
       captureOptimisticLockFailure(context);
 
-      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      expect(sentryApi.captureMessage).toHaveBeenCalledWith(
         expect.anything(),
         'info'
       );
@@ -540,7 +551,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: 'user-123',
           job_id: 'job-456',
@@ -559,7 +570,7 @@ describe('Sentry Integration & Error Tracking', () => {
 
       setSentryContext(context);
 
-      expect(Sentry.setTags).toHaveBeenCalledWith(
+      expect(sentryApi.setTags).toHaveBeenCalledWith(
         expect.objectContaining({
           admin_id: 'admin-123',
           action: 'suspend_company',
@@ -581,7 +592,7 @@ describe('Sentry Integration & Error Tracking', () => {
       captureOptimisticLockFailure(context);
 
       // Both should have been called with context
-      expect(Sentry.captureMessage).toHaveBeenCalledTimes(2);
+      expect(sentryApi.captureMessage).toHaveBeenCalledTimes(2);
     });
 
     it('should clear context when requested', () => {
@@ -592,8 +603,8 @@ describe('Sentry Integration & Error Tracking', () => {
       setSentryContext(context);
       clearSentryContext();
 
-      expect(Sentry.setUser).toHaveBeenCalledWith(null);
-      expect(Sentry.clearTags).toHaveBeenCalled();
+      expect(sentryApi.setUser).toHaveBeenCalledWith(null);
+      expect(sentryApi.clearTags).toHaveBeenCalled();
     });
   });
 });

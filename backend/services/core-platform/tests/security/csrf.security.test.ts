@@ -9,7 +9,7 @@ import {
   attachCsrfToken,
   validateCsrfToken,
   tokenStore,
-} from '../../src/security/csrf';
+} from '../../src/security/csrf.js';
 
 describe('CSRF Protection Security Tests', () => {
   let app: Express;
