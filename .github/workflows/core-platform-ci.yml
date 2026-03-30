@@ -94,14 +94,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: backend-shared-dist
-          path: .artifacts
+          path: ${{ github.workspace }}/.artifacts
 
       - name: Extract shared package artifacts
         run: |
-          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          TAR_FILE=$(find "${{ github.workspace }}/.artifacts" -type f -name backend-shared-dist.tgz | head -n 1)
           if [ -z "$TAR_FILE" ]; then
-            echo "backend-shared-dist.tgz not found under .artifacts"
-            ls -la .artifacts || true
+            echo "backend-shared-dist.tgz not found under ${{ github.workspace }}/.artifacts"
+            ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
           tar -xzf "$TAR_FILE"
@@ -178,14 +178,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: backend-shared-dist
-          path: .artifacts
+          path: ${{ github.workspace }}/.artifacts
 
       - name: Extract shared package artifacts
         run: |
-          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          TAR_FILE=$(find "${{ github.workspace }}/.artifacts" -type f -name backend-shared-dist.tgz | head -n 1)
           if [ -z "$TAR_FILE" ]; then
-            echo "backend-shared-dist.tgz not found under .artifacts"
-            ls -la .artifacts || true
+            echo "backend-shared-dist.tgz not found under ${{ github.workspace }}/.artifacts"
+            ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
           tar -xzf "$TAR_FILE"
@@ -271,14 +271,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: backend-shared-dist
-          path: .artifacts
+          path: ${{ github.workspace }}/.artifacts
 
       - name: Extract shared package artifacts
         run: |
-          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          TAR_FILE=$(find "${{ github.workspace }}/.artifacts" -type f -name backend-shared-dist.tgz | head -n 1)
           if [ -z "$TAR_FILE" ]; then
-            echo "backend-shared-dist.tgz not found under .artifacts"
-            ls -la .artifacts || true
+            echo "backend-shared-dist.tgz not found under ${{ github.workspace }}/.artifacts"
+            ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
           tar -xzf "$TAR_FILE"
@@ -393,14 +393,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: backend-shared-dist
-          path: .artifacts
+          path: ${{ github.workspace }}/.artifacts
 
       - name: Extract shared package artifacts
         run: |
-          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          TAR_FILE=$(find "${{ github.workspace }}/.artifacts" -type f -name backend-shared-dist.tgz | head -n 1)
           if [ -z "$TAR_FILE" ]; then
-            echo "backend-shared-dist.tgz not found under .artifacts"
-            ls -la .artifacts || true
+            echo "backend-shared-dist.tgz not found under ${{ github.workspace }}/.artifacts"
+            ls -la "${{ github.workspace }}/.artifacts" || true
             exit 1
           fi
           tar -xzf "$TAR_FILE"
