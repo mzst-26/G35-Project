@@ -50,3 +50,17 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    return await proxyIdentityRequest(request, '/api/auth/session/me');
+  } catch {
+    return NextResponse.json(
+      {
+        code: 'IDENTITY_UNAVAILABLE',
+        message: 'Identity service is currently unavailable.',
+      },
+      { status: 502 },
+    );
+  }
+}

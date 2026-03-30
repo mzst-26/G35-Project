@@ -13,6 +13,7 @@ import { coreGetJson, corePatchJson } from '@/lib/core/client';
 import { toCompanyProfile } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
 import { toHookApiError } from '@/lib/core/error-envelope';
+import { getSessionMe, updateSessionMeProfile } from '@/lib/auth/client';
 
 const INITIAL_PROFILE: CompanyProfile = {
   id: '',
@@ -46,7 +47,7 @@ const INITIAL_NOTIFICATIONS: NotificationPreferences = {
 };
 
 const COMPANY_SETTINGS_UNAVAILABLE_MESSAGE =
-  'Company settings are not fully connected yet. TODO: expose recruiter companyId in Identity session and add company settings endpoints for notifications/payment methods.';
+  'Company settings are partially connected. Notifications and payment methods are pending backend integration.';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -67,8 +68,8 @@ function extractFirstCompanyId(payload: unknown): string | null {
     return null;
   }
 
-  return typeof first.companyId === 'string' && first.companyId.length > 0
-    ? first.companyId
+  return typeof first.id === 'string' && first.id.length > 0
+    ? first.id
     : null;
 }
 
@@ -107,15 +108,14 @@ export function useCompanySettings() {
       return companyIdHint;
     }
 
-    // TODO: use recruiter.companyId from Identity session once exposed in /api/auth/session/me.
-    const jobsPayload = await coreGetJson<unknown>(
-      '/api/core/jobs',
+    const companiesPayload = await coreGetJson<unknown>(
+      '/api/core/companies',
       'Failed to resolve company context',
       'COMPANY_SETTINGS_COMPANY_RESOLUTION_FAILED',
-      { limit: 1 },
+      { limit: 1, offset: 0 },
     );
 
-    return extractFirstCompanyId(jobsPayload);
+    return extractFirstCompanyId(companiesPayload);
   }, []);
 
   const updateProfileField = useCallback(
@@ -177,19 +177,22 @@ export function useCompanySettings() {
       }
 
       const snapshot = profileSnapshotRef.current;
-      const unsupportedFieldChanged =
-        state.profile.contactName !== snapshot.contactName ||
-        state.profile.email !== snapshot.email ||
-        state.profile.phone !== snapshot.phone;
 
-      // TODO: update contact name/email/phone via Identity + Communications service once available.
-      if (unsupportedFieldChanged) {
-        setFeatureUnavailableError('save_profile_unsupported_fields');
+      if (state.profile.companyName !== snapshot.companyName) {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: 'Company name is managed by admins and cannot be changed by recruiters.',
+        }));
         return;
       }
 
+      await updateSessionMeProfile({
+        fullName: state.profile.contactName,
+        phoneNumber: state.profile.phone || null,
+      });
+
       const payload = await corePatchJson<unknown, {
-        company_name: string;
         address_line1: string;
         address_line2: string;
         city: string;
@@ -197,7 +200,6 @@ export function useCompanySettings() {
       }>(
         `/api/core/companies/${companyId}`,
         {
-          company_name: state.profile.companyName,
           address_line1: state.profile.addressLine1,
           address_line2: state.profile.addressLine2 || '',
           city: state.profile.city,
@@ -215,7 +217,7 @@ export function useCompanySettings() {
       const nextProfile: CompanyProfile = {
         ...mappedProfile,
         contactName: state.profile.contactName,
-        email: state.profile.email,
+        email: snapshot.email,
         phone: state.profile.phone,
       };
 
@@ -300,17 +302,26 @@ export function useCompanySettings() {
       );
       const profile = toCompanyProfile(profilePayload);
 
+      const session = await getSessionMe();
+
       if (!profile) {
         throw new Error('Core company profile payload is invalid');
       }
 
+      const enrichedProfile: CompanyProfile = {
+        ...profile,
+        contactName: session.user.fullName ?? '',
+        email: session.user.email,
+        phone: session.user.phoneNumber ?? '',
+      };
+
       companyIdRef.current = companyId;
-      profileSnapshotRef.current = profile;
+      profileSnapshotRef.current = enrichedProfile;
 
       // TODO: replace these placeholders with Communications + Payments service data once integrated.
       setState((prev) => ({
         ...prev,
-        profile,
+        profile: enrichedProfile,
         notifications: {
           ...INITIAL_NOTIFICATIONS,
           companyId,

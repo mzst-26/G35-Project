@@ -6,6 +6,8 @@ export interface AuthUser {
   role: AuthRole;
   stepUpVerified: boolean;
   expiresAt: number;
+  fullName?: string | null;
+  phoneNumber?: string | null;
 }
 
 export interface AuthSession {
@@ -73,6 +75,11 @@ export interface MfaCompleteAdminLoginResponse {
 export interface SessionMeResponse {
   user: AuthUser;
   sessionId?: string;
+}
+
+export interface UpdateSessionProfilePayload {
+  fullName?: string;
+  phoneNumber?: string | null;
 }
 
 export interface RefreshSessionResponse {

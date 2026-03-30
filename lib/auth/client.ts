@@ -2,6 +2,7 @@ import { getCsrfToken } from '@/lib/auth/csrf';
 import type {
   AuthErrorPayload,
   LogoutPayload,
+  UpdateSessionProfilePayload,
   MfaChallengeResponse,
   MfaCompleteAdminLoginResponse,
   MfaEnrollResponse,
@@ -28,7 +29,7 @@ class AuthApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   includeCsrf?: boolean;
   retryOnExpired?: boolean;
@@ -167,6 +168,14 @@ export async function mfaCompleteAdminLogin(): Promise<MfaCompleteAdminLoginResp
 export async function getSessionMe(): Promise<SessionMeResponse> {
   return requestJson<SessionMeResponse>('/api/auth/session/me', {
     method: 'GET',
+  });
+}
+
+export async function updateSessionMeProfile(payload: UpdateSessionProfilePayload): Promise<SessionMeResponse> {
+  return requestJson<SessionMeResponse>('/api/auth/session/me', {
+    method: 'PATCH',
+    body: payload,
+    includeCsrf: true,
   });
 }
 
