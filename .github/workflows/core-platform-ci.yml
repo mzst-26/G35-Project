@@ -120,9 +120,65 @@ jobs:
         run: npm run typecheck
         continue-on-error: false
 
-      - name: TypeScript test type check (advisory)
-        run: npm run typecheck:tests
-        continue-on-error: true
+      - name: TypeScript test type check (diagnostic)
+        id: test_typecheck
+        shell: bash
+        run: |
+          set +e
+          npm run typecheck:tests 2>&1 | tee typecheck-tests.log
+          status=${PIPESTATUS[0]}
+
+          if [ "$status" -eq 0 ]; then
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+            echo "## Core Platform test typecheck passed" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "failed=true" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Core Platform test typecheck failed"
+            echo
+            echo "### What failed"
+            echo "- Command: npm run typecheck:tests"
+            echo "- Workspace: backend/services/core-platform"
+            echo
+            echo "### First 25 TypeScript errors"
+            if grep -Eq '^tests/.+ - error TS[0-9]+:' typecheck-tests.log; then
+              grep -E '^tests/.+ - error TS[0-9]+:' typecheck-tests.log | head -n 25 | sed 's/^/- /'
+            else
+              echo "- No parsable TS error lines were found. See typecheck-tests.log artifact."
+            fi
+            echo
+            echo "### Full diagnostics"
+            echo "- Download artifact: typecheck-tests-log"
+            echo
+            echo "### If local passes but CI fails"
+            echo "- Check hidden git index flags locally:"
+            echo "  - git ls-files -v backend/services/core-platform | grep '^S '"
+            echo "- Clear hidden flags before commit:"
+            echo "  - git update-index --no-skip-worktree <file>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          while IFS= read -r line; do
+            if [[ "$line" =~ ^([^:]+):([0-9]+):([0-9]+)[[:space:]]-[[:space:]]error[[:space:]](TS[0-9]+):[[:space:]](.*)$ ]]; then
+              file="${BASH_REMATCH[1]}"
+              line_no="${BASH_REMATCH[2]}"
+              col_no="${BASH_REMATCH[3]}"
+              code="${BASH_REMATCH[4]}"
+              message="${BASH_REMATCH[5]}"
+              echo "::error file=${file},line=${line_no},col=${col_no},title=${code}::${message}"
+            fi
+          done < typecheck-tests.log
+
+          exit 1
+
+      - name: Upload typecheck diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-tests-log
+          path: backend/services/core-platform/typecheck-tests.log
 
       - name: ESLint report (JSON for analysis)
         run: npm run lint -- --format json > eslint-report.json 2>&1 || true
