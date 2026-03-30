@@ -119,7 +119,6 @@ export class CircuitBreaker {
 
   private trimMetrics(): void {
     if (this.metrics.totalRequests > this.config.windowSize) {
-      const overage = this.metrics.totalRequests - this.config.windowSize;
       const failureRatio = this.metrics.failedRequests / this.metrics.totalRequests;
 
       this.metrics.totalRequests = this.config.windowSize;

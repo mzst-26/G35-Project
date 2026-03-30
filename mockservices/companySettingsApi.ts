@@ -4,7 +4,6 @@ import {
   CompanyProfile,
   NotificationPreferences,
   PaymentMethod,
-  ProfileUpdatePayload,
   NotificationUpdatePayload,
 } from '@/types/company-settings';
 
@@ -118,6 +117,7 @@ export async function getNotificationPreferences(
     // if (!response.ok) throw new Error('Failed to fetch notifications');
     // return await response.json();
 
+    console.log('getNotificationPreferences called with:', { companyId });
     throw new Error('Backend integration not yet implemented');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch notifications';
@@ -301,7 +301,7 @@ export async function setDefaultPaymentMethod(
  *
  * TODO: Replace with actual fetch calls to backend
  */
-export async function loadAllSettings(_companyId: string) {
+export async function loadAllSettings(companyId: string) {
   try {
     // TODO: Uncomment and use real API endpoints
     // const [profile, notifications, paymentMethods] = await Promise.all([
@@ -312,6 +312,7 @@ export async function loadAllSettings(_companyId: string) {
     //
     // return { profile, notifications, paymentMethods };
 
+    console.log('loadAllSettings called with:', { companyId });
     throw new Error('Backend integration not yet implemented');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to load settings';

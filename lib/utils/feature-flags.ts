@@ -43,11 +43,13 @@ const defaultConfig: FeatureFlagConfig = {
   enableAllRoutes: process.env.PROXY_DISABLE_ALL_MOCKS === 'true', // Emergency override
 };
 
+const envConfig = parseEnvFlags();
+
 export class FeatureFlags {
   private config: FeatureFlagConfig;
 
   constructor(config?: Partial<FeatureFlagConfig>) {
-    this.config = { ...defaultConfig, ...config };
+    this.config = { ...defaultConfig, ...envConfig, ...config };
   }
 
   isProxyEnabled(domain: keyof FeatureFlagConfig, method: string): boolean {

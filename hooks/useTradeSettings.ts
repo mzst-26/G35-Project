@@ -48,10 +48,6 @@ const INITIAL_NOTIFICATIONS: NotificationPreferences = {
 const TRADE_SETTINGS_UNAVAILABLE_MESSAGE =
   'Trade settings are not fully connected yet. TODO: expose worker contact fields from Identity service and add trade notifications/payment method endpoints.';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
 export function useTradeSettings() {
   const [state, setState] = useState<CompanySettingsState>({
     profile: INITIAL_PROFILE,

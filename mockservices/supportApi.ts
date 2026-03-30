@@ -11,17 +11,20 @@ export async function listTickets() {
 export async function createTicket(payload: { title: string; details: string; date: string }) {
   // TODO: POST to `${BASE}/tickets`
   // Payload is used when real API is implemented
+  console.log('createTicket called with:', payload);
   throw new Error('Not implemented');
 }
 
-export async function getTicket(_id: string) {
+export async function getTicket(id: string) {
   // TODO: GET `${BASE}/tickets/${id}`
   // ID is used when real API is implemented
+  console.log('getTicket called with:', { id });
   throw new Error('Not implemented');
 }
 
-export async function closeTicket(_id: string) {
+export async function closeTicket(id: string) {
   // TODO: PATCH/PUT `${BASE}/tickets/${id}`
   // ID is used when real API is implemented
+  console.log('closeTicket called with:', { id });
   throw new Error('Not implemented');
 }

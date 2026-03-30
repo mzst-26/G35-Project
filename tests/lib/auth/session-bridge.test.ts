@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { NextRequest } from 'next/server';
 import {
   extractSessionFromRequest,
   validateCsrfForMethod,
   createErrorResponse,
   SessionBridgeError,
-  type SessionBridgeResult,
 } from '@/lib/auth/session-bridge';
 
 describe('lib/auth/session-bridge.ts', () => {

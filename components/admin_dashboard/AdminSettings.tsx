@@ -460,17 +460,3 @@ function ToggleRow({
     </div>
   );
 }
-
-function PlaceholderCard({ title, text }: { title: string; text: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>Placeholder</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-slate-600">{text}</p>
-      </CardContent>
-    </Card>
-  );
-}

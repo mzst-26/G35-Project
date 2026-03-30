@@ -481,7 +481,7 @@ function setDocsScriptCsp(res: Response): void {
 }
 
 function requireDeveloperRole(req: Request, _res: Response, next: NextFunction): void {
-  if (!req.user || req.user.role !== "developer") {
+  if (!req.user || (req.user.role as string) !== "developer") {
     next(new ForbiddenError("Developer role is required to access API documentation."));
     return;
   }
