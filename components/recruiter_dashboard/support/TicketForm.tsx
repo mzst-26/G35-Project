@@ -4,11 +4,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function TicketForm() {
-  const router = useRouter();
-
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [date, setDate] = useState("");

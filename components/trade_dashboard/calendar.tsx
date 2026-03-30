@@ -177,7 +177,7 @@ export default function TradeCalendar(props: TradeCalendarProps) {
                 const monthStart = new Date(viewStart.getFullYear(), viewStart.getMonth(), 1);
                 const monthEnd = new Date(viewStart.getFullYear(), viewStart.getMonth() + 1, 1); // exclusive
                 updateMonthCounts(monthStart, monthEnd);
-              } catch (e) {
+              } catch {
                 // ignore
               }
             },

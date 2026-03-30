@@ -85,7 +85,7 @@ export function usePaginatedData<T>(
   useEffect(() => {
     // Load first page on mount
     loadPage(1, initialPageSize);
-  }, []);
+  }, [initialPageSize, loadPage]);
 
   const goToPage = useCallback(
     async (page: number) => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createRateLimiter, sensitiveWriteLimiter, generalApiLimiter, authLimiter } from '@/lib/utils/throttle';
 
 describe('lib/utils/throttle.ts', () => {

@@ -1,16 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
 import { authBurstLimitMiddleware } from "../security/rateLimit.js";
-import { createJobsRouter } from "./jobs.js";
-import { createCalendarRouter } from "./calendar.js";
-import { createCompanyRouter } from "./company.js";
-import { createWorkerRouter } from "./worker.js";
-import { createAdminRouter } from "./admin.js";
-import type { JobsRouterDeps } from "./jobs.js";
-import type { CalendarRouterDeps } from "./calendar.js";
-import type { CompanyRouterDeps } from "./company.js";
-import type { WorkerRouterDeps } from "./worker.js";
-import type { AdminRouterDeps } from "./admin.js";
+import { createJobsRouter, type JobsRouterDeps } from "../modules/jobs/index.js";
+import { createCalendarRouter, type CalendarRouterDeps } from "../modules/calendar/index.js";
+import { createCompanyRouter, type CompanyRouterDeps } from "../modules/company/index.js";
+import { createWorkerRouter, type WorkerRouterDeps } from "../modules/worker/index.js";
+import { createAdminRouter, type AdminRouterDeps } from "../modules/admin/index.js";
 
 export function createV1Router(deps: {
   jobs: JobsRouterDeps;
