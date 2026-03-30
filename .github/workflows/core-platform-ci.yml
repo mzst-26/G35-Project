@@ -56,7 +56,6 @@ jobs:
             backend/packages/shared-errors/dist \
             backend/packages/shared-observability/dist \
             backend/packages/shared-permissions/dist \
-            backend/packages/shared-utils/dist \
             backend/packages/shared-validation/dist
 
       - name: Upload shared package artifacts
@@ -111,7 +110,6 @@ jobs:
         run: |
           test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
-          test -f "${{ github.workspace }}/backend/packages/shared-utils/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run linter
@@ -202,7 +200,6 @@ jobs:
         run: |
           test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
-          test -f "${{ github.workspace }}/backend/packages/shared-utils/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run database migrations
@@ -302,7 +299,6 @@ jobs:
         run: |
           test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
-          test -f "${{ github.workspace }}/backend/packages/shared-utils/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Dependency audit (npm audit)
@@ -431,7 +427,6 @@ jobs:
         run: |
           test -f "${{ github.workspace }}/backend/packages/shared-errors/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-permissions/dist/index.d.ts"
-          test -f "${{ github.workspace }}/backend/packages/shared-utils/dist/index.d.ts"
           test -f "${{ github.workspace }}/backend/packages/shared-validation/dist/index.d.ts"
 
       - name: Run E2E tests
