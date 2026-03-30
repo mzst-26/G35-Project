@@ -97,7 +97,14 @@ jobs:
           path: .artifacts
 
       - name: Extract shared package artifacts
-        run: tar -xzf .artifacts/backend-shared-dist.tgz
+        run: |
+          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          if [ -z "$TAR_FILE" ]; then
+            echo "backend-shared-dist.tgz not found under .artifacts"
+            ls -la .artifacts || true
+            exit 1
+          fi
+          tar -xzf "$TAR_FILE"
 
       - name: Run linter
         run: npm run lint
@@ -174,7 +181,14 @@ jobs:
           path: .artifacts
 
       - name: Extract shared package artifacts
-        run: tar -xzf .artifacts/backend-shared-dist.tgz
+        run: |
+          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          if [ -z "$TAR_FILE" ]; then
+            echo "backend-shared-dist.tgz not found under .artifacts"
+            ls -la .artifacts || true
+            exit 1
+          fi
+          tar -xzf "$TAR_FILE"
 
       - name: Run database migrations
         run: npm run db:migrate
@@ -260,7 +274,14 @@ jobs:
           path: .artifacts
 
       - name: Extract shared package artifacts
-        run: tar -xzf .artifacts/backend-shared-dist.tgz
+        run: |
+          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          if [ -z "$TAR_FILE" ]; then
+            echo "backend-shared-dist.tgz not found under .artifacts"
+            ls -la .artifacts || true
+            exit 1
+          fi
+          tar -xzf "$TAR_FILE"
 
       - name: Dependency audit (npm audit)
         run: npm audit --audit-level moderate
@@ -375,7 +396,14 @@ jobs:
           path: .artifacts
 
       - name: Extract shared package artifacts
-        run: tar -xzf .artifacts/backend-shared-dist.tgz
+        run: |
+          TAR_FILE=$(find .artifacts -type f -name backend-shared-dist.tgz | head -n 1)
+          if [ -z "$TAR_FILE" ]; then
+            echo "backend-shared-dist.tgz not found under .artifacts"
+            ls -la .artifacts || true
+            exit 1
+          fi
+          tar -xzf "$TAR_FILE"
 
       - name: Run E2E tests
         run: npm run test:e2e
