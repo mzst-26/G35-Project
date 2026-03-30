@@ -3,6 +3,7 @@ import { UnauthorisedError } from "@infra/shared-errors";
 import type { CompanyService } from "../application/service.js";
 import {
   companyPathParamsSchema,
+  listCompaniesQuerySchema,
   updateCompanySchema,
 } from "../contracts/validators.js";
 import { companyToJson } from "../contracts/dto.js";
@@ -11,6 +12,36 @@ export function createCompanyController(deps: { companyService: CompanyService }
   const { companyService } = deps;
 
   return {
+    listCompanies: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        if (!req.user) {
+          next(new UnauthorisedError("Authentication required."));
+          return;
+        }
+
+        const query = listCompaniesQuerySchema.parse(req.query);
+        const result = await companyService.listCompanies(
+          {
+            status: query.status,
+            limit: query.limit,
+            offset: query.offset,
+          },
+          req.user,
+        );
+
+        res.status(200).json({
+          data: result.data.map(companyToJson),
+          meta: {
+            total: result.total,
+            limit: query.limit,
+            offset: query.offset,
+          },
+        });
+      } catch (err) {
+        next(err);
+      }
+    },
+
     getCompany: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         if (!req.user) {

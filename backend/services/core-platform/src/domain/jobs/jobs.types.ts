@@ -53,6 +53,8 @@ export type CreateJobData = {
   endAt: string;
   salary: number;
   currency: Currency;
+  tradeType?: string;
+  workersNeeded?: number;
 };
 
 export type UpdateJobData = {

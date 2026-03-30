@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Backend workspace is linted by its own config/scripts.
+    "backend/**",
     // Compiled output — lint source only
     "backend/dist/**",
     "backend/services/identity/dist/**",

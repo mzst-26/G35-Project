@@ -5,6 +5,12 @@ import { getRequestId } from "@infra/shared-observability";
 import type { UserRole } from "@infra/shared-permissions";
 import { logger } from "../../../observability/logger.js";
 
+const SYSTEM_ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+
+function toAuditUserId(actorId: string): string | null {
+  return actorId === SYSTEM_ZERO_UUID ? null : actorId;
+}
+
 export type AuditLogWrite = {
   eventName: string;
   actorId: string;
@@ -39,7 +45,7 @@ export class SupabaseAdminRepository implements AdminRepository {
       event_id: randomUUID(),
       request_id: getRequestId() ?? "unknown",
       event_name: entry.eventName,
-      user_id: entry.actorId,
+      user_id: toAuditUserId(entry.actorId),
       role: entry.role,
       occurred_at: new Date().toISOString(),
       metadata: entry.metadata,

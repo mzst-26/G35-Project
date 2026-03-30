@@ -15,7 +15,10 @@ import {
 interface JobParametersPanelProps {
   jobParams: JobParameters;
   isComplete: boolean;
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void>;
+  isPriceApproved: boolean;
+  onPriceApprovalChange: (approved: boolean) => void;
+  isSubmitting: boolean;
 }
 
 function calculateCostEstimate(workersNeeded: number): JobCostEstimate {
@@ -30,6 +33,9 @@ export function JobParametersPanel({
   jobParams,
   isComplete,
   onSubmit,
+  isPriceApproved,
+  onPriceApprovalChange,
+  isSubmitting,
 }: JobParametersPanelProps) {
   const estimate = jobParams.workersNeeded
     ? calculateCostEstimate(jobParams.workersNeeded)
@@ -147,16 +153,28 @@ export function JobParametersPanel({
                 </div>
               </div>
               <p className="text-xs text-slate-600">
-                Final price confirmed after allocation
+                Basic price shown for now. Job is created only after you approve this quote.
               </p>
+
+              <label className="flex items-start gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={isPriceApproved}
+                  onChange={(event) => onPriceApprovalChange(event.target.checked)}
+                  disabled={isSubmitting}
+                />
+                <span>I approve this price and want to create the job.</span>
+              </label>
             </div>
 
             {/* Submit Button */}
             <Button
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-4 shadow-lg hover:shadow-xl transition-all"
               onClick={onSubmit}
+              disabled={!isPriceApproved || isSubmitting}
             >
-              Submit Job Request
+              {isSubmitting ? 'Creating Job...' : 'Approve Price & Create Job'}
             </Button>
           </>
         )}

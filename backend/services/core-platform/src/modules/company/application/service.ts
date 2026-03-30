@@ -50,10 +50,29 @@ export class CompanyService {
     filters: ListCompaniesFilters,
     requester: AuthenticatedUser,
   ): Promise<{ data: Company[]; total: number }> {
-    if (requester.role !== UserRole.ADMIN) {
-      throw new ForbiddenError("Only admins can list companies.");
+    if (requester.role === UserRole.ADMIN) {
+      return this.companies.list(filters);
     }
-    return this.companies.list(filters);
+
+    if (requester.role === UserRole.RECRUITER) {
+      if (!requester.companyId) {
+        throw new ForbiddenError("Company context required.");
+      }
+
+      const company = await this.companies.findById(requester.companyId);
+      if (!company) {
+        return { data: [], total: 0 };
+      }
+
+      if (filters.status && company.accountStatus !== filters.status) {
+        return { data: [], total: 0 };
+      }
+
+      // Recruiters can only access their own company record.
+      return { data: [company], total: 1 };
+    }
+
+    throw new ForbiddenError("Insufficient permissions.");
   }
 
   private assertCanRead(companyId: string, requester: AuthenticatedUser): void {

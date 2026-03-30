@@ -1,5 +1,4 @@
 const REQUIRED_SERVER_ENVS = ['IDENTITY_SERVICE_URL'] as const;
-const DEFAULT_LOCAL_CORE_PLATFORM_SERVICE_URL = 'http://localhost:3001';
 
 export interface ServerEnvConfig {
   identityServiceUrl: string;
@@ -18,9 +17,7 @@ export class EnvValidationError extends Error {
 export function getServerEnvConfig(): ServerEnvConfig {
   const missing: string[] = REQUIRED_SERVER_ENVS.filter((key) => !process.env[key]);
 
-  const corePlatformServiceUrl =
-    process.env.CORE_PLATFORM_SERVICE_URL ||
-    (process.env.NODE_ENV === 'production' ? undefined : DEFAULT_LOCAL_CORE_PLATFORM_SERVICE_URL);
+  const corePlatformServiceUrl = process.env.CORE_PLATFORM_SERVICE_URL;
 
   if (!corePlatformServiceUrl) {
     missing.push('CORE_PLATFORM_SERVICE_URL');

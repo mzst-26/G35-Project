@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, CheckCircle2, Clock, PlayCircle, Plus } from "lucide-react";
+import Link from "next/link";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { DashboardHomeProps } from "@/types/dashboard";
@@ -8,13 +9,14 @@ import { useCompanyJobs } from "@/hooks/useCompanyJobs";
 import { CompanyJobCard } from "@/components/recruiter_dashboard/CompanyJobCard";
 
 export default function RecruiterHome ({ onCreateJob, onViewJob }: DashboardHomeProps){
-  // Load jobs and stats for the dashboard
-  const { jobs, stats, isLoading, error } = useCompanyJobs();
+  // Load jobs with limited set (3 items for overview)
+  const { jobs, stats, isLoading, error, total } = useCompanyJobs({ pageSize: 3 });
 
   const handleViewJob = (jobId: string) => {
-    // Let the parent decide where to navigate
     onViewJob?.(jobId);
   };
+
+  const remainingCount = Math.max(0, total - 3);
 
   return (
       <div>
@@ -93,13 +95,16 @@ export default function RecruiterHome ({ onCreateJob, onViewJob }: DashboardHome
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl text-slate-900">Recent Jobs</h2>
-          <Button
-            variant="ghost"
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
-            View All
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
+          <Link href="/company/dashboard/jobs">
+            <Button
+              variant="ghost"
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              View All
+              {remainingCount > 0 && <span className="ml-1">({remainingCount} more)</span>}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
         </div>
 
         {isLoading && (

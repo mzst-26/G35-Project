@@ -1,78 +1,100 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CompanyJob, CompanyJobStats } from '@/types/company-jobs';
 import { coreGetJson } from '@/lib/core/client';
 import { toCompanyJobs } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
-import { HookErrorEnvelope, toHookApiError } from '@/lib/core/error-envelope';
+import { toHookApiError } from '@/lib/core/error-envelope';
+import type { HookErrorEnvelope } from '@/lib/core/error-envelope';
+import { usePaginatedData } from '@/lib/data/pagination';
 
-export function useCompanyJobs() {
-  // Store job list data for the dashboard
-  const [jobs, setJobs] = useState<CompanyJob[]>([]);
-  // Simple loading and error flags
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export interface UseCompanyJobsOptions {
+  pageSize?: number;
+  pageNumber?: number;
+}
+
+export function useCompanyJobs(options?: UseCompanyJobsOptions) {
+  const pageSize = options?.pageSize ?? 20;
   const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
 
-  useEffect(() => {
-    // Load jobs once when the component mounts
-    let active = true;
-
-    const loadJobs = async () => {
-      setIsLoading(true);
-      setError(null);
-      setErrorEnvelope(null);
-
+  const {
+    items: jobs,
+    currentPage,
+    total,
+    isLoading,
+    error,
+    goToPage,
+    setPageSize,
+    refresh,
+    hasNextPage,
+  } = usePaginatedData<CompanyJob>(
+    async (limit, offset) => {
       try {
+        setErrorEnvelope(null);
+        const queryParams = offset > 0 ? { limit, offset } : { limit };
+
         const data = await coreGetJson<unknown>(
           '/api/core/jobs',
           'Failed to load jobs',
           'COMPANY_JOBS_LOAD_FAILED',
-          { limit: 20 },
+          queryParams,
         );
-        if (active) {
-          setJobs(toCompanyJobs(data));
+
+        // Handle response that includes meta
+        if (data && typeof data === 'object' && 'data' in data && 'meta' in data) {
+          const typedData = data as { data: unknown[]; meta: { total: number; limit: number; offset: number } };
+          return {
+            data: toCompanyJobs(typedData.data),
+            meta: typedData.meta,
+          };
         }
-      } catch (caughtError) {
-        if (active) {
-          const apiError = toHookApiError(caughtError, 'Failed to load jobs', 'COMPANY_JOBS_LOAD_FAILED');
-          captureFrontendError(apiError, {
-            flow: 'recruiter_jobs',
-            endpoint: '/api/core/jobs',
-            action: 'list',
-            role: 'recruiter',
-          });
-          captureFrontendMessage('Recruiter jobs request failed', {
-            flow: 'recruiter_jobs',
-            endpoint: '/api/core/jobs',
-            action: 'list',
-            role: 'recruiter',
-            extra: {
-              code: apiError.envelope.code,
-              requestId: apiError.envelope.requestId,
-              status: apiError.envelope.status,
+
+        // Legacy payload shape: { items: [...] }
+        if (data && typeof data === 'object' && 'items' in data) {
+          const typedItems = data as { items: unknown[] };
+          return {
+            data: toCompanyJobs(Array.isArray(typedItems.items) ? typedItems.items : []),
+            meta: {
+              total: Array.isArray(typedItems.items) ? typedItems.items.length : 0,
+              limit,
+              offset,
             },
-          });
-          setError(apiError.envelope.message);
-          setErrorEnvelope(apiError.envelope);
+          };
         }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
+
+        // Fallback: assume data is array
+        return {
+          data: toCompanyJobs(Array.isArray(data) ? data : []),
+          meta: { total: Array.isArray(data) ? data.length : 0, limit, offset },
+        };
+      } catch (caughtError) {
+        const apiError = toHookApiError(caughtError, 'Failed to load jobs', 'COMPANY_JOBS_LOAD_FAILED');
+        captureFrontendError(apiError, {
+          flow: 'recruiter_jobs',
+          endpoint: '/api/core/jobs',
+          action: 'list',
+          role: 'recruiter',
+        });
+        captureFrontendMessage('Recruiter jobs request failed', {
+          flow: 'recruiter_jobs',
+          endpoint: '/api/core/jobs',
+          action: 'list',
+          role: 'recruiter',
+          extra: {
+            code: apiError.envelope.code,
+            requestId: apiError.envelope.requestId,
+            status: apiError.envelope.status,
+          },
+        });
+        setErrorEnvelope(apiError.envelope);
+        throw caughtError;
       }
-    };
-
-    loadJobs();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    },
+    pageSize,
+  );
 
   const stats = useMemo<CompanyJobStats>(() => {
-    // Build counts for the stats cards
     return jobs.reduce(
       (acc, job) => {
         if (job.status === 'pending') acc.pending += 1;
@@ -85,5 +107,18 @@ export function useCompanyJobs() {
     );
   }, [jobs]);
 
-  return { jobs, stats, isLoading, error, errorEnvelope } as const;
+  return {
+    jobs,
+    stats,
+    isLoading,
+    error,
+    errorEnvelope,
+    total,
+    currentPage,
+    pageSize,
+    hasNextPage,
+    goToPage,
+    setPageSize,
+    refresh,
+  } as const;
 }

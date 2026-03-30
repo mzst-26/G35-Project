@@ -53,9 +53,10 @@ export function ProfileTab({
                 id="companyName"
                 value={profile.companyName}
                 onChange={(e) => onUpdateField('companyName', e.target.value)}
-                disabled={isLoading}
+                disabled
                 className="border-slate-300"
               />
+              <p className="text-xs text-slate-500">Company name is managed by administrators.</p>
             </div>
           </div>
 
@@ -102,9 +103,10 @@ export function ProfileTab({
                 type="email"
                 value={profile.email}
                 onChange={(e) => onUpdateField('email', e.target.value)}
-                disabled={isLoading}
+                disabled
                 className="border-slate-300"
               />
+              <p className="text-xs text-slate-500">Email address is managed by your account login.</p>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { InvalidStatusTransitionError, ServiceUnavailableError } from "@infra/shared-errors";
+import { BadRequestError, InvalidStatusTransitionError, ServiceUnavailableError } from "@infra/shared-errors";
 import { JobStatus, type CreateJobData, type Job, type JobFilters, type JobStatusHistoryEntry, type UpdateJobData } from "../domain/types.js";
 import { JobNotFoundError, JobVersionConflictError } from "../../../errors/index.js";
 import { mapHistoryRow, mapJob, type JobRow, type JobStatusHistoryRow } from "./mapper.js";
@@ -25,8 +25,67 @@ type RpcTransitionPayload = {
   job?: JobRow;
 };
 
+function isMissingJobsTitleColumnError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message.toLowerCase()
+      : "";
+  return message.includes("could not find the 'title' column of 'jobs'");
+}
+
+function toIsoDate(value: string): string {
+  return value.slice(0, 10);
+}
+
+function normalizeTradeHint(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function inferTradeHintFromTitle(title: string): string {
+  return normalizeTradeHint(title.split("-")[0] ?? title);
+}
+
 export class SupabaseJobsRepository implements JobsRepository {
   constructor(private readonly client: SupabaseClient) {}
+
+  private async resolveTradeId(data: CreateJobData): Promise<string> {
+    const preferredHint = data.tradeType ? normalizeTradeHint(data.tradeType) : "";
+    const fallbackHint = inferTradeHintFromTitle(data.title);
+    const hint = preferredHint || fallbackHint;
+
+    const findBy = async (pattern: string) => {
+      const { data: row, error } = await this.client
+        .from("trades")
+        .select("id")
+        .ilike("display_name", pattern)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        throw new ServiceUnavailableError("Failed to resolve trade for job creation.", error);
+      }
+
+      return row?.id ?? null;
+    };
+
+    const exactId = await findBy(hint);
+    if (exactId) {
+      return exactId;
+    }
+
+    const escapedHint = hint.replace(/[%_]/g, "");
+    const fuzzyId = await findBy(`%${escapedHint}%`);
+    if (fuzzyId) {
+      return fuzzyId;
+    }
+
+    throw new BadRequestError(
+      `Unknown trade type '${data.tradeType ?? hint}'. Please provide a valid trade type.`,
+    );
+  }
 
   async findById(id: string): Promise<Job | null> {
     const { data, error } = await this.client.from("jobs").select("*").eq("id", id).maybeSingle();
@@ -66,41 +125,82 @@ export class SupabaseJobsRepository implements JobsRepository {
   }
 
   async create(data: CreateJobData): Promise<Job> {
-    const insert = {
+    const tradeId = await this.resolveTradeId(data);
+    const insertWithTitle = {
       company_id: data.companyId,
+      trade_id: tradeId,
       title: data.title,
+      special_requirements: data.title,
       description: data.description ?? null,
+      workers_needed: data.workersNeeded ?? 1,
       start_at: data.startAt,
+      start_date: toIsoDate(data.startAt),
       end_at: data.endAt,
+      end_date: toIsoDate(data.endAt),
       salary: data.salary,
       currency: data.currency,
       status: JobStatus.DRAFT,
     };
-    const { data: row, error } = await this.client.from("jobs").insert(insert).select("*").single();
-    if (error) {
-      throw new ServiceUnavailableError("Failed to create job.", error);
+    const { data: primaryRow, error: primaryError } = await this.client
+      .from("jobs")
+      .insert(insertWithTitle)
+      .select("*")
+      .single();
+    if (!primaryError) {
+      return mapJob(primaryRow as JobRow);
     }
-    return mapJob(row as JobRow);
+
+    if (!isMissingJobsTitleColumnError(primaryError)) {
+      throw new ServiceUnavailableError("Failed to create job.", primaryError);
+    }
+
+    const { title: _ignoredTitle, ...insertFallback } = insertWithTitle;
+    const { data: fallbackRow, error: fallbackError } = await this.client
+      .from("jobs")
+      .insert(insertFallback)
+      .select("*")
+      .single();
+    if (fallbackError) {
+      throw new ServiceUnavailableError("Failed to create job.", fallbackError);
+    }
+    return mapJob(fallbackRow as JobRow);
   }
 
   async update(id: string, data: UpdateJobData, currentVersion: number): Promise<Job> {
-    const patch: Record<string, unknown> = {};
-    if (data.title !== undefined) patch.title = data.title;
-    if (data.description !== undefined) patch.description = data.description;
-    if (data.startAt !== undefined) patch.start_at = data.startAt;
-    if (data.endAt !== undefined) patch.end_at = data.endAt;
-    if (data.salary !== undefined) patch.salary = data.salary;
-    if (data.currency !== undefined) patch.currency = data.currency;
-    patch.version = currentVersion + 1;
-    patch.updated_at = new Date().toISOString();
+    const basePatch: Record<string, unknown> = {};
+    if (data.title !== undefined) {
+      basePatch.title = data.title;
+      basePatch.special_requirements = data.title;
+    }
+    if (data.description !== undefined) basePatch.description = data.description;
+    if (data.startAt !== undefined) {
+      basePatch.start_at = data.startAt;
+      basePatch.start_date = toIsoDate(data.startAt);
+    }
+    if (data.endAt !== undefined) {
+      basePatch.end_at = data.endAt;
+      basePatch.end_date = toIsoDate(data.endAt);
+    }
+    if (data.salary !== undefined) basePatch.salary = data.salary;
+    if (data.currency !== undefined) basePatch.currency = data.currency;
+    basePatch.version = currentVersion + 1;
+    basePatch.updated_at = new Date().toISOString();
 
-    const { data: row, error } = await this.client
-      .from("jobs")
-      .update(patch)
-      .eq("id", id)
-      .eq("version", currentVersion)
-      .select("*")
-      .maybeSingle();
+    const runUpdate = (patch: Record<string, unknown>) =>
+      this.client
+        .from("jobs")
+        .update(patch)
+        .eq("id", id)
+        .eq("version", currentVersion)
+        .select("*")
+        .maybeSingle();
+
+    let { data: row, error } = await runUpdate(basePatch);
+
+    if (error && isMissingJobsTitleColumnError(error) && "title" in basePatch) {
+      const { title: _ignoredTitle, ...fallbackPatch } = basePatch;
+      ({ data: row, error } = await runUpdate(fallbackPatch));
+    }
 
     if (error) {
       throw new ServiceUnavailableError("Failed to update job.", error);

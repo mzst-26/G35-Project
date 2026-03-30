@@ -1,5 +1,14 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { startOutboxRelayWorker } from "../../src/workers/outbox.relay.worker.js";
+import { startOutboxRelayWorker } from "../../../src/workers/outbox.relay.worker";
+
+type RelayAdminService = {
+  relayOutbox: (limit: number, actor: { userId: string; role: string }) => Promise<{
+    processed: number;
+    delivered: number;
+    retried: number;
+    deadLettered: number;
+  }>;
+};
 
 describe("outbox relay worker", () => {
   beforeEach(() => {
@@ -17,14 +26,13 @@ describe("outbox relay worker", () => {
       retried: 1,
       deadLettered: 1,
     });
-    const adminServiceMock = { relayOutbox: relayOutboxMock } as any;
+    const adminServiceMock: RelayAdminService = { relayOutbox: relayOutboxMock };
 
     const stop = startOutboxRelayWorker(adminServiceMock, 5000);
 
     expect(relayOutboxMock).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(5000);
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(5000);
 
     expect(relayOutboxMock).toHaveBeenCalledOnce();
     expect(relayOutboxMock).toHaveBeenCalledWith(100, expect.objectContaining({
@@ -32,8 +40,7 @@ describe("outbox relay worker", () => {
       role: "admin",
     }));
 
-    vi.advanceTimersByTime(5000);
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(5000);
 
     expect(relayOutboxMock).toHaveBeenCalledTimes(2);
 
@@ -43,12 +50,11 @@ describe("outbox relay worker", () => {
   it("handles relay errors gracefully", async () => {
     const error = new Error("relay failed");
     const relayOutboxMock = vi.fn().mockRejectedValue(error);
-    const adminServiceMock = { relayOutbox: relayOutboxMock } as any;
+    const adminServiceMock: RelayAdminService = { relayOutbox: relayOutboxMock };
 
     const stop = startOutboxRelayWorker(adminServiceMock, 1000);
 
-    vi.advanceTimersByTime(1000);
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(1000);
 
     expect(relayOutboxMock).toHaveBeenCalled();
 

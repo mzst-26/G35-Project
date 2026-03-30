@@ -1,48 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Ticket } from "@/types/support";
 
-const STORAGE_KEY = "supportTickets";
+export interface UseSupportOptions {
+  pageSize?: 25 | 50 | 100;
+  pageNumber?: number;
+}
 
-export function useSupport() {
-  const [tickets, setTickets] = useState<Ticket[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as Ticket[]) : [];
-    } catch {
-      return [];
-    }
-  });
+export interface UseSupportReturn {
+  tickets: Ticket[];
+  total: number;
+  currentPage: number;
+  pageSize: 25 | 50 | 100;
+  hasNextPage: boolean;
+  isLoading: boolean;
+  error: string | null;
+  createTicket: (data: Omit<Ticket, 'id' | 'createdAt' | 'status'>) => null;
+  closeTicket: (id: string) => void;
+  getTicket: (id: string) => null;
+  refresh: () => Promise<void>;
+  goToPage: (page: number) => Promise<void>;
+  setPageSize: (size: 25 | 50 | 100) => Promise<void>;
+}
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
-    } catch {
-      // ignore
-    }
-  }, [tickets]);
+export function useSupport(options?: UseSupportOptions): UseSupportReturn {
+  const pageSize = options?.pageSize ?? 25;
+  const tickets: Ticket[] = [];
 
   function createTicket(data: Omit<Ticket, 'id' | 'createdAt' | 'status'>) {
-    const t: Ticket = {
-      id: String(Date.now()),
-      title: data.title,
-      details: data.details,
-      date: data.date,
-      status: 'open',
-      createdAt: new Date().toISOString(),
-    };
-    setTickets((prev) => [t, ...prev]);
-    return t;
+    void data;
+    // TODO: implement POST /tickets against Communications service.
+    return null;
   }
 
   function closeTicket(id: string) {
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status: 'closed' } : t)));
+    void id;
+    // TODO: implement PATCH /tickets/:id against Communications service.
   }
 
   function getTicket(id: string) {
-    return tickets.find((t) => t.id === id) ?? null;
+    void id;
+    // TODO: implement GET /tickets/:id against Communications service.
+    return null;
   }
 
-  return { tickets, createTicket, closeTicket, getTicket } as const;
+  async function refresh() {
+    // TODO: implement refresh when Communications service integration is ready.
+  }
+
+  async function goToPage(page: number) {
+    void page;
+    // TODO: implement pagination when Communications service integration is ready.
+  }
+
+  async function setPageSize(size: 25 | 50 | 100) {
+    void size;
+    // TODO: implement page size change when Communications service integration is ready.
+  }
+
+  return {
+    tickets,
+    total: 0,
+    currentPage: 1,
+    pageSize,
+    hasNextPage: false,
+    isLoading: false,
+    error: null,
+    createTicket,
+    closeTicket,
+    getTicket,
+    refresh,
+    goToPage,
+    setPageSize,
+  } as const;
 }

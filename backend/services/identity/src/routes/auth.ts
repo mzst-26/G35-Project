@@ -11,9 +11,11 @@
 
 import { Router } from "express";
 import crypto from "node:crypto";
+import { z } from "zod";
 import { requestOtp, verifyOtp } from "../auth/otp.service.js";
 import { submitRecruiterRegistration } from "../auth/companyRegistration.service.js";
 import { decodeJwtPayload, refreshSession, revokeSession } from "../auth/session.service.js";
+import { createServiceRoleClient } from "../supabase/index.js";
 import { createRateLimiter } from "../security/index.js";
 import {
   parseOrThrow,
@@ -199,13 +201,89 @@ authRouter.post(
 authRouter.get(
   "/session/me",
   authenticate,
-  (req, res) => {
+  async (req, res, next) => {
+    try {
+      const accessToken = req.cookies?.["sb-access-token"] as string | undefined;
+      const jwtPayload = accessToken ? decodeJwtPayload(accessToken) : {};
+      const sessionId = typeof jwtPayload["session_id"] === "string" ? jwtPayload["session_id"] : undefined;
+
+      const db = createServiceRoleClient();
+      const { data } = await db
+        .from("users")
+        .select("full_name, phone_number")
+        .eq("id", req.user!.id)
+        .maybeSingle();
+
+      // req.user is guaranteed present after authenticate middleware.
+      res.status(200).json({
+        user: {
+          ...req.user,
+          fullName: data?.full_name ?? null,
+          phoneNumber: data?.phone_number ?? null,
+        },
+        sessionId,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+const sessionProfilePatchSchema = z
+  .object({
+    fullName: z.string().trim().min(2).max(120).optional(),
+    phoneNumber: z.string().trim().min(6).max(32).nullable().optional(),
+  })
+  .strict();
+
+authRouter.patch(
+  "/session/me",
+  authenticate,
+  async (req, res, next) => {
     const accessToken = req.cookies?.["sb-access-token"] as string | undefined;
     const jwtPayload = accessToken ? decodeJwtPayload(accessToken) : {};
     const sessionId = typeof jwtPayload["session_id"] === "string" ? jwtPayload["session_id"] : undefined;
 
-    // req.user is guaranteed present after authenticate middleware.
-    res.status(200).json({ user: req.user, sessionId });
+    try {
+      const patch = sessionProfilePatchSchema.parse(req.body ?? {});
+      const db = createServiceRoleClient();
+
+      const updatePayload: Record<string, string | null> = {};
+      if (patch.fullName !== undefined) {
+        updatePayload.full_name = patch.fullName;
+      }
+      if (patch.phoneNumber !== undefined) {
+        updatePayload.phone_number = patch.phoneNumber;
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        const { error } = await db
+          .from("users")
+          .update(updatePayload)
+          .eq("id", req.user!.id);
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      const { data } = await db
+        .from("users")
+        .select("full_name, phone_number")
+        .eq("id", req.user!.id)
+        .maybeSingle();
+
+      res.status(200).json({
+        user: {
+          ...req.user,
+          fullName: data?.full_name ?? null,
+          phoneNumber: data?.phone_number ?? null,
+        },
+        sessionId,
+      });
+    } catch (err) {
+      next(err);
+    }
   },
 );
 

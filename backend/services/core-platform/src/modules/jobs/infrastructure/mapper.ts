@@ -3,10 +3,13 @@ import { JobStatus, type Currency, type Job, type JobStatusHistoryEntry } from "
 export interface JobRow {
   id: string;
   company_id: string;
-  title: string;
+  title?: string | null;
+  special_requirements?: string | null;
   description: string | null;
-  start_at: string;
-  end_at: string;
+  start_at?: string | null;
+  start_date?: string | null;
+  end_at?: string | null;
+  end_date?: string | null;
   salary: string | number;
   currency: string;
   status: string;
@@ -27,13 +30,17 @@ export interface JobStatusHistoryRow {
 }
 
 export function mapJob(row: JobRow): Job {
+  const title = row.title ?? row.special_requirements ?? row.description ?? "Untitled job";
+  const startAt = row.start_at ?? row.start_date;
+  const endAt = row.end_at ?? row.end_date;
+
   return {
     id: row.id,
     companyId: row.company_id,
-    title: row.title,
+    title,
     description: row.description,
-    startAt: row.start_at,
-    endAt: row.end_at,
+    startAt: startAt ?? "",
+    endAt: endAt ?? "",
     salary: typeof row.salary === "string" ? Number(row.salary) : row.salary,
     currency: row.currency as Currency,
     status: row.status as JobStatus,

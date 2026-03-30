@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TradeProfileTab } from '@/components/settings/TradeProfileTab';
 import { PaymentMethodsTab } from '@/components/settings/PaymentMethodsTab';
 import { TradeNotificationsTab } from '@/components/settings/TradeNotificationsTab';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useTradeSettings } from '@/hooks/useTradeSettings';
 
 interface TradeSettingsSectionProps {
   tradeId: string;
@@ -34,7 +34,7 @@ export function TradeSettingsSection({ tradeId }: TradeSettingsSectionProps) {
     deletePaymentMethod,
     setDefaultPaymentMethod,
     loadSettings,
-  } = useCompanySettings();
+  } = useTradeSettings();
 
   // Load settings on component mount
   useEffect(() => {

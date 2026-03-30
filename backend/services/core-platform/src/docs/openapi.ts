@@ -691,6 +691,8 @@ export function buildOpenApiSpec() {
             salary: { type: "number", exclusiveMinimum: 0 },
             currency: { type: "string", enum: ["GBP", "USD", "EUR"] },
             companyId: uuidSchema,
+            tradeType: { type: "string", minLength: 2, maxLength: 100 },
+            workersNeeded: { type: "integer", minimum: 1, maximum: 200 },
           },
           required: ["title", "startAt", "endAt", "salary", "currency", "companyId"],
         },
