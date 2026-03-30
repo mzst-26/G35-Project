@@ -59,7 +59,6 @@ COPY --from=builder --chown=app:app /app/packages/shared-validation/package.json
 COPY --from=builder --chown=app:app /app/packages/shared-validation/dist /app/packages/shared-validation/dist
 COPY --from=builder --chown=app:app /app/services/core-platform/package.json /app/services/core-platform/
 COPY --from=builder --chown=app:app /app/services/core-platform/dist /app/services/core-platform/dist
-COPY --from=builder --chown=app:app /app/services/core-platform/node_modules /app/services/core-platform/node_modules
 
 USER app
 WORKDIR /app/services/core-platform
