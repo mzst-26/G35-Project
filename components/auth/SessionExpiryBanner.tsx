@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -9,13 +9,23 @@ const LAST_24_HOURS_SECONDS = 24 * 60 * 60;
 
 export function SessionExpiryBanner() {
   const { user, isLoading } = useAuth();
+  const [nowSeconds, setNowSeconds] = useState(() => Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNowSeconds(Math.floor(Date.now() / 1000));
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const message = useMemo(() => {
     if (!user?.expiresAt) {
       return null;
     }
 
-    const nowSeconds = Math.floor(Date.now() / 1000);
     const remainingSeconds = user.expiresAt - nowSeconds;
 
     if (remainingSeconds <= 0 || remainingSeconds > LAST_24_HOURS_SECONDS) {
@@ -24,7 +34,7 @@ export function SessionExpiryBanner() {
 
     const remainingHours = Math.max(1, Math.ceil(remainingSeconds / 3600));
     return `Your session expires in about ${remainingHours} hour${remainingHours === 1 ? '' : 's'}. Please save your work and log in again before the 30-day session window ends.`;
-  }, [user]);
+  }, [nowSeconds, user]);
 
   if (isLoading || !message) {
     return null;

@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { CompanyJob, CompanyJobStats } from '@/types/company-jobs';
 import { coreGetJson } from '@/lib/core/client';
 import { toCompanyJobs } from '@/lib/core/adapters';
 import { captureFrontendError, captureFrontendMessage } from '@/lib/monitoring/sentry';
 import { toHookApiError } from '@/lib/core/error-envelope';
-import { usePaginatedData, type PaginatedResponse } from '@/lib/data/pagination';
+import type { HookErrorEnvelope } from '@/lib/core/error-envelope';
+import { usePaginatedData } from '@/lib/data/pagination';
 
 export interface UseCompanyJobsOptions {
   pageSize?: number;
@@ -14,7 +15,8 @@ export interface UseCompanyJobsOptions {
 }
 
 export function useCompanyJobs(options?: UseCompanyJobsOptions) {
-  const pageSize = options?.pageSize ?? 25;
+  const pageSize = options?.pageSize ?? 20;
+  const [errorEnvelope, setErrorEnvelope] = useState<HookErrorEnvelope | null>(null);
 
   const {
     items: jobs,
@@ -29,11 +31,14 @@ export function useCompanyJobs(options?: UseCompanyJobsOptions) {
   } = usePaginatedData<CompanyJob>(
     async (limit, offset) => {
       try {
+        setErrorEnvelope(null);
+        const queryParams = offset > 0 ? { limit, offset } : { limit };
+
         const data = await coreGetJson<unknown>(
           '/api/core/jobs',
           'Failed to load jobs',
           'COMPANY_JOBS_LOAD_FAILED',
-          { limit, offset },
+          queryParams,
         );
 
         // Handle response that includes meta
@@ -42,6 +47,19 @@ export function useCompanyJobs(options?: UseCompanyJobsOptions) {
           return {
             data: toCompanyJobs(typedData.data),
             meta: typedData.meta,
+          };
+        }
+
+        // Legacy payload shape: { items: [...] }
+        if (data && typeof data === 'object' && 'items' in data) {
+          const typedItems = data as { items: unknown[] };
+          return {
+            data: toCompanyJobs(Array.isArray(typedItems.items) ? typedItems.items : []),
+            meta: {
+              total: Array.isArray(typedItems.items) ? typedItems.items.length : 0,
+              limit,
+              offset,
+            },
           };
         }
 
@@ -69,6 +87,7 @@ export function useCompanyJobs(options?: UseCompanyJobsOptions) {
             status: apiError.envelope.status,
           },
         });
+        setErrorEnvelope(apiError.envelope);
         throw caughtError;
       }
     },
@@ -93,6 +112,7 @@ export function useCompanyJobs(options?: UseCompanyJobsOptions) {
     stats,
     isLoading,
     error,
+    errorEnvelope,
     total,
     currentPage,
     pageSize,

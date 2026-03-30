@@ -12,7 +12,7 @@ interface ValidatedEnv {
 let cached: ValidatedEnv | null = null;
 
 export function getValidatedEnv(): ValidatedEnv {
-  if (cached) return cached;
+  if (cached && process.env.NODE_ENV !== 'test') return cached;
 
   const env: Partial<ValidatedEnv> = {
     IDENTITY_SERVICE_URL: process.env.IDENTITY_SERVICE_URL,
@@ -64,11 +64,15 @@ export function getValidatedEnv(): ValidatedEnv {
     throw new Error(message);
   }
 
-  cached = {
+  const validated: ValidatedEnv = {
     IDENTITY_SERVICE_URL: env.IDENTITY_SERVICE_URL!,
     CORE_PLATFORM_SERVICE_URL: env.CORE_PLATFORM_SERVICE_URL!,
     CORE_PLATFORM_PROXY_TIMEOUT_MS: timeout,
   };
 
-  return cached;
+  if (process.env.NODE_ENV !== 'test') {
+    cached = validated;
+  }
+
+  return validated;
 }

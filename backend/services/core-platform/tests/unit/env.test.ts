@@ -20,7 +20,7 @@ function setValidEnv(): void {
     CHANGE_FEE_WINDOW_HOURS: "48",
     TRUST_PROXY_HOPS: "0",
     SKIP_BACKGROUND_WORKERS: "false",
-  } as any;
+  } as NodeJS.ProcessEnv;
 }
 
 describe("env config", () => {

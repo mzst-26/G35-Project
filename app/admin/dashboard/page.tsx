@@ -40,19 +40,23 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionKey>("dashboard");
+  const [activeSection, setActiveSection] = useState<SectionKey>(() => {
+    if (typeof window === "undefined") {
+      return "dashboard";
+    }
 
-  useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const pageParam = params.get("page") as SectionKey | null;
       if (pageParam && navItems.some((item) => item.section === pageParam)) {
-        setActiveSection(pageParam);
+        return pageParam;
       }
     } catch {
       // Ignore malformed URL query values.
     }
-  }, []);
+
+    return "dashboard";
+  });
 
   useEffect(() => {
     try {

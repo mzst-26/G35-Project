@@ -28,11 +28,6 @@ export default function UserListView({
   const pagination = useMemo(() => getPagination(listType), [getPagination, listType]);
 
   useEffect(() => {
-    setPageIndex(0);
-    setPageSize(100);
-  }, [listType]);
-
-  useEffect(() => {
     const offset = pageIndex * pageSize;
     void loadUsersPage(listType, pageSize, offset);
   }, [listType, loadUsersPage, pageIndex, pageSize]);
