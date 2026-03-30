@@ -17,8 +17,15 @@
     "start:production": "CORE_PLATFORM_ENV=production NODE_ENV=production node dist/index.js",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:security": "vitest run tests/security",
+    "test:system": "vitest run tests/system --passWithNoTests",
+    "test:e2e": "vitest run tests/e2e --passWithNoTests",
+    "test:coverage:merge": "node -e \"console.log('Coverage is produced by individual test runs; merge step is a no-op.')\"",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
+    "db:migrate": "node ./scripts/db-migrate.mjs",
     "openapi:validate": "tsx src/docs/validate-openapi.ts"
   },
   "dependencies": {

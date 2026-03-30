@@ -367,12 +367,15 @@ jobs:
         continue-on-error: true
 
       - name: Check for secrets in code
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./backend/services/core-platform
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            ghcr.io/trufflesecurity/trufflehog:latest \
+            filesystem /workspace/backend/services/core-platform \
+            --fail \
+            --no-update \
+            --github-actions
 
   # ============================================================================
   # Build Docker Image
