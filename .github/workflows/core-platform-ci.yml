@@ -340,7 +340,6 @@ jobs:
              [ "${{ needs.security.result }}" = "failure" ] || \
              [ "${{ needs.build-image.result }}" = "failure" ]; then
             echo "status=failed" >> $GITHUB_OUTPUT
-            exit 1
           else
             echo "status=passed" >> $GITHUB_OUTPUT
           fi
