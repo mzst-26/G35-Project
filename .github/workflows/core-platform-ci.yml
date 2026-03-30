@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - develop
+      - dev
     paths:
       - 'backend/services/core-platform/**'
       - 'backend/packages/**'
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches:
       - main
-      - develop
+      - dev
     paths:
       - 'backend/services/core-platform/**'
       - 'backend/packages/**'
