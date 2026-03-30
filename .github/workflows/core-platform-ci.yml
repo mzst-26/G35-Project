@@ -1,13 +1,13 @@
 name: Core Platform Service CI
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - dev
-    paths:
-      - 'backend/services/core-platform/**'
-      - 'backend/packages/**'
+    # paths:
+    #   - 'backend/services/core-platform/**'
+    #   - 'backend/packages/**'
 
 env:
   NODE_VERSION: '20'
