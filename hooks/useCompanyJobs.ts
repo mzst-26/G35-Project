@@ -9,7 +9,7 @@ import { toHookApiError } from '@/lib/core/error-envelope';
 import { usePaginatedData, type PaginatedResponse } from '@/lib/data/pagination';
 
 export interface UseCompanyJobsOptions {
-  pageSize?: 25 | 50 | 100;
+  pageSize?: number;
   pageNumber?: number;
 }
 

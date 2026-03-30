@@ -9,7 +9,7 @@ import { toHookApiError } from '@/lib/core/error-envelope';
 import { usePaginatedData } from '@/lib/data/pagination';
 
 export interface UseCompanyPaymentsOptions {
-  pageSize?: 25 | 50 | 100;
+  pageSize?: number;
   pageNumber?: number;
 }
 
@@ -52,6 +52,28 @@ export function useCompanyPayments(options?: UseCompanyPaymentsOptions) {
         };
       } catch (caughtError) {
         const apiError = toHookApiError(caughtError, 'Failed to load payments', 'COMPANY_PAYMENTS_LOAD_FAILED');
+
+        // Payments API is not yet available in core-platform in some environments.
+        // Gracefully degrade to an empty list so dashboard pages continue to function.
+        if (apiError.envelope.status === 404 || apiError.envelope.code === 'NOT_FOUND') {
+          captureFrontendMessage('Recruiter payments endpoint unavailable - using empty dataset', {
+            flow: 'recruiter_payments',
+            endpoint: '/api/core/payments',
+            action: 'list',
+            role: 'recruiter',
+            extra: {
+              code: apiError.envelope.code,
+              requestId: apiError.envelope.requestId,
+              status: apiError.envelope.status,
+            },
+          });
+
+          return {
+            data: [],
+            meta: { total: 0, limit, offset },
+          };
+        }
+
         captureFrontendError(apiError, {
           flow: 'recruiter_payments',
           endpoint: '/api/core/payments',

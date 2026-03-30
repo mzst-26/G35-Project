@@ -13,6 +13,10 @@ export function createCompanyRouter(deps: CompanyRouterDeps): Router {
   const router = Router();
   const c = createCompanyController(deps);
 
+  router.get("/", authorise(Permission.COMPANY_READ), readLimitMiddleware, (req, res, next) => {
+    void c.listCompanies(req, res, next);
+  });
+
   router.get("/:companyId", authorise(Permission.COMPANY_READ), readLimitMiddleware, (req, res, next) => {
     void c.getCompany(req, res, next);
   });

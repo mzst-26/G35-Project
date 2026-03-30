@@ -15,7 +15,7 @@ export interface PaginatedResponse<T> {
 export interface UsePaginatedDataReturn<T> {
   items: T[];
   currentPage: number;
-  pageSize: 25 | 50 | 100;
+  pageSize: number;
   total: number;
   hasNextPage: boolean;
   isLoading: boolean;
@@ -29,11 +29,11 @@ const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function usePaginatedData<T>(
   fetcher: (limit: number, offset: number) => Promise<PaginatedResponse<T>>,
-  initialPageSize: 25 | 50 | 100 = 25,
+  initialPageSize: number = 25,
 ): UsePaginatedDataReturn<T> {
   const [items, setItems] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSizeState] = useState<25 | 50 | 100>(initialPageSize);
+  const [pageSize, setPageSizeState] = useState<number>(initialPageSize);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +41,12 @@ export function usePaginatedData<T>(
   const cacheRef = useRef(new PageCache());
 
   const getCacheKey = useCallback(
-    (page: number, size: 25 | 50 | 100): string => `page_${size}_${page}`,
+    (page: number, size: number): string => `page_${size}_${page}`,
     [],
   );
 
   const loadPage = useCallback(
-    async (pageNum: number, size: 25 | 50 | 100, bypassCache = false) => {
+    async (pageNum: number, size: number, bypassCache = false) => {
       const cacheKey = getCacheKey(pageNum, size);
 
       if (!bypassCache && cacheRef.current.has(cacheKey)) {

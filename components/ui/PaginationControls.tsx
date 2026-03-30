@@ -1,9 +1,12 @@
+'use client';
+
+import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './button';
 
 export interface PaginationControlsProps {
   currentPage: number;
-  pageSize: 25 | 50 | 100;
+  pageSize: number;
   total: number;
   hasNextPage: boolean;
   isLoading: boolean;
@@ -12,7 +15,7 @@ export interface PaginationControlsProps {
   onPrevPage: () => void;
 }
 
-export function PaginationControls(props: PaginationControlsProps): JSX.Element {
+export function PaginationControls(props: PaginationControlsProps): React.ReactNode {
   const {
     currentPage,
     pageSize,
