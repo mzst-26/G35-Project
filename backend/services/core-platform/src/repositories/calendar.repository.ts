@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceUnavailableError } from "@infra/shared-errors";
 import { randomUUID } from "node:crypto";
 import { JobStatus } from "../domain/jobs/jobs.types.js";
+import { logger } from "../observability/logger.js";
 import {
   type AuditEntry,
   type CreateAvailabilityInput,
@@ -113,6 +114,12 @@ function overlapsRange(row: JobOverlapRow, range: DateRange): boolean {
 }
 
 type SupabaseErrorLike = { code?: string; message?: string };
+
+const SYSTEM_ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+
+function toAuditUserId(actorId: string): string | null {
+  return actorId === SYSTEM_ZERO_UUID ? null : actorId;
+}
 
 function isMissingAuditLogTable(error: SupabaseErrorLike | null | undefined): boolean {
   return (
@@ -286,7 +293,7 @@ export class SupabaseCalendarRepository implements CalendarRepository {
       event_id: randomUUID(),
       request_id: entry.requestId ?? randomUUID(),
       event_name: `calendar.availability.${entry.action}`,
-      user_id: entry.actorId,
+      user_id: toAuditUserId(entry.actorId),
       role: null,
       ip_subnet: null,
       occurred_at: entry.timestamp.toISOString(),
@@ -298,6 +305,20 @@ export class SupabaseCalendarRepository implements CalendarRepository {
     });
 
     if (fallback.error) {
+      const fallbackError = fallback.error as SupabaseErrorLike;
+      if (fallbackError.code === "23503") {
+        logger.warn(
+          {
+            actorId: entry.actorId,
+            workerId: entry.workerId,
+            action: entry.action,
+            errorCode: fallbackError.code,
+            message: fallbackError.message,
+          },
+          "calendar_audit_log_fk_violation_skipped",
+        );
+        return;
+      }
       throw new ServiceUnavailableError("Failed to write calendar audit entry.", fallback.error);
     }
   }
