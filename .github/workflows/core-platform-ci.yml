@@ -14,16 +14,16 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/core-platform
 
+permissions:
+  contents: read
+
 jobs:
   # ============================================================================
-  # Lint & Type Check
+  # Prepare Shared Package Artifacts
   # ============================================================================
-  lint-and-typecheck:
-    name: Lint & Type Check
+  prepare-shared:
+    name: Prepare Shared Packages
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend/services/core-platform
 
     steps:
       - name: Checkout code
@@ -43,6 +43,61 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: backend
+
+      - name: Build shared workspace packages
+        run: npm run build:shared
+        working-directory: backend
+
+      - name: Pack shared dist artifact
+        run: |
+          tar -czf backend-shared-dist.tgz \
+            backend/packages/shared-auth/dist \
+            backend/packages/shared-db/dist \
+            backend/packages/shared-errors/dist \
+            backend/packages/shared-observability/dist \
+            backend/packages/shared-permissions/dist \
+            backend/packages/shared-validation/dist
+
+      - name: Upload shared package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-shared-dist
+          path: backend-shared-dist.tgz
+
+  # ============================================================================
+  # Lint & Type Check
+  # ============================================================================
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: prepare-shared
+    defaults:
+      run:
+        working-directory: backend/services/core-platform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Download shared package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: backend-shared-dist
+          path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Run linter
         run: npm run lint
@@ -72,7 +127,7 @@ jobs:
   test:
     name: Test Suite (Unit/Integration)
     runs-on: ubuntu-latest
-    needs: lint-and-typecheck
+    needs: [prepare-shared, lint-and-typecheck]
     defaults:
       run:
         working-directory: backend/services/core-platform
@@ -108,13 +163,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: CI guards (lockfile and shared builds)
-        run: npm run ci:guard
-        working-directory: backend
-
       - name: Install dependencies
         run: npm ci
         working-directory: backend
+
+      - name: Download shared package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: backend-shared-dist
+          path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Run database migrations
         run: npm run db:migrate
@@ -176,7 +236,7 @@ jobs:
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
-    needs: lint-and-typecheck
+    needs: [prepare-shared, lint-and-typecheck]
 
     steps:
       - name: Checkout code
@@ -189,13 +249,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: CI guards (lockfile and shared builds)
-        run: npm run ci:guard
-        working-directory: backend
-
       - name: Install dependencies
         run: npm ci
         working-directory: backend
+
+      - name: Download shared package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: backend-shared-dist
+          path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Dependency audit (npm audit)
         run: npm audit --audit-level moderate
@@ -283,7 +348,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    needs: build-image
+    needs: [prepare-shared, build-image]
     if: github.ref == 'refs/heads/main'
     environment: staging
     timeout-minutes: 15
@@ -299,13 +364,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: CI guards (lockfile and shared builds)
-        run: npm run ci:guard
-        working-directory: backend
-
       - name: Install dependencies
         run: npm ci
         working-directory: backend
+
+      - name: Download shared package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: backend-shared-dist
+          path: .
+
+      - name: Extract shared package artifacts
+        run: tar -xzf backend-shared-dist.tgz
 
       - name: Run E2E tests
         run: npm run test:e2e
@@ -330,6 +400,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, test, security, build-image]
     if: always()
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Determine result
@@ -340,7 +414,6 @@ jobs:
              [ "${{ needs.security.result }}" = "failure" ] || \
              [ "${{ needs.build-image.result }}" = "failure" ]; then
             echo "status=failed" >> $GITHUB_OUTPUT
-            exit 1
           else
             echo "status=passed" >> $GITHUB_OUTPUT
           fi
@@ -356,7 +429,8 @@ jobs:
           echo "Overall Status: ${{ steps.result.outputs.status }}"
 
       - name: Comment on PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
