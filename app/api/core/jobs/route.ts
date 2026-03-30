@@ -19,3 +19,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
   });
 }
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const guardError = enforceCoreRouteGuard(request, {
+    route: '/api/core/jobs',
+    allowedRoles: ['admin', 'recruiter'],
+    rateLimitProfile: 'write',
+  });
+  if (guardError) {
+    return guardError;
+  }
+
+  return withSessionBridge(request, async () => {
+    return proxyCoreRequest(request, {
+      endpoint: '/api/v1/jobs',
+      method: 'POST',
+    });
+  });
+}

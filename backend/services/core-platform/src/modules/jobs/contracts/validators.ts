@@ -13,6 +13,8 @@ export const createJobSchema = z
     salary: z.number().positive(),
     currency: z.enum(["GBP", "USD", "EUR"]),
     companyId: uuidV4Schema,
+    tradeType: z.string().min(2).max(100).optional(),
+    workersNeeded: z.number().int().positive().max(200).optional(),
   })
   .strict()
   .refine((d) => new Date(d.endAt) > new Date(d.startAt), {

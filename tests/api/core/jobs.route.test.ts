@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { GET } from '../../../app/api/core/jobs/route';
+import { GET, POST } from '../../../app/api/core/jobs/route';
 import { proxyCoreRequest } from '../../../lib/core/proxy';
 import { withSessionBridge } from '../../../lib/auth/session-bridge';
 
@@ -57,5 +57,42 @@ describe('app/api/core/jobs/route.ts', () => {
 
     expect(proxyCoreRequest).not.toHaveBeenCalled();
     expect(response.status).toBe(401);
+  });
+
+  it('proxies create job POST via session bridge', async () => {
+    const proxiedResponse = new NextResponse(JSON.stringify({ data: { id: 'job-123' } }), {
+      status: 201,
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+
+    (proxyCoreRequest as MockedFn).mockResolvedValueOnce(proxiedResponse);
+    (withSessionBridge as MockedFn).mockImplementationOnce(
+      async (_request: NextRequest, handler: () => Promise<NextResponse>) => handler(),
+    );
+
+    const request = new NextRequest('http://localhost:3000/api/core/jobs', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: 'Electrician - London',
+        startAt: '2026-04-02T00:00:00.000Z',
+        endAt: '2026-04-03T00:00:00.000Z',
+        salary: 616,
+        currency: 'GBP',
+        companyId: '5d17de66-4029-4e84-9152-94f28b5eb532',
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+    const response = await POST(request);
+
+    expect(withSessionBridge).toHaveBeenCalledTimes(1);
+    expect(proxyCoreRequest).toHaveBeenCalledWith(request, {
+      endpoint: '/api/v1/jobs',
+      method: 'POST',
+    });
+    expect(response.status).toBe(201);
   });
 });

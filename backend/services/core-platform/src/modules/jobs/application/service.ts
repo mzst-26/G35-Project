@@ -101,14 +101,31 @@ export class JobsService {
   private scopeListFilters(filters: JobFilters, requester: AuthenticatedUser): JobFilters {
     if (requester.role === UserRole.RECRUITER) {
       const companyId = filters.companyId ?? requester.companyId;
-      if (!companyId || !requester.companyId || companyId !== requester.companyId) {
+      
+      // Provide detailed error message to help with debugging
+      if (!requester.companyId) {
+        throw new ForbiddenError(
+          "Your company ID could not be resolved. Please contact support or log out and in again."
+        );
+      }
+      
+      if (!companyId) {
         throw new ForbiddenError("You may only list jobs for your company.");
       }
+      
+      if (companyId !== requester.companyId) {
+        throw new ForbiddenError(
+          `You may only access jobs for company ${requester.companyId}, not ${companyId}.`
+        );
+      }
+      
       return { ...filters, companyId };
     }
     if (requester.role === UserRole.TRADE) {
       if (!requester.workerId) {
-        throw new ForbiddenError("Worker context required.");
+        throw new ForbiddenError(
+          "Your worker ID could not be resolved. Please contact support or log out and in again."
+        );
       }
       return { ...filters, assignedWorkerId: requester.workerId };
     }
