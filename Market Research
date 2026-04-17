@@ -1,0 +1,198 @@
+Chapters
+
+1. Industry and Market Size
+
+2. Current Behaviour and Pain Points
+
+3. Competitor Analysis
+
+4. Pricing and Willingness To Pay
+
+5. Verification and Trust
+
+6. Regulatory and Legal
+
+7. Product Validation
+
+8. Business Feasibility
+
+9. Sources
+
+1. Industry and Market Size
+As of 2024, there are 191,441 businesses in the UK in the construction industry with 1-49 employees [1]. There are 676,134 self-employed people in the construction industry [2], this means that both sides of the market have sufficient stock. Our target market would be self-employed construction contractors. This makes up 37% of the construction workforce [3]. This is a significant %, especially in London and the South West where these %’s are higher (40% and 44% respectively) meaning these two areas would be more ideal to target. As well as this, labour shortages are common with these companies, meaning that there is a search for labour with over 140,000 job vacancies [4]. In terms of the most in-demand trades, this seems to be in renewable energy. However this is a bit niche so in terms of general trades, it is Electricians and Plumbers [5]. The need for construction workers is only growing, with over 1/3 of the current workforce retiring by 2035 [4]. Currently, companies waste massive amounts of time and money on bad contractors. This means that there is a serious problem with consistent losses from a poor pool of contractors, potentially highlighting the need for a service that provide a pool of high quality contractors [6].
+
+2. Current Behaviour and Pain Points
+Currently contractors find workers through multiple methods, either having their own trusted pool or, if not, using online sites. Sites such as Indeed connect workers with construction companies. The down sides of these apps is the lack of vetting, it is hard to find reliable work through these sites. Word of mouth is also common. This is to say, there is a lack of a source of reliably high-quality workers. The search can take a while, as the company has to attract / contact workers, screen these workers and then onboard them. With our system these steps would be streamlined. These methods are also very expensive, for example, lead generation sites such as Bark charge between £5 and £50 per lead. These leads are rarely converted, meaning a contractor can spend £100’s - £1000’s for potentially 0 return [7]. There are hiring sites such as Checkatrade that has a “robust vetting process”. Checkatrade is a hiring site that seems to conduct robust checks for qualifications claimed, background information and criminal history. However they do not only allow highly qualified people on to the site and they also have a free market which allows tradesmen to drive up prices. Checkatrade also charges between £30-£150 a month for the tradespeople [8].
+
+On the side of the tradespeople, there is not often a shortage of work itself (due to the shortage typically being of workers themselves). However, there is often a lack of fair disparity of pay, aka skilled workers are not getting paid fairly in reflection to their less skilled, less qualified counterparts. I believe this lack of fairness would mean that these highly qualified workers would be more keen for a system that evenly distributes work amongst them and their equally highly qualified colleagues. Due to this perceived lack of fairness, I believe these workers would also be eager to verify their qualifications as it will be an easy way for them to stand out.
+
+3. Competitor Analysis
+Checkatrade: £30-£150
+
+Bark: £5-£50 per lead (can be very expensive to find jobs).
+
+MyBuilder: Pays per lead that the worker is shortlisted for.
+
+Checkatrade offers a fixed monthly premium, which seems a much more economic method for most contractors, however they charge this fixed monthly fee per trade. Meaning, if you are a general handyman it can be very expensive to advertise yourself for work. Bark charges per lead, whether you convert it or not which can add up to £100’s or more before conversion of a lead. MyBuilder is similar, however a shortlisted lead is better and more likely to be converted. The Bark-style system does not work for those with limited resources, it also works using competitive bidding which relies on the company’s response time. This makes it very difficult to get leads for small companies that don’t have the ability to pay someone to exclusively monitor that site. This is where we believe our automatic matching algorithm comes in. Not only does it increase fairness of job distribution, but it guarantees work and removes the need to constantly monitor the site.
+
+The thoroughness of vetting between these sites varies, with Checkatrade being the most intense. Checkatrade includes ID verification, proof of address, company history checks, relevant qualifications, insurance, references [9]. If we are advertising ourselves as a site that conducts thorough checking to only allow high-quality workers, this is the standard we would have to match.
+
+In terms of market share, there are some big competitors with MyBuilder holding 35%, Rated People at 28% and Checkatrade at 22% [10]. There is strong evidence that tradespeople are leaving these sites due to poor quality, for example poor leads that they have paid for with customers that are unresponsive or just browsing [11].
+
+4. Pricing and Willingness To Pay
+Key market facts (UK, 2023–2025 data points)
+
+Typical day rates for common trades sit roughly in these ranges (varies by region & specialisation): electricians ≈ £125–£600/day (averages reported around £300–£400/day); plumbers ≈ £250–£375/day; general labour/day rates lower. These are market ranges — London and specialised commercial work are at the high end [12], [8].
+
+Implications for pricing model
+
+Companies already accept paying roughly the equivalent of these day rates when they need guaranteed skilled labour.
+
+Platform monetization options that are realistic:
+
+Subscription for companies for faster/priority fulfilment (monthly fee). Competitors like Checkatrade use subscriptions; MyBuilder uses pay-per-shortlist [8].
+
+Fee/penalty collections from trades (risky — see legal section).
+
+Price sensitivity tests you must run immediately:
+
+How much extra will a company pay above market rate for guaranteed vetted labour and instant booking? (Likely in % terms: test +5%, +10%, +20%.)
+
+How much would trades pay to be paid their expected rate and for guaranteed work.
+
+5. Verification and Trust
+What companies commonly expect when hiring a trader (practical checklist)
+
+Public Liability Insurance (commonly £1M–£5M depending on job risk). Employers often ask to see policy certificates [13].
+
+Qualifications / trade certs (e.g., NVQ, City & Guilds, ECS/CSCS card in construction contexts) and membership of trade bodies (where applicable).
+
+References / past work / verified reviews — core trust signal on platforms like Checkatrade [8].
+
+What verification steps we should include in the MVP (minimum requirements)
+
+Insurance verification — require trades to upload insurer certificate (policy number, insurer contact). Validate by API or manual phone/email check. This is non-negotiable for companies and protects your platform [14].
+
+Identity + right-to-work check — basic identity documents.
+
+Qualifications & trade-specific evidence — upload certificates/photos; do spot checks for high-risk trades.
+
+References / 1–3 job references — contact at least one.
+
+Optional: Basic DBS for trades that will work in sensitive settings (offer as an optional “badge”) [15].
+
+Operational realities (time & cost)
+
+Manual verification is labour-intensive. Expect 15–90 minutes of admin per worker for document review + calls (depends on automation). If you pay a verifier operator £15–25/hr, that’s ~£5–£40 in labour per worker just for manual checks — plus costs for any third-party DB/identity services. We need to budget for this or use automated verification partners. Initially, full verification process will not be implemented into MVP, only certain checks. We will slowly add to this and streamline verification process.
+
+Show core proof immediately on listings: insurance coverage, qualification badges, two-line verified statement + one customer review.
+
+Allow companies to request additional documents if needed for specific jobs (e.g., DBS for school jobs).
+
+6. Regulatory and Legal
+Employment agency / matching laws
+
+If we act as an intermediary matching workers to hirers for pay, UK law treats many such businesses as employment agencies / employment businesses, which are regulated under the Employment Agencies Act 1973 and Conduct Regulations. This brings duties around contracts, transparency, and prohibited practices. We must comply with EAS rules.
+
+Key legal exposures to plan for
+
+Liability for worker conduct / accidents. Clarify in terms of service who is the hirer vs platform responsibility. Typically the hirer bears operational risk, but if you escrow funds or represent guarantees you increase your liability. Require proof of insurance and place clear contract clauses shifting operational liability to the worker/company where lawful. Use robust T&Cs [15].
+
+Penalty / cancellation fees from trades: English courts are hostile to unconscionable “penalty clauses.” A punitive “25–50%” charge risk being struck down unless it is demonstrably a genuine pre-estimate of loss (liquidated damages). Draft any fee/penalty as liquidated damages with clear, proportionate calculation and legal review. Purely punitive fees are high legal risk [16].
+
+Data protection: you’ll store ID docs, DBS info, financial data — comply with GDPR (store minimal personal data; use secure storage; clear retention policies).
+
+Payment & escrow compliance: if you hold client funds in escrow you must meet payment-provider rules and possibly e-money regulations depending on model (Stripe Connect is common for marketplaces). Plan KYC for payouts [15].
+
+Contracts & operational controls I recommend before live launch
+
+Two contracts: one platform provider → company (service agreement + refund/guarantee clauses); another platform → worker (terms that allow allocations, define penalties/liquidated damages, require insurance). Draft both with employment-agency/regulations in mind.
+
+Legal review of penalty & fee clauses to ensure they’re enforceable as liquidated damages and proportionate to demonstrable loss. Use warning modals (UX) but back with lawful contract text [16].
+
+7. Product Validation
+Core hypotheses to test (order these)
+
+Companies will pay a small premium (X%) for instant, vetted labour.
+
+Tradespeople will accept automated allocation if it increases fill-rate and certainty of pay.
+
+Penalty/fee structure can reduce ghosting/rejections without destroying supply.
+
+Metrics to track in pilots
+
+Time from request → allocation (target << current market average)
+
+Acceptance rate (target >85% ideally, for MVP aim 70–80%)
+
+Rejection rate post-allocation (target <10% after penalty enforcement)
+
+Company satisfaction (target high)
+
+Change in average weekly income for trades in pilot (target +10–20%)
+
+Evidence that pilots will be persuasive to investors:
+
+Concrete pilot KPIs like fill-rates, time-saved and verified-hire conversion rates beat incumbent platforms’ lead-to-hire ratios.
+
+Sources showing competitors have lead-quality problems (useful for positioning):
+
+User complaints about lead quality and cost on MyBuilder/Checkatrade suggest room for a better matching product [7].
+
+8. Business Feasibility
+Cost-to-onboard & unit economics (estimates & reasoning)
+
+Verification cost per worker (MVP manual): expect £10–£50 per worker upfront (admin time + spot checks + any third-party checks). If you scale and integrate verification APIs this can drop but expect initial manual expense. (Reason: 15–90 mins admin at £12–£30/hr plus verification tool fees) [17].
+
+Critical mass & network effects
+
+Two-sided platforms need geographic density: you must reach a tipping point in a region where companies see enough available verified workers within acceptable travel distance and trades see enough job volume. Start local (city / county) and expand regionally.
+
+Goal for initial launch region: 100-150 verified trades & 20–50 active companies to get meaningful matching and to demonstrate metrics to investors.
+
+Revenue run-rate sample (back-of-envelope)
+
+Average worker / company £30-£60 per month. With 150-200 users we will generate roughly £5000. Subtract (200 x onboarding cost of £50). To generate £10k/month revenue you need ~223 worker-days booked/month. That translates to ~7.4 worker-days booked per day across the live region. Scale these per region to model expansion.
+
+Go/no-go signals (early)
+
+Go if pilot shows: >70% allocation acceptance, companies willing to pay ≥+10% premium OR accept your commission, and trade retention (repeat acceptance rate) >60% after 3 months.
+
+No-go / pivot if: trades refuse automatic allocation or penalty system at scale; companies insist on seeing/choosing every worker; CAC is >3× LTV in pilot geography.
+
+Sources: competitor pricing models, verification guides, and legal/regulatory references used above [7], [17].
+
+9. Sources
+money.co.uk. (n.d.). UK Small Business Statistics 2022 (SMEs) | money.co.uk. [online] Available at: https://www.money.co.uk/business/business-statistics/small-business-statistics.
+
+Statista. (2024). UK self-employment by industry 2024 | Statista. [online] Available at: https://www.statista.com/statistics/318406/united-kingdom-self-employed-type-of-work-industry-section/ [Accessed 23 Nov. 2025].
+
+News and Views (2023). CIOB says subbies make up 36% of construction workforce. [online] Hudson Contract. Available at: https://www.hudsoncontract.co.uk/news/ciob-says-subbies-make-up-36-of-construction-workforce/ [Accessed 23 Nov. 2025].
+
+PFP Thrive. (2025). The UK Construction Skills Shortage. Available at: https://www.placesforpeople.co.uk/pfp-thrive/insights-tools/the-uk-construction-skills-shortage/.
+
+BridgeYear. (2025). In-Demand Trade Skills and Jobs in 2025 - BridgeYear. [online] Available at: https://www.bridgeyear.org/in-demand-trade-skills-jobs/.
+
+Thornbaker.co.uk. (2025). Thorn Baker Group: The True Cost of a Bad Hire in Construction Recruitment. [online] Available at: https://www.thornbaker.co.uk/blog/2025/09/The_True_Cost_of_a_Bad_Hire [Accessed 24 Nov. 2025].
+
+HomeBuyerLeads (2025). Is Bark Worth the Cost in 2025? A Straightforward Guide for UK Tradespeople. [online] Homebuyerleads.co.uk. Available at: https://www.homebuyerleads.co.uk/resources/is-bark-worth-the-price [Accessed 24 Nov. 2025].
+
+Trade Pixels and Brook, B. (2022). TrustATrader or Checkatrade which is better? - Websites and Marketing for Tradespeople - Trade Pixels. [online] Available at: https://tradepixels.co.uk/trustatrader-or-checkatrade/ [Accessed 24 Nov. 2025].
+
+FMB (2020). Downturn in building work for small building companies, warns FMB. [online] Fmb.org.uk. Available at: https://www.fmb.org.uk/resource/downturn-in-building-work-for-small-building-companies-warns-fmb.html.
+
+Team, A. (2025). UK Trade Directory Comparison 2025: MyBuilder vs Rated People vs CheckATrade. [online] Better Home Hub. Available at: https://betterhomehub.co.uk/platform-comparison/uk-trade-directory-comparison-2025-mybuilder-rated-people-checkatrade-alternatives [Accessed 24 Nov. 2025].
+
+HomeBuyerLeads (2025). Checkatrade Reviews 2025: What Real Tradespeople Are Saying. [online] Homebuyerleads.co.uk. Available at: https://www.homebuyerleads.co.uk/resources/checkatrade-reviews-2025 [Accessed 24 Nov. 2025].
+
+Logic4training. (2024). Average Electrician & Plumber Day Rates UK. [online] Available at: https://www.logic4training.co.uk/blog/business-advice/average-tradesman-day-rates/.
+
+Buildsafe. (2024). Public Liability Insurance for Contractors. [online] Available at: https://buildsafe.co.uk/contractors-public-liability-insurance/.
+
+Everywhen. (2025). Automating Trade Verification and Compliance. [online] Available at: https://everywhen.co.uk/verification-api.
+
+GOV.UK. (2025). Recruiting and managing workers in construction. [online] Available at: https://www.gov.uk/guidance/construction-sector-employment-rules.
+
+Blake Morgan. (2024). Are your penalty clauses enforceable? [online] Available at: https://www.blakemorgan.co.uk/enforceable-liquidated-damages-vs-penalties/.
+
+Rhino Trade Insurance. (2025). The Cost of Compliance for UK Tradespeople. [online] Available at: https://www.rhinotradeinsurance.com/blog/trade-compliance-costs.
