@@ -44,7 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-tester_agent_prompt.txt
 
 #sql files (allow versioned migrations)
 *.sql
@@ -68,4 +67,3 @@ supabase
 backend/services/communications/*
 backend/services/payments-penalties/*
 backend/services/allocation/*
-.cursor/rules/senior-software-engineer.md
