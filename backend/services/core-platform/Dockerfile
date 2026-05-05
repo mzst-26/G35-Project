@@ -1,7 +1,8 @@
 # Core Platform service — production image
 # Build context: backend/
 
-FROM node:20-alpine AS builder
+ARG BASE_IMAGE=node:20-bullseye-slim
+FROM ${BASE_IMAGE} AS builder
 WORKDIR /app
 
 # Workspace manifests first for better layer caching
@@ -33,7 +34,8 @@ RUN npm run build -w @infra/shared-errors \
   && npm run build -w @infra/core-platform-service
 RUN npm prune --omit=dev
 
-FROM node:20-alpine AS runtime
+ARG BASE_IMAGE=node:20-bullseye-slim
+FROM ${BASE_IMAGE} AS runtime
 ARG GIT_SHA
 ARG CORE_PLATFORM_ENV=production
 ENV NODE_ENV=production \
