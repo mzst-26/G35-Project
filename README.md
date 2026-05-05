@@ -39,8 +39,6 @@ Infra saves money for companies and makes money for those who've worked for it i
 - If `dev` has no errors and is ready to merge into `main`, `main` is deployed to the production server.
 
 Testing deployment: https://group35-test.netlify.app/
- 
-Production deployment hosted on Google Cloud Platform: https://group35-p-repo-101930512528.europe-west1.run.app
 
 ## Core Integration Contract
 
