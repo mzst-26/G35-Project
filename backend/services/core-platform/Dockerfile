@@ -43,7 +43,11 @@ ENV NODE_ENV=production \
     PORT=3001 \
     GIT_SHA=${GIT_SHA:-unknown}
 
-RUN addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
+RUN if [ -f /etc/alpine-release ]; then \
+      addgroup -g 1001 -S app && adduser -u 1001 -S app -G app; \
+    else \
+      groupadd -g 1001 -f app || true && useradd -u 1001 -g app -M -s /usr/sbin/nologin app || true; \
+    fi
 
 COPY --from=builder --chown=app:app /app/package.json /app/package-lock.json /app/
 COPY --from=builder --chown=app:app /app/node_modules /app/node_modules
