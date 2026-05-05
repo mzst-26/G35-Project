@@ -56,10 +56,9 @@ uvicorn allocation_service.main:app --reload --app-dir src
 - Error responses exposed to frontend clients should use a stable envelope with `code`, `message`, `requestId`, and `timestamp`.
 
 ## Database SQL Source of Truth
+Repository-level SQL historically lived at repository root `SQL/`. In this monorepo the canonical schema for the Core Platform service is located under the service directory:
 
-Repository-level SQL is centralized in root `SQL/` and should only use:
+- `backend/services/core-platform/SQL/schema.sql`
+- `backend/services/core-platform/SQL/policy.sql`
 
-- `SQL/schema.sql`
-- `SQL/policy.sql`
-
-Do not keep additional migration SQL files in this repository; update canonical schema and policy files directly.
+If you intend to modify the database schema for core-platform, update the files in that service and follow its migration process. Some tests or tooling may still expect a top-level `SQL/` path; if you rely on that convention either create a small redirect `SQL/README.md` at the repo root explaining the service location, or add a lightweight symlink named `SQL` that points to `backend/services/core-platform/SQL/`.
